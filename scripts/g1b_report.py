@@ -118,7 +118,7 @@ def main() -> int:
     L.append("| 项 | 值 |\n|---|---|")
     L.append(f"| 机器 | {H.get('chip')}，{H.get('gpu_cores')} 核 GPU，{(H.get('physical_memory_bytes') or 0)/2**30:.0f} GiB，macOS {H.get('macos')} |")
     L.append(f"| torch / transformers / Python | {S.get('torch')} / {S.get('transformers')} / {H.get('python')}；MPS；fallback 与内存保护环境变量未设置 |")
-    L.append(f"| 模型 | {info.get('model_id')} @ `{info.get('config_commit_hash')}`（tokenizer 同 revision）；{info.get('architecture')}，attn `{info.get('attn_implementation')}` |")
+    L.append(f"| 模型 | {info.get('model_id')} @ `{info.get('resolved_model_commit')}`（权重与 tokenizer 快照同一 commit：{info.get('resolved_weights_commit') == info.get('resolved_model_commit') == info.get('resolved_tokenizer_commit')}）；{info.get('architecture')}，attn `{info.get('attn_implementation')}` |")
     L.append(f"| 形状（从 config 读取并与参数形状核对） | {info.get('num_hidden_layers')} 层，{info.get('num_attention_heads')} 查询头 / {info.get('num_key_value_heads')} KV 头，head_dim {info.get('head_dim')}，hidden {info.get('hidden_size')}，词表 {info.get('vocab_size')}，参数 {(info.get('num_parameters_total') or 0)/1e6:.1f} M（独立存储 {(info.get('num_parameters_unique_storage') or 0)/1e6:.1f} M） |")
     if manifests["benchmarks"]:
         m0 = manifests["benchmarks"][0]

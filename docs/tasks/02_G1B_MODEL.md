@@ -1,6 +1,6 @@
 # 后续任务：G1b模型集成
 
-状态：**UNLOCKED（2026-10-17，由 G0/G1a 证据解锁；PR #1 合并提交 `0798aa7`），进行中**，分支 `task/g1b-qwen-mac`。`03_G2_TO_G5.md` 仍为 BLOCKED。
+状态：**DONE（2026-10-16/17，分支 `task/g1b-qwen-mac`）：工程完成；性能 `correct_but_not_faster`（32K ρ=1/32 整步 D/A 0.930，16K 1.054，8K 1.210），按预登记规则收口速度主线。** 证据：`reports/g1b_mac_m4max.md`、`reports/cards/G1b_mac_m4max.md`、`reports/02_qwen_integration_and_decode.html`。`03_G2_TO_G5.md` 仍为 BLOCKED（不以速度为前提进入 G2；方向由用户决定）。
 
 从0.6B单模型开始。核对官方revision和实际q/k/v/o、归一化、RoPE与cache接口，冻结主体，只替换self_attn读取部分。先dense封装与未改原模型数值对应，再加D。
 
