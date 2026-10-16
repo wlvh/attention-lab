@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Prepare standard notebook renderer
         run: python3 -m pip install 'nbconvert==7.17.1' 'nbformat==5.10.4'
-      - name: Snapshot supplied public source and standard renderer output
+      - name: Snapshot linked Chinese source and standard renderer output
         run: |
           mkdir -p source-bases
           python3 - <<'PY'
@@ -20,7 +20,7 @@ jobs:
           import nbformat
           from nbconvert import HTMLExporter
           root=pathlib.Path('source-bases')
-          url='https://huaweidata.com/column/qkv-transformer-computation/'
+          url='https://huaweidata.com/zh/column/qkv-transformer-computation/'
           request=urllib.request.Request(url,headers={'User-Agent':'attention-lab-source-check'})
           with urllib.request.urlopen(request,timeout=40) as r:
               data=r.read(2*1024*1024)
