@@ -80,18 +80,13 @@ def main() -> int:
     ap.add_argument("--skip-compile", action="store_true")
     a = ap.parse_args()
 
-    if os.environ.get("PYTORCH_ENABLE_MPS_FALLBACK") == "1":
-        print("Refusing: PYTORCH_ENABLE_MPS_FALLBACK=1 would hide unsupported MPS ops behind CPU fallback.")
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+    from attention_lab import runinfo   # one shared environment guard for G0, G1a and the supplement
+    try:
+        runinfo.refuse_unsafe_env()
+    except RuntimeError as e:
+        print(f"Refusing: {e}")
         return 2
-    hw = os.environ.get("PYTORCH_MPS_HIGH_WATERMARK_RATIO")
-    if hw is not None:
-        try:
-            hw_off = float(hw) == 0.0          # "0", "0.0", "0e0" all disable the guard
-        except ValueError:
-            hw_off = False
-        if hw_off:
-            print("Refusing: PYTORCH_MPS_HIGH_WATERMARK_RATIO=0 disables the MPS memory guard.")
-            return 2
 
     import torch
     import torch.nn.functional as F

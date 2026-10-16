@@ -7796,7 +7796,7 @@ a.anchor-link {
 <!-- End of mermaid configuration --></head>
 <body class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
 <main>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=89027bd0">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9164093c">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7814,7 +7814,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=bc26db40">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d62d16cd">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7824,7 +7824,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=dbd22388">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=0a755ea8">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7866,7 +7866,7 @@ G1a runs: g1a-mac-20261016T145200Z-p1, g1a-mac-20261016T145616Z-p2, g1a-mac-2026
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=b04e35ab">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=aebbd53a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7905,7 +7905,7 @@ src/attention_lab/decode.py     跑分时 f0dde0182b1c  当前 f0dde0182b1c  一
 src/attention_lab/full.py       跑分时 b3b0f6c8cce5  当前 b3b0f6c8cce5  一致
 src/attention_lab/indexer.py    跑分时 911db9e5af2b  当前 911db9e5af2b  一致
 src/attention_lab/reference.py  跑分时 bdd13df4ed5c  当前 bdd13df4ed5c  一致
-src/attention_lab/runinfo.py    跑分时 3d1d4cfbcbf5  当前 3d1d4cfbcbf5  一致
+src/attention_lab/runinfo.py    跑分时 3d1d4cfbcbf5  当前 9d38b853cf6b  不同
 src/attention_lab/selection.py  跑分时 a0dbe7aa0f0b  当前 a0dbe7aa0f0b  一致
 src/attention_lab/sparse.py     跑分时 bbe8805b45a4  当前 bbe8805b45a4  一致
 
@@ -7917,18 +7917,18 @@ src/attention_lab/sparse.py     跑分时 bbe8805b45a4  当前 bbe8805b45a4  一
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ad4915f2">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1057b40f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>读法。</strong> <code>src/attention_lab/*.py</code> 与跑分时完全一致；<code>bench/microbench.py</code> 在跑分后改过一处，diff 文件记录了那一行（manifest 里路径参数的去家目录处理），不涉及计时或执行路径。这是 PR #1 评审要求补上的证据链：<strong>结果页展示的代码，必须是产生结果的代码</strong>。</p>
+<p><strong>读法。</strong> 跑分时与当前源码有两处不同，都有记录：<code>bench/microbench.py</code> 在跑分后改过一行（manifest 路径参数的去家目录处理，见 <code>reports/provenance/microbench_post_run_edit.diff</code>）；<code>src/attention_lab/runinfo.py</code> 在 PR #1 复审后修正了内存保护环境变量的数值解析，该函数只在启动时检查环境变量，不参与任何计时。其余文件逐字节一致，旧 manifest 不改。这是 PR #1 评审要求补上的证据链：<strong>结果页展示的代码，必须是产生结果的代码；有差异就记录差异，而不是改记录。</strong></p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=eb3be7cb">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f2cee079">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7939,7 +7939,7 @@ src/attention_lab/sparse.py     跑分时 bbe8805b45a4  当前 bbe8805b45a4  一
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=8fbc4dec">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=e1da40df">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7991,7 +7991,7 @@ def gather_rows(x: torch.Tensor, selected: torch.Tensor, offsets=None) -&gt; tor
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=892e5d31">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9ce29e8e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8001,7 +8001,7 @@ def gather_rows(x: torch.Tensor, selected: torch.Tensor, offsets=None) -&gt; tor
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=2248b88f">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d10837b5">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8050,7 +8050,7 @@ def gather_rows(x: torch.Tensor, selected: torch.Tensor, offsets=None) -&gt; tor
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f9291839">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=81899ca7">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8060,7 +8060,7 @@ def gather_rows(x: torch.Tensor, selected: torch.Tensor, offsets=None) -&gt; tor
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=b610f05e">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=73e2eb15">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8100,7 +8100,7 @@ def gather_rows(x: torch.Tensor, selected: torch.Tensor, offsets=None) -&gt; tor
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ceb4f817">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=bd4dbf94">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8113,7 +8113,7 @@ def gather_rows(x: torch.Tensor, selected: torch.Tensor, offsets=None) -&gt; tor
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7d522d60">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=22ae1847">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8124,7 +8124,7 @@ def gather_rows(x: torch.Tensor, selected: torch.Tensor, offsets=None) -&gt; tor
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=1cf1f8c7">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=54c81f85">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8176,7 +8176,7 @@ def select_rows_kernel(u, zT, fixed_rows, off_lo, lo: int, hi: int, k: int) -&gt
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cb012272">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d655fb99">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8186,7 +8186,7 @@ def select_rows_kernel(u, zT, fixed_rows, off_lo, lo: int, hi: int, k: int) -&gt
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=57134f6f">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=297bfa27">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8223,7 +8223,7 @@ top-k 下标 [1,8, 1024 ] → 行号 [ 8736 ] → K/V 子集 [1,8, 1092 ,128]
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=17fa7cfa">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d37c1911">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8233,7 +8233,7 @@ top-k 下标 [1,8, 1024 ] → 行号 [ 8736 ] → K/V 子集 [1,8, 1092 ,128]
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=9f2aed23">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=f12194b1">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8282,7 +8282,7 @@ top-k 下标 [1,8, 1024 ] → 行号 [ 8736 ] → K/V 子集 [1,8, 1092 ,128]
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c7a10644">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d5e047df">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8292,7 +8292,7 @@ top-k 下标 [1,8, 1024 ] → 行号 [ 8736 ] → K/V 子集 [1,8, 1092 ,128]
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=39a23706">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=1ccc0bff">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8337,7 +8337,7 @@ A                           109.6    202.9    405.3
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=f70908da">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=a1ffd333">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8375,7 +8375,7 @@ A                           109.6    202.9    405.3
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=bd775c31">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=006677fd">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8388,7 +8388,7 @@ A                           109.6    202.9    405.3
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f7f8c565">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c559e50b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8399,7 +8399,7 @@ A                           109.6    202.9    405.3
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=ee27418f">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=af2e4d43">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8447,7 +8447,7 @@ float32    32768 1/8   |     500.2        606.0      1.21
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=50a4f65c">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=291fc701">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8457,7 +8457,7 @@ float32    32768 1/8   |     500.2        606.0      1.21
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=11df315e">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=6c59ef92">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8495,7 +8495,7 @@ float32    32768 1/8   |     500.2        606.0      1.21
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0d4738fe">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=fa10cae3">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8508,7 +8508,7 @@ float32    32768 1/8   |     500.2        606.0      1.21
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=97c7c836">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0b89e635">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8518,7 +8518,7 @@ float32    32768 1/8   |     500.2        606.0      1.21
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=55e2b21e">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=1248f753">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8561,7 +8561,7 @@ float32    32768 1/8   D_full  |     0.42   0.40–0.46              是        
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=b941746e">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=b539fd02">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8580,7 +8580,11 @@ float32    32768 1/8   D_full  |     0.42   0.40–0.46              是        
     <span class="n">best</span> <span class="o">=</span> <span class="n">layers</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s2">"model"</span><span class="p">]]</span> <span class="o">*</span> <span class="n">ipc</span><span class="p">[</span><span class="sa">f</span><span class="s2">"N</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">'n'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">][</span><span class="s2">"chain_best_us_per_layer"</span><span class="p">]</span> <span class="o">/</span> <span class="mi">1000</span>
     <span class="n">s1</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">"saved_s1_scenario_ms"</span><span class="p">];</span> <span class="n">t_a</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">"dense_kv_bytes"</span><span class="p">]</span> <span class="o">/</span> <span class="n">bw</span> <span class="o">*</span> <span class="mf">1e3</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">'model'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;11</span><span class="si">}{</span><span class="n">row</span><span class="p">[</span><span class="s1">'n'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;7</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">s1</span><span class="si">:</span><span class="s2">&gt;8.1f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">t_a</span><span class="si">:</span><span class="s2">&gt;10.1f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">best</span><span class="si">:</span><span class="s2">&gt;8.1f</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">s1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">best</span><span class="si">:</span><span class="s2">&gt;+8.1f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">t_a</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">best</span><span class="si">:</span><span class="s2">&gt;+8.1f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">两版预测都没有捕捉到的事实：A 在 8K 只用 110 µs 读完 32 MiB（有效读取超过 300 GB/s），密集内核在短上下文比带宽模型给它的理想时间更快，而 D 的固定底不缩小。"</span><span class="p">)</span>
+<span class="n">A8</span> <span class="o">=</span> <span class="n">get</span><span class="p">(</span><span class="s2">"bfloat16"</span><span class="p">,</span> <span class="mi">8192</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">32</span><span class="p">,</span> <span class="s2">"A"</span><span class="p">)[</span><span class="s2">"median"</span><span class="p">];</span> <span class="n">D8</span> <span class="o">=</span> <span class="n">get</span><span class="p">(</span><span class="s2">"bfloat16"</span><span class="p">,</span> <span class="mi">8192</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">32</span><span class="p">,</span> <span class="s2">"D_full"</span><span class="p">)[</span><span class="s2">"median"</span><span class="p">]</span>
+<span class="n">kv8</span> <span class="o">=</span> <span class="n">get</span><span class="p">(</span><span class="s2">"bfloat16"</span><span class="p">,</span> <span class="mi">8192</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">32</span><span class="p">,</span> <span class="s2">"D_full"</span><span class="p">)[</span><span class="s2">"cell"</span><span class="p">][</span><span class="s2">"kv_bytes_per_layer"</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">预测偏差在哪一侧？8K 处：读 </span><span class="si">{</span><span class="n">kv8</span><span class="o">/</span><span class="mi">2</span><span class="o">**</span><span class="mi">20</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> MiB 的情景值 </span><span class="si">{</span><span class="n">kv8</span><span class="o">/</span><span class="n">bw</span><span class="o">*</span><span class="mf">1e6</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> µs，A 实测 </span><span class="si">{</span><span class="n">A8</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> µs，比情景值慢，有效读取约 </span><span class="si">{</span><span class="n">kv8</span><span class="o">/</span><span class="p">(</span><span class="n">A8</span><span class="o">*</span><span class="mf">1e-6</span><span class="p">)</span><span class="o">/</span><span class="mf">1e9</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> GB/s。"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"G0 的最优链式只含索引打分、top-k、取 K/V：</span><span class="si">{</span><span class="n">ipc</span><span class="p">[</span><span class="s1">'N8192'</span><span class="p">][</span><span class="s1">'chain_best_us_per_layer'</span><span class="p">]</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> µs；G1a 的 D_full 还含索引查询投影、索引键追加、合并与子集注意力：</span><span class="si">{</span><span class="n">D8</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> µs。"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"偏差来自 D 一侧的成本范围不完整，不是 A 比情景更快。比较预测与实测，先对齐两边包含哪些工作。"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8603,26 +8607,28 @@ Qwen3-4B      8192 |      2.6        3.1      3.5 |     -0.9     -0.4
 Qwen3-4B     16384 |      5.2        6.2      4.1 |     +1.1     +2.1
 Qwen3-4B     32768 |     10.4       12.4      6.0 |     +4.5     +6.4
 
-两版预测都没有捕捉到的事实：A 在 8K 只用 110 µs 读完 32 MiB（有效读取超过 300 GB/s），密集内核在短上下文比带宽模型给它的理想时间更快，而 D 的固定底不缩小。
+预测偏差在哪一侧？8K 处：读 32 MiB 的情景值 86 µs，A 实测 110 µs，比情景值慢，有效读取约 306 GB/s。
+G0 的最优链式只含索引打分、top-k、取 K/V：97 µs；G1a 的 D_full 还含索引查询投影、索引键追加、合并与子集注意力：195 µs。
+偏差来自 D 一侧的成本范围不完整，不是 A 比情景更快。比较预测与实测，先对齐两边包含哪些工作。
 </pre>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e9d463af">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c2e1ac3b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p><strong>G0 的两处预测失误。</strong> SDPA 的 <code>enable_gqa=True</code> 在 MPS 上可用（预测不可用）；<code>torch.compile</code> 首次编译 1 到 4 秒（预测 20 到 90 秒）。<strong>G1a 的两处失误。</strong> 链式高于分段之和（预测低于）；32K、ρ=1/8 的 D_full 预测通过，实测持平。</p>
-<p><strong>公式更正说明的是什么。</strong> 比较两条路径时，两边必须用同一套成本划分。S1 已经把索引读与入选 KV 读按理想载荷扣掉，再减去包含同一批工作的实测链式，就扣了两次。更正后 D 更有利，三个长度的方向不变；但 G1a 实测 8K 与 16K 比两版预测都更不利，原因在上一格的最后一行。</p>
+<p><strong>公式更正说明的是什么。</strong> 比较两条路径时，两边必须用同一套成本划分。S1 已经把索引读与入选 KV 读按理想载荷扣掉，再减去包含同一批工作的实测链式，就扣了两次。更正后 D 更有利，三个长度的方向不变；但 G1a 实测 8K 与 16K 比两版预测都更不利。上一格末尾给出了原因：不是 A 比带宽情景更快（A 实测 110 µs，比 86 µs 的情景值慢），而是 G0 的链式成本范围不完整，漏掉了索引查询投影、索引键追加、合并与子集注意力。这张 G0 表因此仍不是完整解码步的净收益预测。本页第一版把 110 与 86 的快慢写反了，复审指出后更正；错的那句保留在 git 历史里。</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ec0f56e3">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2ecc481b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

@@ -29,3 +29,7 @@ diff /tmp/g1a_check/g1a.md reports/g1a_mac_m4max.md
 ```
 
 旧 manifest 中的哈希没有被改写；这是恢复可追溯性，不是修改历史记录。
+
+## 跑分后对 `src/attention_lab/` 的改动
+
+2026-10-17 复审后，`src/attention_lab/runinfo.py` 的 `refuse_unsafe_env` 由字符串比较改为数值解析（拒绝 `"0.0"`、`"0e0"` 等零值写法）。该函数只在进程启动时检查环境变量，不参与任何计时或注意力计算；因此 G1a 与补测 manifest 中记录的 `runinfo.py` 哈希与当前文件不同，旧 manifest 不改。已有运行都没有设置这些变量，这一遗漏没有影响任何已报告的耗时。

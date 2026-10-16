@@ -114,10 +114,20 @@ def main() -> int:
                      f"{eq.get('explicit_fold_vs_dense_reference_fp32_max_abs', float('nan')):.1e} | {eq.get('sdpa_fold_vs_dense_reference_fp32_max_abs', float('nan')):.1e} | {eq.get('sdpa_gqa_vs_dense_reference_fp32_max_abs', float('nan')):.1e} |")
 
     L.append("\n## 4. 读法与边界\n")
-    L.append("- 第 1 节回答\"正式比值是不是顺序造成的\"：看交错块的配对比值是否与正式六进程的比值落在同一范围。")
-    L.append("- 第 2 节回答\"容量松弛是否自带惩罚\"：同数据、同时常驻、交错执行下，松弛/紧凑接近 1 表示正式诊断里的差异来自数据、内存或时序而不是跨步视图本身。")
+    L.append("- 第 1 节回答\"正式比值是不是顺序造成的\"：交错块的配对比值与正式六进程落在同一范围，所以**本次补测没有推翻原候选的收益，结果不依赖原来的固定执行顺序**。它不证明所有运行状态都无影响，40 个 cycle 也不是 40 次独立实验。32K、ρ=1/8 的配对中位 0.89 到 0.90、部分 cycle 高于 0.90，正式六进程按进程中位为 1.02：这一档是临界、对运行状态敏感，不是\"没有收益\"。进程中位与 cycle 配对是两种统计单位，分别展示，不混为同一验收规则。")
+    L.append("- 第 2 节回答\"容量松弛是否自带惩罚\"：同数据、同时常驻、交错执行下，松弛/紧凑接近 1，**本次条件下没有复现**正式诊断里的 +22%；那次差异来自数据、内存或时序。连续生成下合法长度增长、不同容量档位与编译行为仍属 G1b，未被本次排除。")
     L.append("- 第 3 节回答\"是否存在更快的合法 A\"：只在所比较的实现中，不是穷尽。")
-    L.append("- fp32 的 A 在 32K 跨运行漂移明显（正式 1426 µs，本次约 880 到 920 µs），bf16 的 A 漂移在 5% 内。fp32 通过格仍不作为 bf16 模型的依据；bf16 的结论不受此影响。")
+    drift = {}
+    for dtype in dtypes:
+        for N in lengths:
+            fr = formal_ratio.get((dtype, N, rhos[0], "D_full")) if rhos else None
+            A = cell(dtype, N, rhos[0], "order_seq:A", "sequential") if rhos else None
+            if fr and A:
+                drift.setdefault(dtype, []).append((N, A["us_per_layer_median"] / fr["A_us"]))
+    for dtype, items in drift.items():
+        worst = max(abs(1 - x) for _, x in items)
+        L.append(f"- 跨运行漂移，{dtype} 的 A 本次/正式：" + "、".join(f"{N}→{x:.2f}" for N, x in items) + f"，最大偏离约 {100*worst:.0f}%。")
+    L.append("- fp32 的 A 在 32K 跨运行漂移最大，正式 1426 µs 对本次约 880 到 920 µs；fp32 通过格仍不作为 bf16 模型的依据，bf16 的结论不受此影响，但 bf16 的 A 同样有约一成的跨运行偏离。")
     L.append("- 每层 µs 仍是单层读取阶段；p95 为 pass 耗时 ÷ 层数的 p95。没有模型、任务、质量结论。")
     a.out.write_text("\n".join(L) + "\n", encoding="utf-8")
     rel = lambda q: str(q.resolve().relative_to(ROOT)) if q.resolve().is_relative_to(ROOT) else str(q)  # noqa: E731

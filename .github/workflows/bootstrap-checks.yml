@@ -37,7 +37,12 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
           python -m pip install numpy pytest
-      - name: Run contract tests on CPU (fails if they are skipped)
+      - name: Run contract tests on CPU (fails if they fail or are skipped)
+        shell: bash
         run: |
+          set -euo pipefail
           python -m pytest -q tests -rs 2>&1 | tee pytest.log
-          if grep -q "torch not installed" pytest.log; then echo "contract tests were skipped" && exit 1; fi
+          if grep -q "torch not installed" pytest.log; then
+            echo "contract tests were skipped"
+            exit 1
+          fi

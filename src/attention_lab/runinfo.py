@@ -84,9 +84,23 @@ def torch_env(torch) -> dict:
     return out
 
 
+def is_zero_ratio(value) -> bool:
+    """True when the environment value parses to numeric zero ("0", "0.0", "0e0", "-0.0", " 0 ").
+
+    PR #1 re-review: the earlier string comparison `== "0"` let "0.0" and "0e0" through. Values that do not parse
+    as a number are not treated as zero here; torch applies its own parsing to them.
+    """
+    if value is None:
+        return False
+    try:
+        return float(str(value).strip()) == 0.0
+    except ValueError:
+        return False
+
+
 def refuse_unsafe_env() -> None:
     """Pure-MPS runs must not hide unsupported ops behind CPU fallback or disable the memory guard."""
     if os.environ.get("PYTORCH_ENABLE_MPS_FALLBACK") == "1":
         raise RuntimeError("PYTORCH_ENABLE_MPS_FALLBACK=1 would hide unsupported MPS ops behind CPU fallback")
-    if os.environ.get("PYTORCH_MPS_HIGH_WATERMARK_RATIO") == "0":
-        raise RuntimeError("PYTORCH_MPS_HIGH_WATERMARK_RATIO=0 disables the MPS memory guard")
+    if is_zero_ratio(os.environ.get("PYTORCH_MPS_HIGH_WATERMARK_RATIO")):
+        raise RuntimeError("PYTORCH_MPS_HIGH_WATERMARK_RATIO is zero, which disables the MPS memory guard")
