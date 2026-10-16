@@ -8,8 +8,15 @@ from pathlib import Path
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
-from attention_lab import runinfo  # noqa: E402
+
+# Load runinfo.py by path: importing the attention_lab package would pull in its torch-dependent modules, and this
+# guard must be testable on the CI image that has no torch.
+import importlib.util  # noqa: E402
+
+_spec = importlib.util.spec_from_file_location("attention_lab_runinfo_under_test", ROOT / "src/attention_lab/runinfo.py")
+runinfo = importlib.util.module_from_spec(_spec)
+sys.modules[_spec.name] = runinfo
+_spec.loader.exec_module(runinfo)
 
 
 class EnvGuardTests(unittest.TestCase):
