@@ -1,37 +1,44 @@
 # 接力状态
 
-更新日期：2026-10-16。状态：**G0_DONE_ON_MAC / G1A_NOT_RUN**。
+更新日期：2026-10-16。状态：**G0_DONE_ON_MAC / G1A_DONE_ON_MAC（通过，continue；01 课 Notebook 未做）**。
 
 ## 远端与发布
 
-用户创建的公开仓库：`wlvh/attention-lab`，默认分支 `main`。首次入口提交为 `95885aa2c24d692c595c3ea88024a6c836ffdea6`。本轮工作在本地分支 `task/g0-g1a-mac`，尚未提交，等待用户决定 commit 与 PR。
+用户创建的公开仓库：`wlvh/attention-lab`，默认分支 `main`。首次入口提交为 `95885aa2c24d692c595c3ea88024a6c836ffdea6`。G0 已在本地分支 `task/g0-g1a-mac` 提交为 `ae1c0a8`；G1a 的源码、测试、基准、报告与卡片在同一分支**尚未提交**，等待用户决定 commit 与 PR。
 
 ## 已准备
 
 当前有效方案、背景与决策记录、原始 v3/roofline/教材、Mac 操作手册、Codex 接力指令、Notebook 交付规范、预算、测量协议、分关任务书，以及预测核算、来源和链接校验工具。
 
-## 本轮完成：G0（Mac M4 Max，2026-10-16）
+## G0（Mac M4 Max，2026-10-16，已提交 `ae1c0a8`）
 
-- 环境：`~/Projects/attention-lab/.venv`，Python 3.12.10，torch 2.14.1，transformers 5.20.0；MPS 可用；依赖锁 `requirements/lock-macos-arm64.txt`。
-- 能力：fp32/fp16/bf16 matmul、top-k、index_select、mask softmax、SDPA（含 `enable_gqa=True` 与 bool mask）、小索引矩阵 KL 反向、`torch.compile` 逐元素函数均在 MPS 上通过并与 CPU 对照一致；fp64 不支持。
-- 带宽：只读约 440 到 456 GB/s，copy 约 400 到 413 GB/s，注意力形状扫描 382 到 419 GB/s（标称 546）。热读与轮换工作集无差别。
-- 关键发现：索引路径成本由原语决定。`torch.gather` 配展开下标 673 µs/层（32K），拉平 `index_select` 27 µs/层；索引键预转置后打分从 137 降到 58 µs/层。最优链式每层 97 / 115 / 166 µs（8K / 16K / 32K）。
-- 回填预测：以 390 GB/s 代入 roofline，叠加实测链式成本，eager 下 8K 持平偏负、16K 持平偏正、32K 正收益；详见 `reports/g0_mac_m4max.md` 第 6 节。预测写于运行前，见 `reports/cards/G0_mac_m4max.md`。
-- 证据：`reports/g0_mac_m4max.md`、`reports/g0_probe_mac_m4max.json`、`reports/g0_inventory_mac_m4max.json`、`reports/g0_roofline_mac_bw390.{md,json}`、`scripts/g0_probe.py`、`scripts/g0_report.py`；原始日志在本地 `runs/`。
-- 消耗：约 13 分钟设备活跃时间，现金 0。无模型下载，无训练，无云。
+MPS 能力、带宽、提交开销与索引路径原语成本；关键发现是 `torch.gather` 配展开下标比拉平 `index_select` 慢 25 倍、索引键预转置后打分快一倍。详见 `reports/g0_mac_m4max.md` 与 `reports/cards/G0_mac_m4max.md`。
+
+## 本轮完成：G1a（Mac M4 Max，2026-10-16 14:51 到 15:22 UTC）
+
+- 实现（`src/attention_lab/`）：`selection.py`（F、候选域、k0 规则）、`reference.py`（dense_reference、dense_mask_reference）、`sparse.py`（拉平 index_select 取行、子集注意力、gather_attention）、`full.py`（A 的 fold / enable_gqa / repeat / explicit 变体）、`indexer.py`（分组索引器，索引键 `[B,G,r,C]` 连续）、`decode.py`（一步解码的 A 与 D，D 只对候选域打分并做一次 top-k）、`runinfo.py`（来源记录）。
+- 正确性：`tests/test_attention_contracts.py` 10 项契约，CPU float64 与 MPS float32 / bfloat16 全部通过，容差预设未改：全选对应完整注意力、同子集 gather 对应 dense mask、未选行填 NaN 不影响结果、未写入槽与未来位置不影响结果、单查询长历史不套方阵因果遮罩、原位置不重编号、top-k 与蛮力一致且只扫候选域、top-k 只调用一次且不用 `torch.gather`、索引表布局与分块构建、k 规则与边界。全仓 30 项测试通过。
+- 微基准（`bench/microbench.py`）：G=8、H=32、d=128、r=32，N 8K/16K/32K，ρ 1/32 与 1/8，bf16 与 fp32，36 层轮换与热工作集，预热 20、正式 50，前后同步；5 个独立 eager 进程 + 1 个 eager+compile 进程。
+- 结果（bf16、eager、轮换，每层 µs，6 进程中位数）：8K A 110 / D_full 195（1.78）；16K A 203 / D_full 222（1.10）；**32K A 405 / D_full 297（0.74，6/6 进程 ≤ 0.90）**，D_read 233（0.58）。32K ρ=1/8：D_full 411（1.02，不通过）、D_read 337（0.84，通过）。fp32 下 16K ρ=1/32 与 32K 两档通过，但 fp32 的 A 自身低效（32K 1426 µs），不作 bf16 依据。剖析：6 个 (dtype, N) 的 D 都没有 N×128 的 matmul；A 的 SDPA 调度为 `_scaled_dot_product_attention_math_for_mps`。compile：36 格全部 1 graph、0 break、逐位相同、compile/eager 0.81 到 1.12，不改格局。
+- 判定：**通过，continue**。预测对照：方向全部成立；32K ρ=1/8 的 D_full 预测 0.81、实测 1.02（预测错误）；链式时间高于分段之和（与"重叠"预测相反）；`enable_gqa` 在 32K 慢 65%；容量 N+2048 切片视图的代价在进程间 0% 到 40% 不一致，G1b 须复测。
+- 证据：`reports/g1a_mac_m4max.md`（由 `scripts/g1a_report.py` 生成）、`reports/g1a_summary_mac_m4max.json`、`reports/g1a_manifest_mac_m4max.json`、`reports/cards/G1a_mac_m4max.md`（预测写于运行前）；原始 `runs/g1a-mac-20261016T145200Z-p1` … `151108Z-p5`、`151610Z-compile`（本地，含 microbench.jsonl、summary.json、profiles.txt、manifest.json），日志 `runs/g1a-formal.log`。
+- 消耗：约 30 分钟设备活跃时间，现金 0。无模型下载，无训练，无云。
 
 ## 尚未完成
 
-G1a 单层 A 与 D 微基准（含密集整层实际时间、子集注意力时间、`enable_gqa` 内核剖析）；G1b 起全部；CUDA 轨道未启动；G1 到 G5 的任何速度或质量结论。
+`notebooks/01_environment_and_attention.ipynb` 与已执行 HTML（G1a 任务书要求的首份实验课）；G1b 起全部（模型封装、静态缓存、连续 128 步、重编译与内存增长）；CUDA 轨道未启动；G2 到 G5 的任何质量结论。
 
 ## 下一步
 
-在 `task/g0-g1a-mac` 分支按 `docs/tasks/01_G0_G1A.md` 的 G1a 部分实现 `src/attention_lab/`，遵守 G0 卡片给出的三条实现约束（索引键 `[G, r, N]` 连续；拉平 `index_select` 取 K/V；top-k 只对候选域一次）。先过正确性契约，再测 8K / 16K / 32K。
+1. 用户决定是否提交 G1a 改动（`git add` 下列文件后 commit，不 force push）：`src/attention_lab/`、`tests/test_attention_contracts.py`、`bench/microbench.py`、`scripts/g1a_report.py`、`reports/g1a_*.{md,json}`、`reports/cards/G1a_mac_m4max.md`、`PROJECT_STATUS.md`。
+2. 写 `01_environment_and_attention.ipynb`：只读 `reports/g0_probe_mac_m4max.json` 与 `reports/g1a_summary_mac_m4max.json`，小规模 CPU 反例调用 `attention_lab` 同一实现，导出 HTML。
+3. 解锁 G1b：按 `docs/tasks/02_G1B_MODEL.md` 从 Qwen3-0.6B 开始，性能候选 (N=32768, ρ=1/32, bf16)。
 
 ```bash
 source .venv/bin/activate
-python scripts/g0_probe.py            # 复跑 G0，约 10 秒
-python scripts/g0_report.py           # 由最新 run 重新生成报告
+python -m unittest tests.test_attention_contracts -v     # 契约测试，约 1 秒
+python bench/microbench.py --modes eager --tag pN        # 一个独立 eager 进程，约 5 分钟
+python scripts/g1a_report.py                              # 由全部非 quick run 重新生成报告
 ```
 
 ## 接力格式

@@ -1,0 +1,763 @@
+{
+ "schema_version": 1,
+ "kind": "benchmark",
+ "runs": [
+  {
+   "schema_version": 1,
+   "run_id": "g1a-mac-20261016T145200Z-p1",
+   "kind": "benchmark",
+   "status": "done",
+   "created_at_utc": "2026-10-16T14:52:00+00:00",
+   "git": {
+    "commit": "ae1c0a861ca7f0e501f2ab4557e23eeb1f7a8eea",
+    "branch": "task/g0-g1a-mac",
+    "dirty_files": [
+     "rc/attention_lab/__init__.py",
+     "bench/",
+     "reports/cards/G1a_mac_m4max.md",
+     "scripts/g1a_report.py",
+     "src/attention_lab/decode.py",
+     "src/attention_lab/full.py",
+     "src/attention_lab/indexer.py",
+     "src/attention_lab/reference.py",
+     "src/attention_lab/runinfo.py",
+     "src/attention_lab/selection.py",
+     "src/attention_lab/sparse.py",
+     "tests/test_attention_contracts.py"
+    ],
+    "dirty_diff_sha256": "003c8bf33fc7dbc1df1f8d2e97fae26107187c67459f9b5a622fb2759cc8bd89"
+   },
+   "source_hashes": {
+    "src/attention_lab/__init__.py": "e8257adc5a4c70dd8c477c96bdda2ba60f3956019d7975c141bc24275e236346",
+    "src/attention_lab/decode.py": "f0dde0182b1c9df8b4417a31b1994d86215e0e38ae4e5fd5eb4ed1606cc514ee",
+    "src/attention_lab/full.py": "b3b0f6c8cce5f5abecc55dd07a0aaa14afdc305da5df7a6d2502168ef479d23a",
+    "src/attention_lab/indexer.py": "911db9e5af2b6ddf81fe1424369a55baf60fc878ec849c92b6bfdc860b2dcf85",
+    "src/attention_lab/reference.py": "bdd13df4ed5ced09a7e56d9227a480837b63049ebb4b68145d07f6eb5683c2ec",
+    "src/attention_lab/runinfo.py": "3d1d4cfbcbf5dca90ddc0cdcc007c5d3d12ccdbd5a4b457ef1a2dbb4be419e7c",
+    "src/attention_lab/selection.py": "a0dbe7aa0f0b586c358d633b276c0ed9baf3bbaed18d88d57fbfe9434cea9cfd",
+    "src/attention_lab/sparse.py": "bbe8805b45a4f95ff2aed9c31cdb906fce66ecf4e7e6b31632584abd569aeb55",
+    "bench/microbench.py": "4c1e5b66d998e45501fba3693cc01a691d36ea68aefedda3d495f04b2adbce03"
+   },
+   "config_sha256": "e489acf233a9feb3a906ab66ed6a68285af3fd5daef8f530f3c057be6bbee151",
+   "model_revision": null,
+   "tokenizer_revision": null,
+   "data_sha256": null,
+   "seed": 0,
+   "device": "mps",
+   "host": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "macos": "27.0.1",
+    "python": "3.12.10",
+    "chip": "Apple M4 Max",
+    "gpu_cores": 40,
+    "physical_memory_bytes": 137438953472
+   },
+   "software": {
+    "torch": "2.14.1",
+    "python_executable": "~/Projects/attention-lab/.venv/bin/python",
+    "mps_built": true,
+    "mps_available": true,
+    "env": {
+     "PYTORCH_ENABLE_MPS_FALLBACK": null,
+     "PYTORCH_MPS_HIGH_WATERMARK_RATIO": null,
+     "PYTORCH_MPS_LOW_WATERMARK_RATIO": null,
+     "PYTORCH_MPS_FAST_MATH": null,
+     "TORCH_COMPILE_DEBUG": null
+    },
+    "recommended_max_memory": 115448725504,
+    "current_allocated_memory": 0,
+    "driver_allocated_memory": 475136
+   },
+   "backend": "mps",
+   "dtype": [
+    "bfloat16",
+    "float32"
+   ],
+   "command": "python bench/microbench.py --modes eager --tag p1",
+   "timing_scope": "single layer decode read stage; per pass = layers layer-steps; sync before/after pass",
+   "memory_units": "bytes",
+   "budget": {
+    "cloud_usd_actual": 0,
+    "cloud_usd_committed": 0,
+    "device_seconds": 254.9809882499976
+   },
+   "artifacts": [
+    "microbench.jsonl",
+    "summary.json",
+    "manifest.json",
+    "profiles.txt"
+   ],
+   "args": {
+    "dtypes": [
+     "bfloat16",
+     "float32"
+    ],
+    "lengths": [
+     8192,
+     16384,
+     32768
+    ],
+    "rhos": [
+     0.03125,
+     0.125
+    ],
+    "layers": 36,
+    "groups": 8,
+    "heads": 32,
+    "head_dim": 128,
+    "index_dim": 32,
+    "warmup": 20,
+    "repeats": 50,
+    "modes": [
+     "eager"
+    ],
+    "worksets": [
+     "rotating",
+     "hot"
+    ],
+    "skip_diagnostics": false,
+    "skip_profile": false,
+    "runs_dir": "~/Projects/attention-lab/runs",
+    "seed": 0,
+    "tag": "p1",
+    "quick": false
+   },
+   "limitations": [
+    "random tensors, one layer, batch 1, T=1; no model, no task, no quality statement; MPS only"
+   ],
+   "finished_at_utc": "2026-10-16T14:56:15+00:00"
+  },
+  {
+   "schema_version": 1,
+   "run_id": "g1a-mac-20261016T145616Z-p2",
+   "kind": "benchmark",
+   "status": "done",
+   "created_at_utc": "2026-10-16T14:56:16+00:00",
+   "git": {
+    "commit": "ae1c0a861ca7f0e501f2ab4557e23eeb1f7a8eea",
+    "branch": "task/g0-g1a-mac",
+    "dirty_files": [
+     "rc/attention_lab/__init__.py",
+     "bench/",
+     "reports/cards/G1a_mac_m4max.md",
+     "scripts/g1a_report.py",
+     "src/attention_lab/decode.py",
+     "src/attention_lab/full.py",
+     "src/attention_lab/indexer.py",
+     "src/attention_lab/reference.py",
+     "src/attention_lab/runinfo.py",
+     "src/attention_lab/selection.py",
+     "src/attention_lab/sparse.py",
+     "tests/test_attention_contracts.py"
+    ],
+    "dirty_diff_sha256": "003c8bf33fc7dbc1df1f8d2e97fae26107187c67459f9b5a622fb2759cc8bd89"
+   },
+   "source_hashes": {
+    "src/attention_lab/__init__.py": "e8257adc5a4c70dd8c477c96bdda2ba60f3956019d7975c141bc24275e236346",
+    "src/attention_lab/decode.py": "f0dde0182b1c9df8b4417a31b1994d86215e0e38ae4e5fd5eb4ed1606cc514ee",
+    "src/attention_lab/full.py": "b3b0f6c8cce5f5abecc55dd07a0aaa14afdc305da5df7a6d2502168ef479d23a",
+    "src/attention_lab/indexer.py": "911db9e5af2b6ddf81fe1424369a55baf60fc878ec849c92b6bfdc860b2dcf85",
+    "src/attention_lab/reference.py": "bdd13df4ed5ced09a7e56d9227a480837b63049ebb4b68145d07f6eb5683c2ec",
+    "src/attention_lab/runinfo.py": "3d1d4cfbcbf5dca90ddc0cdcc007c5d3d12ccdbd5a4b457ef1a2dbb4be419e7c",
+    "src/attention_lab/selection.py": "a0dbe7aa0f0b586c358d633b276c0ed9baf3bbaed18d88d57fbfe9434cea9cfd",
+    "src/attention_lab/sparse.py": "bbe8805b45a4f95ff2aed9c31cdb906fce66ecf4e7e6b31632584abd569aeb55",
+    "bench/microbench.py": "4c1e5b66d998e45501fba3693cc01a691d36ea68aefedda3d495f04b2adbce03"
+   },
+   "config_sha256": "e489acf233a9feb3a906ab66ed6a68285af3fd5daef8f530f3c057be6bbee151",
+   "model_revision": null,
+   "tokenizer_revision": null,
+   "data_sha256": null,
+   "seed": 0,
+   "device": "mps",
+   "host": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "macos": "27.0.1",
+    "python": "3.12.10",
+    "chip": "Apple M4 Max",
+    "gpu_cores": 40,
+    "physical_memory_bytes": 137438953472
+   },
+   "software": {
+    "torch": "2.14.1",
+    "python_executable": "~/Projects/attention-lab/.venv/bin/python",
+    "mps_built": true,
+    "mps_available": true,
+    "env": {
+     "PYTORCH_ENABLE_MPS_FALLBACK": null,
+     "PYTORCH_MPS_HIGH_WATERMARK_RATIO": null,
+     "PYTORCH_MPS_LOW_WATERMARK_RATIO": null,
+     "PYTORCH_MPS_FAST_MATH": null,
+     "TORCH_COMPILE_DEBUG": null
+    },
+    "recommended_max_memory": 115448725504,
+    "current_allocated_memory": 0,
+    "driver_allocated_memory": 475136
+   },
+   "backend": "mps",
+   "dtype": [
+    "bfloat16",
+    "float32"
+   ],
+   "command": "python bench/microbench.py --modes eager --tag p2",
+   "timing_scope": "single layer decode read stage; per pass = layers layer-steps; sync before/after pass",
+   "memory_units": "bytes",
+   "budget": {
+    "cloud_usd_actual": 0,
+    "cloud_usd_committed": 0,
+    "device_seconds": 287.3835730840219
+   },
+   "artifacts": [
+    "microbench.jsonl",
+    "summary.json",
+    "manifest.json",
+    "profiles.txt"
+   ],
+   "args": {
+    "dtypes": [
+     "bfloat16",
+     "float32"
+    ],
+    "lengths": [
+     8192,
+     16384,
+     32768
+    ],
+    "rhos": [
+     0.03125,
+     0.125
+    ],
+    "layers": 36,
+    "groups": 8,
+    "heads": 32,
+    "head_dim": 128,
+    "index_dim": 32,
+    "warmup": 20,
+    "repeats": 50,
+    "modes": [
+     "eager"
+    ],
+    "worksets": [
+     "rotating",
+     "hot"
+    ],
+    "skip_diagnostics": false,
+    "skip_profile": false,
+    "runs_dir": "~/Projects/attention-lab/runs",
+    "seed": 0,
+    "tag": "p2",
+    "quick": false
+   },
+   "limitations": [
+    "random tensors, one layer, batch 1, T=1; no model, no task, no quality statement; MPS only"
+   ],
+   "finished_at_utc": "2026-10-16T15:01:04+00:00"
+  },
+  {
+   "schema_version": 1,
+   "run_id": "g1a-mac-20261016T150105Z-p3",
+   "kind": "benchmark",
+   "status": "done",
+   "created_at_utc": "2026-10-16T15:01:05+00:00",
+   "git": {
+    "commit": "ae1c0a861ca7f0e501f2ab4557e23eeb1f7a8eea",
+    "branch": "task/g0-g1a-mac",
+    "dirty_files": [
+     "rc/attention_lab/__init__.py",
+     "bench/",
+     "reports/cards/G1a_mac_m4max.md",
+     "scripts/g1a_report.py",
+     "src/attention_lab/decode.py",
+     "src/attention_lab/full.py",
+     "src/attention_lab/indexer.py",
+     "src/attention_lab/reference.py",
+     "src/attention_lab/runinfo.py",
+     "src/attention_lab/selection.py",
+     "src/attention_lab/sparse.py",
+     "tests/test_attention_contracts.py"
+    ],
+    "dirty_diff_sha256": "003c8bf33fc7dbc1df1f8d2e97fae26107187c67459f9b5a622fb2759cc8bd89"
+   },
+   "source_hashes": {
+    "src/attention_lab/__init__.py": "e8257adc5a4c70dd8c477c96bdda2ba60f3956019d7975c141bc24275e236346",
+    "src/attention_lab/decode.py": "f0dde0182b1c9df8b4417a31b1994d86215e0e38ae4e5fd5eb4ed1606cc514ee",
+    "src/attention_lab/full.py": "b3b0f6c8cce5f5abecc55dd07a0aaa14afdc305da5df7a6d2502168ef479d23a",
+    "src/attention_lab/indexer.py": "911db9e5af2b6ddf81fe1424369a55baf60fc878ec849c92b6bfdc860b2dcf85",
+    "src/attention_lab/reference.py": "bdd13df4ed5ced09a7e56d9227a480837b63049ebb4b68145d07f6eb5683c2ec",
+    "src/attention_lab/runinfo.py": "3d1d4cfbcbf5dca90ddc0cdcc007c5d3d12ccdbd5a4b457ef1a2dbb4be419e7c",
+    "src/attention_lab/selection.py": "a0dbe7aa0f0b586c358d633b276c0ed9baf3bbaed18d88d57fbfe9434cea9cfd",
+    "src/attention_lab/sparse.py": "bbe8805b45a4f95ff2aed9c31cdb906fce66ecf4e7e6b31632584abd569aeb55",
+    "bench/microbench.py": "4c1e5b66d998e45501fba3693cc01a691d36ea68aefedda3d495f04b2adbce03"
+   },
+   "config_sha256": "e489acf233a9feb3a906ab66ed6a68285af3fd5daef8f530f3c057be6bbee151",
+   "model_revision": null,
+   "tokenizer_revision": null,
+   "data_sha256": null,
+   "seed": 0,
+   "device": "mps",
+   "host": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "macos": "27.0.1",
+    "python": "3.12.10",
+    "chip": "Apple M4 Max",
+    "gpu_cores": 40,
+    "physical_memory_bytes": 137438953472
+   },
+   "software": {
+    "torch": "2.14.1",
+    "python_executable": "~/Projects/attention-lab/.venv/bin/python",
+    "mps_built": true,
+    "mps_available": true,
+    "env": {
+     "PYTORCH_ENABLE_MPS_FALLBACK": null,
+     "PYTORCH_MPS_HIGH_WATERMARK_RATIO": null,
+     "PYTORCH_MPS_LOW_WATERMARK_RATIO": null,
+     "PYTORCH_MPS_FAST_MATH": null,
+     "TORCH_COMPILE_DEBUG": null
+    },
+    "recommended_max_memory": 115448725504,
+    "current_allocated_memory": 0,
+    "driver_allocated_memory": 475136
+   },
+   "backend": "mps",
+   "dtype": [
+    "bfloat16",
+    "float32"
+   ],
+   "command": "python bench/microbench.py --modes eager --tag p3",
+   "timing_scope": "single layer decode read stage; per pass = layers layer-steps; sync before/after pass",
+   "memory_units": "bytes",
+   "budget": {
+    "cloud_usd_actual": 0,
+    "cloud_usd_committed": 0,
+    "device_seconds": 300.3390613750089
+   },
+   "artifacts": [
+    "microbench.jsonl",
+    "summary.json",
+    "manifest.json",
+    "profiles.txt"
+   ],
+   "args": {
+    "dtypes": [
+     "bfloat16",
+     "float32"
+    ],
+    "lengths": [
+     8192,
+     16384,
+     32768
+    ],
+    "rhos": [
+     0.03125,
+     0.125
+    ],
+    "layers": 36,
+    "groups": 8,
+    "heads": 32,
+    "head_dim": 128,
+    "index_dim": 32,
+    "warmup": 20,
+    "repeats": 50,
+    "modes": [
+     "eager"
+    ],
+    "worksets": [
+     "rotating",
+     "hot"
+    ],
+    "skip_diagnostics": false,
+    "skip_profile": false,
+    "runs_dir": "~/Projects/attention-lab/runs",
+    "seed": 0,
+    "tag": "p3",
+    "quick": false
+   },
+   "limitations": [
+    "random tensors, one layer, batch 1, T=1; no model, no task, no quality statement; MPS only"
+   ],
+   "finished_at_utc": "2026-10-16T15:06:05+00:00"
+  },
+  {
+   "schema_version": 1,
+   "run_id": "g1a-mac-20261016T150606Z-p4",
+   "kind": "benchmark",
+   "status": "done",
+   "created_at_utc": "2026-10-16T15:06:06+00:00",
+   "git": {
+    "commit": "ae1c0a861ca7f0e501f2ab4557e23eeb1f7a8eea",
+    "branch": "task/g0-g1a-mac",
+    "dirty_files": [
+     "rc/attention_lab/__init__.py",
+     "bench/",
+     "reports/cards/G1a_mac_m4max.md",
+     "scripts/g1a_report.py",
+     "src/attention_lab/decode.py",
+     "src/attention_lab/full.py",
+     "src/attention_lab/indexer.py",
+     "src/attention_lab/reference.py",
+     "src/attention_lab/runinfo.py",
+     "src/attention_lab/selection.py",
+     "src/attention_lab/sparse.py",
+     "tests/test_attention_contracts.py"
+    ],
+    "dirty_diff_sha256": "003c8bf33fc7dbc1df1f8d2e97fae26107187c67459f9b5a622fb2759cc8bd89"
+   },
+   "source_hashes": {
+    "src/attention_lab/__init__.py": "e8257adc5a4c70dd8c477c96bdda2ba60f3956019d7975c141bc24275e236346",
+    "src/attention_lab/decode.py": "f0dde0182b1c9df8b4417a31b1994d86215e0e38ae4e5fd5eb4ed1606cc514ee",
+    "src/attention_lab/full.py": "b3b0f6c8cce5f5abecc55dd07a0aaa14afdc305da5df7a6d2502168ef479d23a",
+    "src/attention_lab/indexer.py": "911db9e5af2b6ddf81fe1424369a55baf60fc878ec849c92b6bfdc860b2dcf85",
+    "src/attention_lab/reference.py": "bdd13df4ed5ced09a7e56d9227a480837b63049ebb4b68145d07f6eb5683c2ec",
+    "src/attention_lab/runinfo.py": "3d1d4cfbcbf5dca90ddc0cdcc007c5d3d12ccdbd5a4b457ef1a2dbb4be419e7c",
+    "src/attention_lab/selection.py": "a0dbe7aa0f0b586c358d633b276c0ed9baf3bbaed18d88d57fbfe9434cea9cfd",
+    "src/attention_lab/sparse.py": "bbe8805b45a4f95ff2aed9c31cdb906fce66ecf4e7e6b31632584abd569aeb55",
+    "bench/microbench.py": "4c1e5b66d998e45501fba3693cc01a691d36ea68aefedda3d495f04b2adbce03"
+   },
+   "config_sha256": "e489acf233a9feb3a906ab66ed6a68285af3fd5daef8f530f3c057be6bbee151",
+   "model_revision": null,
+   "tokenizer_revision": null,
+   "data_sha256": null,
+   "seed": 0,
+   "device": "mps",
+   "host": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "macos": "27.0.1",
+    "python": "3.12.10",
+    "chip": "Apple M4 Max",
+    "gpu_cores": 40,
+    "physical_memory_bytes": 137438953472
+   },
+   "software": {
+    "torch": "2.14.1",
+    "python_executable": "~/Projects/attention-lab/.venv/bin/python",
+    "mps_built": true,
+    "mps_available": true,
+    "env": {
+     "PYTORCH_ENABLE_MPS_FALLBACK": null,
+     "PYTORCH_MPS_HIGH_WATERMARK_RATIO": null,
+     "PYTORCH_MPS_LOW_WATERMARK_RATIO": null,
+     "PYTORCH_MPS_FAST_MATH": null,
+     "TORCH_COMPILE_DEBUG": null
+    },
+    "recommended_max_memory": 115448725504,
+    "current_allocated_memory": 0,
+    "driver_allocated_memory": 475136
+   },
+   "backend": "mps",
+   "dtype": [
+    "bfloat16",
+    "float32"
+   ],
+   "command": "python bench/microbench.py --modes eager --tag p4",
+   "timing_scope": "single layer decode read stage; per pass = layers layer-steps; sync before/after pass",
+   "memory_units": "bytes",
+   "budget": {
+    "cloud_usd_actual": 0,
+    "cloud_usd_committed": 0,
+    "device_seconds": 301.1651832089992
+   },
+   "artifacts": [
+    "microbench.jsonl",
+    "summary.json",
+    "manifest.json",
+    "profiles.txt"
+   ],
+   "args": {
+    "dtypes": [
+     "bfloat16",
+     "float32"
+    ],
+    "lengths": [
+     8192,
+     16384,
+     32768
+    ],
+    "rhos": [
+     0.03125,
+     0.125
+    ],
+    "layers": 36,
+    "groups": 8,
+    "heads": 32,
+    "head_dim": 128,
+    "index_dim": 32,
+    "warmup": 20,
+    "repeats": 50,
+    "modes": [
+     "eager"
+    ],
+    "worksets": [
+     "rotating",
+     "hot"
+    ],
+    "skip_diagnostics": false,
+    "skip_profile": false,
+    "runs_dir": "~/Projects/attention-lab/runs",
+    "seed": 0,
+    "tag": "p4",
+    "quick": false
+   },
+   "limitations": [
+    "random tensors, one layer, batch 1, T=1; no model, no task, no quality statement; MPS only"
+   ],
+   "finished_at_utc": "2026-10-16T15:11:08+00:00"
+  },
+  {
+   "schema_version": 1,
+   "run_id": "g1a-mac-20261016T151108Z-p5",
+   "kind": "benchmark",
+   "status": "done",
+   "created_at_utc": "2026-10-16T15:11:08+00:00",
+   "git": {
+    "commit": "ae1c0a861ca7f0e501f2ab4557e23eeb1f7a8eea",
+    "branch": "task/g0-g1a-mac",
+    "dirty_files": [
+     "rc/attention_lab/__init__.py",
+     "bench/",
+     "reports/cards/G1a_mac_m4max.md",
+     "scripts/g1a_report.py",
+     "src/attention_lab/decode.py",
+     "src/attention_lab/full.py",
+     "src/attention_lab/indexer.py",
+     "src/attention_lab/reference.py",
+     "src/attention_lab/runinfo.py",
+     "src/attention_lab/selection.py",
+     "src/attention_lab/sparse.py",
+     "tests/test_attention_contracts.py"
+    ],
+    "dirty_diff_sha256": "003c8bf33fc7dbc1df1f8d2e97fae26107187c67459f9b5a622fb2759cc8bd89"
+   },
+   "source_hashes": {
+    "src/attention_lab/__init__.py": "e8257adc5a4c70dd8c477c96bdda2ba60f3956019d7975c141bc24275e236346",
+    "src/attention_lab/decode.py": "f0dde0182b1c9df8b4417a31b1994d86215e0e38ae4e5fd5eb4ed1606cc514ee",
+    "src/attention_lab/full.py": "b3b0f6c8cce5f5abecc55dd07a0aaa14afdc305da5df7a6d2502168ef479d23a",
+    "src/attention_lab/indexer.py": "911db9e5af2b6ddf81fe1424369a55baf60fc878ec849c92b6bfdc860b2dcf85",
+    "src/attention_lab/reference.py": "bdd13df4ed5ced09a7e56d9227a480837b63049ebb4b68145d07f6eb5683c2ec",
+    "src/attention_lab/runinfo.py": "3d1d4cfbcbf5dca90ddc0cdcc007c5d3d12ccdbd5a4b457ef1a2dbb4be419e7c",
+    "src/attention_lab/selection.py": "a0dbe7aa0f0b586c358d633b276c0ed9baf3bbaed18d88d57fbfe9434cea9cfd",
+    "src/attention_lab/sparse.py": "bbe8805b45a4f95ff2aed9c31cdb906fce66ecf4e7e6b31632584abd569aeb55",
+    "bench/microbench.py": "4c1e5b66d998e45501fba3693cc01a691d36ea68aefedda3d495f04b2adbce03"
+   },
+   "config_sha256": "e489acf233a9feb3a906ab66ed6a68285af3fd5daef8f530f3c057be6bbee151",
+   "model_revision": null,
+   "tokenizer_revision": null,
+   "data_sha256": null,
+   "seed": 0,
+   "device": "mps",
+   "host": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "macos": "27.0.1",
+    "python": "3.12.10",
+    "chip": "Apple M4 Max",
+    "gpu_cores": 40,
+    "physical_memory_bytes": 137438953472
+   },
+   "software": {
+    "torch": "2.14.1",
+    "python_executable": "~/Projects/attention-lab/.venv/bin/python",
+    "mps_built": true,
+    "mps_available": true,
+    "env": {
+     "PYTORCH_ENABLE_MPS_FALLBACK": null,
+     "PYTORCH_MPS_HIGH_WATERMARK_RATIO": null,
+     "PYTORCH_MPS_LOW_WATERMARK_RATIO": null,
+     "PYTORCH_MPS_FAST_MATH": null,
+     "TORCH_COMPILE_DEBUG": null
+    },
+    "recommended_max_memory": 115448725504,
+    "current_allocated_memory": 0,
+    "driver_allocated_memory": 475136
+   },
+   "backend": "mps",
+   "dtype": [
+    "bfloat16",
+    "float32"
+   ],
+   "command": "python bench/microbench.py --modes eager --tag p5",
+   "timing_scope": "single layer decode read stage; per pass = layers layer-steps; sync before/after pass",
+   "memory_units": "bytes",
+   "budget": {
+    "cloud_usd_actual": 0,
+    "cloud_usd_committed": 0,
+    "device_seconds": 300.21899850002956
+   },
+   "artifacts": [
+    "microbench.jsonl",
+    "summary.json",
+    "manifest.json",
+    "profiles.txt"
+   ],
+   "args": {
+    "dtypes": [
+     "bfloat16",
+     "float32"
+    ],
+    "lengths": [
+     8192,
+     16384,
+     32768
+    ],
+    "rhos": [
+     0.03125,
+     0.125
+    ],
+    "layers": 36,
+    "groups": 8,
+    "heads": 32,
+    "head_dim": 128,
+    "index_dim": 32,
+    "warmup": 20,
+    "repeats": 50,
+    "modes": [
+     "eager"
+    ],
+    "worksets": [
+     "rotating",
+     "hot"
+    ],
+    "skip_diagnostics": false,
+    "skip_profile": false,
+    "runs_dir": "~/Projects/attention-lab/runs",
+    "seed": 0,
+    "tag": "p5",
+    "quick": false
+   },
+   "limitations": [
+    "random tensors, one layer, batch 1, T=1; no model, no task, no quality statement; MPS only"
+   ],
+   "finished_at_utc": "2026-10-16T15:16:09+00:00"
+  },
+  {
+   "schema_version": 1,
+   "run_id": "g1a-mac-20261016T151610Z-compile",
+   "kind": "benchmark",
+   "status": "done",
+   "created_at_utc": "2026-10-16T15:16:10+00:00",
+   "git": {
+    "commit": "ae1c0a861ca7f0e501f2ab4557e23eeb1f7a8eea",
+    "branch": "task/g0-g1a-mac",
+    "dirty_files": [
+     "rc/attention_lab/__init__.py",
+     "bench/",
+     "reports/cards/G1a_mac_m4max.md",
+     "scripts/g1a_report.py",
+     "src/attention_lab/decode.py",
+     "src/attention_lab/full.py",
+     "src/attention_lab/indexer.py",
+     "src/attention_lab/reference.py",
+     "src/attention_lab/runinfo.py",
+     "src/attention_lab/selection.py",
+     "src/attention_lab/sparse.py",
+     "tests/test_attention_contracts.py"
+    ],
+    "dirty_diff_sha256": "003c8bf33fc7dbc1df1f8d2e97fae26107187c67459f9b5a622fb2759cc8bd89"
+   },
+   "source_hashes": {
+    "src/attention_lab/__init__.py": "e8257adc5a4c70dd8c477c96bdda2ba60f3956019d7975c141bc24275e236346",
+    "src/attention_lab/decode.py": "f0dde0182b1c9df8b4417a31b1994d86215e0e38ae4e5fd5eb4ed1606cc514ee",
+    "src/attention_lab/full.py": "b3b0f6c8cce5f5abecc55dd07a0aaa14afdc305da5df7a6d2502168ef479d23a",
+    "src/attention_lab/indexer.py": "911db9e5af2b6ddf81fe1424369a55baf60fc878ec849c92b6bfdc860b2dcf85",
+    "src/attention_lab/reference.py": "bdd13df4ed5ced09a7e56d9227a480837b63049ebb4b68145d07f6eb5683c2ec",
+    "src/attention_lab/runinfo.py": "3d1d4cfbcbf5dca90ddc0cdcc007c5d3d12ccdbd5a4b457ef1a2dbb4be419e7c",
+    "src/attention_lab/selection.py": "a0dbe7aa0f0b586c358d633b276c0ed9baf3bbaed18d88d57fbfe9434cea9cfd",
+    "src/attention_lab/sparse.py": "bbe8805b45a4f95ff2aed9c31cdb906fce66ecf4e7e6b31632584abd569aeb55",
+    "bench/microbench.py": "4c1e5b66d998e45501fba3693cc01a691d36ea68aefedda3d495f04b2adbce03"
+   },
+   "config_sha256": "e489acf233a9feb3a906ab66ed6a68285af3fd5daef8f530f3c057be6bbee151",
+   "model_revision": null,
+   "tokenizer_revision": null,
+   "data_sha256": null,
+   "seed": 0,
+   "device": "mps",
+   "host": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "macos": "27.0.1",
+    "python": "3.12.10",
+    "chip": "Apple M4 Max",
+    "gpu_cores": 40,
+    "physical_memory_bytes": 137438953472
+   },
+   "software": {
+    "torch": "2.14.1",
+    "python_executable": "~/Projects/attention-lab/.venv/bin/python",
+    "mps_built": true,
+    "mps_available": true,
+    "env": {
+     "PYTORCH_ENABLE_MPS_FALLBACK": null,
+     "PYTORCH_MPS_HIGH_WATERMARK_RATIO": null,
+     "PYTORCH_MPS_LOW_WATERMARK_RATIO": null,
+     "PYTORCH_MPS_FAST_MATH": null,
+     "TORCH_COMPILE_DEBUG": null
+    },
+    "recommended_max_memory": 115448725504,
+    "current_allocated_memory": 0,
+    "driver_allocated_memory": 475136
+   },
+   "backend": "mps",
+   "dtype": [
+    "bfloat16",
+    "float32"
+   ],
+   "command": "python bench/microbench.py --modes eager compile --skip-diagnostics --tag compile",
+   "timing_scope": "single layer decode read stage; per pass = layers layer-steps; sync before/after pass",
+   "memory_units": "bytes",
+   "budget": {
+    "cloud_usd_actual": 0,
+    "cloud_usd_committed": 0,
+    "device_seconds": 336.64294462499674
+   },
+   "artifacts": [
+    "microbench.jsonl",
+    "summary.json",
+    "manifest.json",
+    "profiles.txt"
+   ],
+   "args": {
+    "dtypes": [
+     "bfloat16",
+     "float32"
+    ],
+    "lengths": [
+     8192,
+     16384,
+     32768
+    ],
+    "rhos": [
+     0.03125,
+     0.125
+    ],
+    "layers": 36,
+    "groups": 8,
+    "heads": 32,
+    "head_dim": 128,
+    "index_dim": 32,
+    "warmup": 20,
+    "repeats": 50,
+    "modes": [
+     "eager",
+     "compile"
+    ],
+    "worksets": [
+     "rotating",
+     "hot"
+    ],
+    "skip_diagnostics": true,
+    "skip_profile": false,
+    "runs_dir": "~/Projects/attention-lab/runs",
+    "seed": 0,
+    "tag": "compile",
+    "quick": false
+   },
+   "limitations": [
+    "random tensors, one layer, batch 1, T=1; no model, no task, no quality statement; MPS only"
+   ],
+   "finished_at_utc": "2026-10-16T15:21:47+00:00"
+  }
+ ]
+}
