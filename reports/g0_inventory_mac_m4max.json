@@ -1,0 +1,45 @@
+{
+  "kind": "capability_inventory_only",
+  "timestamp_utc": "2026-10-16T13:09:28.276839+00:00",
+  "system": "Darwin",
+  "machine": "arm64",
+  "os_release": "27.0.0",
+  "macos": "27.0.1",
+  "python_version": "3.12.10",
+  "python_executable": "~/Projects/attention-lab/.venv/bin/python",
+  "physical_memory_bytes": 137438953472,
+  "packages": {
+    "torch": "2.14.1",
+    "numpy": "2.5.4",
+    "transformers": "5.20.0",
+    "jupyterlab": "4.6.4",
+    "nbformat": "5.11.1",
+    "nbclient": "0.11.0",
+    "nbconvert": "7.17.2"
+  },
+  "mps": {
+    "is_built": true,
+    "is_available": true,
+    "operations_tested": false,
+    "api_presence": {
+      "synchronize": true,
+      "current_allocated_memory": true,
+      "driver_allocated_memory": true,
+      "recommended_max_memory": true
+    }
+  },
+  "compile_tested": false,
+  "cuda": {
+    "is_available": false,
+    "device_count": 0
+  },
+  "relevant_env": {
+    "PYTORCH_ENABLE_MPS_FALLBACK": null,
+    "PYTORCH_MPS_HIGH_WATERMARK_RATIO": null,
+    "PYTORCH_MPS_LOW_WATERMARK_RATIO": null,
+    "PYTORCH_MPS_FAST_MATH": null
+  },
+  "limitations": [
+    "Inventory is not a numerical test, memory peak measurement or performance result."
+  ]
+}
