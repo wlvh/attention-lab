@@ -1,10 +1,10 @@
 # 接力状态
 
-更新日期：2026-10-17。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_REVIEW_ROUND2_ADDRESSED / NOTEBOOK_01_DONE**。
+更新日期：2026-10-17。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_UNLOCKED（进行中，分支 `task/g1b-qwen-mac`）**。
 
 ## 远端与发布
 
-用户创建的公开仓库：`wlvh/attention-lab`，默认分支 `main`。首次入口提交为 `95885aa2c24d692c595c3ea88024a6c836ffdea6`。G0 已在本地分支 `task/g0-g1a-mac` 提交为 `ae1c0a8`；G1a 的源码、测试、基准、报告与卡片在同一分支**尚未提交**，等待用户决定 commit 与 PR。
+用户创建的公开仓库：`wlvh/attention-lab`，默认分支 `main`。首次入口提交为 `95885aa2c24d692c595c3ea88024a6c836ffdea6`。G0 在分支 `task/g0-g1a-mac` 提交为 `ae1c0a8`；G1a 的源码、测试、基准、报告、卡片、补测与 Notebook 01 随同一分支经 PR #1（两轮 GPT 6 Pro 评审）于 2026-10-17 合并进 `main`，合并提交 `0798aa7`。G1b 在分支 `task/g1b-qwen-mac` 上进行。
 
 ## 已准备
 
@@ -39,13 +39,12 @@ MPS 能力、带宽、提交开销与索引路径原语成本；关键发现是 
 
 ## 尚未完成
 
-`notebooks/01_environment_and_attention.ipynb` 与已执行 HTML（G1a 任务书要求的首份实验课）；G1b 起全部（模型封装、静态缓存、连续 128 步、重编译与内存增长）；CUDA 轨道未启动；G2 到 G5 的任何质量结论。
+G1b 起全部（模型封装、静态缓存、连续 128 步、重编译与内存增长；任务书 `docs/tasks/02_G1B_MODEL.md` 已解锁，`03_G2_TO_G5.md` 仍为 BLOCKED）；CUDA 轨道未启动；G2 到 G5 的任何质量结论。Notebook 01 与已执行 HTML 已随 PR #1 交付。
 
 ## 下一步
 
-1. 用户决定是否提交 G1a 改动（`git add` 下列文件后 commit，不 force push）：`src/attention_lab/`、`tests/test_attention_contracts.py`、`bench/microbench.py`、`scripts/g1a_report.py`、`reports/g1a_*.{md,json}`、`reports/cards/G1a_mac_m4max.md`、`PROJECT_STATUS.md`。
-2. 写 `01_environment_and_attention.ipynb`：只读 `reports/g0_probe_mac_m4max.json` 与 `reports/g1a_summary_mac_m4max.json`，小规模 CPU 反例调用 `attention_lab` 同一实现，导出 HTML。
-3. 解锁 G1b：按 `docs/tasks/02_G1B_MODEL.md` 从 Qwen3-0.6B 开始，性能候选 (N=32768, ρ=1/32, bf16)。
+1. G1b（分支 `task/g1b-qwen-mac`，按 `docs/tasks/02_G1B_MODEL.md`）：只下载 Qwen/Qwen3-0.6B 固定 revision；封装每层 `self_attn`，先做未改模型 / 封装完整路径 / 封装加静态缓存的三段数值对照；再接入 G1a 的索引读取；整模型 bf16 测速 N0 ∈ {8192, 16384, 32256}、ρ=1/32、固定 N 单步与连续 128 步；预测先写进 `reports/cards/G1b_mac_m4max.md`；Notebook 02。
+2. 不重跑 G0/G1a，不进入 G2/G3，不训练，不租云。
 
 ```bash
 source .venv/bin/activate

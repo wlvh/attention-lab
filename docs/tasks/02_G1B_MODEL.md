@@ -1,6 +1,6 @@
 # 后续任务：G1b模型集成
 
-状态：BLOCKED，需G0/G1a证据解锁。
+状态：**UNLOCKED（2026-10-17，由 G0/G1a 证据解锁；PR #1 合并提交 `0798aa7`），进行中**，分支 `task/g1b-qwen-mac`。`03_G2_TO_G5.md` 仍为 BLOCKED。
 
 从0.6B单模型开始。核对官方revision和实际q/k/v/o、归一化、RoPE与cache接口，冻结主体，只替换self_attn读取部分。先dense封装与未改原模型数值对应，再加D。
 
