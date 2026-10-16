@@ -79,6 +79,14 @@ def main() -> int:
                     L.append(f"| {dtype} | {N} | 1/{round(1/rho)} | {block} | {f(A['us_per_layer_median'])} | {f(Df['us_per_layer_median'])} | {f(Dr['us_per_layer_median']) if Dr else '—'} | {paired} | {allb} | "
                              f"{f(prr['median'], 2) if prr else (f(Dr['us_per_layer_median']/A['us_per_layer_median'], 2) if Dr else '—')} | {f(fr['ratio_median'], 2) if fr else '—'}（{f(fr['ratio_min'], 2) if fr else '—'}–{f(fr['ratio_max'], 2) if fr else '—'}） |")
 
+    L.append("\n跨运行的 A（正式六进程中位数 对 本次顺序执行块，ρ 取首档）。A 的数学不依赖 ρ 或顺序，这一列只反映运行状态的漂移：\n")
+    L.append("| dtype | N | 正式 A µs | 本次 A µs | 本次/正式 |\n|---|---:|---:|---:|---:|")
+    for dtype in dtypes:
+        for N in lengths:
+            fr = formal_ratio.get((dtype, N, rhos[0], "D_full")) if rhos else None
+            A = cell(dtype, N, rhos[0], "order_seq:A", "sequential") if rhos else None
+            if fr and A:
+                L.append(f"| {dtype} | {N} | {f(fr['A_us'])} | {f(A['us_per_layer_median'])} | {A['us_per_layer_median']/fr['A_us']:.2f} |")
     L.append("\n## 2. 容量四格：同一组数据，容量恰好 N 与 N+2048，交错执行\n")
     L.append("两套缓冲同时常驻；松弛缓冲的前 N 列复制自紧凑缓冲，输出先核对相等再计时。顺序为 A_tight, A_slack, D_tight, D_slack, D_slack, D_tight, A_slack, A_tight。ρ 取首档。\n")
     L.append("| dtype | N | A 紧凑 µs | A 松弛 µs | 松弛/紧凑 | D_full 紧凑 µs | D_full 松弛 µs | 松弛/紧凑 | 输出差 A | 输出差 D |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
@@ -109,6 +117,7 @@ def main() -> int:
     L.append("- 第 1 节回答\"正式比值是不是顺序造成的\"：看交错块的配对比值是否与正式六进程的比值落在同一范围。")
     L.append("- 第 2 节回答\"容量松弛是否自带惩罚\"：同数据、同时常驻、交错执行下，松弛/紧凑接近 1 表示正式诊断里的差异来自数据、内存或时序而不是跨步视图本身。")
     L.append("- 第 3 节回答\"是否存在更快的合法 A\"：只在所比较的实现中，不是穷尽。")
+    L.append("- fp32 的 A 在 32K 跨运行漂移明显（正式 1426 µs，本次约 880 到 920 µs），bf16 的 A 漂移在 5% 内。fp32 通过格仍不作为 bf16 模型的依据；bf16 的结论不受此影响。")
     L.append("- 每层 µs 仍是单层读取阶段；p95 为 pass 耗时 ÷ 层数的 p95。没有模型、任务、质量结论。")
     a.out.write_text("\n".join(L) + "\n", encoding="utf-8")
     rel = lambda q: str(q.resolve().relative_to(ROOT)) if q.resolve().is_relative_to(ROOT) else str(q)  # noqa: E731

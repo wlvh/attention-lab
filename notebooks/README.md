@@ -1,5 +1,16 @@
-# 教学Notebook
+# 教学 Notebook
 
-现有00_orientation.ipynb只读取仓库、校验源材料、调用标准库预测工具；不安装包、不加载模型。
+| Notebook | 内容 | 默认模式 |
+|---|---|---|
+| `00_orientation.ipynb` | 仓库导读、源材料校验、载荷预测工具 | 只读，标准库 |
+| `01_environment_and_attention.ipynb` | G0 与 G1a 的实验课：取子集两种写法为何差 25 倍；少读 KV 为何仍可能更慢；分段相加为何不等于链式；预测与观察对照 | 只读：加载 `reports/` 的实测 JSON，展示同版本源码，CPU 小例子；不加载模型，不跑基准 |
 
-后续第一份实测课为01_environment_and_attention.ipynb，在Mac G0/G1a实际执行后生成。规范见../docs/TEACHING_NOTEBOOKS.md。
+已执行的 HTML 在 `../reports/`。从全新内核重跑并导出：
+
+```bash
+source .venv/bin/activate
+python -m jupyter nbconvert --to notebook --execute --inplace notebooks/01_environment_and_attention.ipynb
+python -m jupyter nbconvert --to html notebooks/01_environment_and_attention.ipynb --output-dir reports
+```
+
+规范见 `../docs/TEACHING_NOTEBOOKS.md`。后续课程按关卡增加，不预先创建空 Notebook。
