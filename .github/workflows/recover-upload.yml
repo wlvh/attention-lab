@@ -1,0 +1,133 @@
+name: Recover detached upload objects (read-only)
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/recover-upload.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read known source dictionaries
+        uses: actions/download-artifact@v4
+        with:
+          name: source-bases
+          run-id: 38881545134
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: /tmp/source-bases
+      - name: Verify detached Git objects and reconstruct reviewed files
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import base64, hashlib, io, itertools, json, lzma, os, pathlib, struct, tarfile, urllib.request, zipfile
+          shas = '''7987018e676de397cce6ed34cfd7a435a54eeaf8
+          95cd522cad773a2296c0ed4c34eeaa87aa655d42
+          db8610f52702a8f75052163a28eebf28b251b681
+          77de090bd0527b4276754278998dac03bf1141fe
+          cf4326062affe3784d01fb78b944cc0298989180
+          94f77db4ecf3d61848287259bbfd939e558194a4
+          52a9cdcce0bf9ff89a7427ff4c4c1ecd4f6831e6
+          f81fbd4ba0d9184eb270872c66f1c184b15b409a
+          6ff392d5b77ea45f50a00567c0be1722b147f51e
+          be6398e4ada7063041864bcaa43b6b5b9f002e4e
+          2ef14784ec7cddc5746bcf884900cb9bd2443b15
+          024651d854ddcc6491f33d89fad780a475949594
+          d6e51ae8035f0801beffa20ef0a2b3d5714c2ed4
+          86f3db9de984b2ee881edbcd9db22fbc4edc3455
+          f717bb05516b002abd47512f23e71e6fcf222394
+          c22bc2801c1f351d8e371d1a2cf0ce47197d6b8c'''.split()
+          chunks = []
+          for sha in shas:
+              url = 'https://api.github.com/repos/wlvh/attention-lab/git/blobs/' + sha
+              request = urllib.request.Request(url, headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json'})
+              with urllib.request.urlopen(request, timeout=25) as response:
+                  item = json.load(response)
+              data = base64.b64decode(item['content'])
+              actual = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+              assert actual == sha, (sha, actual)
+              chunks.append(data)
+              print('Verified object', sha, len(data))
+          packed = base64.b64decode(b''.join(chunks), validate=True)
+          delta = lzma.decompress(packed, memlimit=256*1024*1024)
+          assert delta[:4] == b'ALD1'
+          expected_size = struct.unpack_from('<Q', delta, 4)[0]
+          assert expected_size < 10*1024*1024
+          bases = [('blank-notebook.html', '213bfe998e47245ca564c46a999da1232e9077d0f62fa0bc401e36ed3cebcb40'), ('public-textbook.html', '0c501f0ab7a8ac485b0725996c73f63c7e08ae05323399f9a63d1d3e6ae5b718')]
+          dictionaries = []
+          for name, digest in bases:
+              data = (pathlib.Path('/tmp/source-bases') / name).read_bytes()
+              assert hashlib.sha256(data).hexdigest() == digest
+              dictionaries.append(data)
+          def restore(dictionary):
+              restored = bytearray(); pos = 12
+              while pos < len(delta):
+                  opcode = delta[pos:pos+1]; pos += 1
+                  if opcode == b'C':
+                      offset, length = struct.unpack_from('<II', delta, pos); pos += 8
+                      assert offset + length <= len(dictionary)
+                      restored.extend(dictionary[offset:offset+length])
+                  elif opcode == b'L':
+                      length = struct.unpack_from('<I', delta, pos)[0]; pos += 4
+                      assert pos + length <= len(delta)
+                      restored.extend(delta[pos:pos+length]); pos += length
+                  else:
+                      raise ValueError('Unknown delta opcode')
+                  assert len(restored) <= expected_size
+              assert len(restored) == expected_size
+              files = {}
+              with tarfile.open(fileobj=io.BytesIO(restored), mode='r:') as archive:
+                  for member in archive:
+                      name = pathlib.PurePosixPath(member.name)
+                      assert member.isfile() and not name.is_absolute() and '..' not in name.parts
+                      assert name.parts[0] not in {'.git', '.github', '.bootstrap'} and member.size < 2*1024*1024
+                      assert str(name) not in files
+                      files[str(name)] = archive.extractfile(member).read()
+              attributes = ['compress_type', 'create_system', 'create_version', 'extract_version', 'reserved', 'flag_bits', 'volume', 'internal_attr', 'external_attr']
+              suffix = '.restore-zip.json'
+              for name in list(files):
+                  if not name.endswith(suffix):
+                      continue
+                  recipe = json.loads(files.pop(name)); target = name[:-len(suffix)]
+                  assert target.endswith('.zip') and target not in files
+                  buffer = io.BytesIO()
+                  with zipfile.ZipFile(buffer, 'w') as output:
+                      output.comment = base64.b64decode(recipe['comment'])
+                      for entry in recipe['entries']:
+                          info = zipfile.ZipInfo(entry['name'], tuple(entry['date_time']))
+                          for attribute in attributes:
+                              setattr(info, attribute, entry[attribute])
+                          info.comment = base64.b64decode(entry['comment']); info.extra = base64.b64decode(entry['extra'])
+                          data = entry['text'].encode('utf-8') if 'text' in entry else base64.b64decode(entry['base64'])
+                          output.writestr(info, data, compress_type=info.compress_type, compresslevel=recipe['level'])
+                  files[target] = buffer.getvalue()
+              manifest = json.loads(files['bootstrap_manifest.json'])
+              expected = {row['path']: row for row in manifest['files']}
+              assert set(files) == set(expected) | {'bootstrap_manifest.json'}
+              for name, row in expected.items():
+                  assert len(files[name]) == row['bytes'] and hashlib.sha256(files[name]).hexdigest() == row['sha256'], name
+              return files
+          files = None
+          for permutation in itertools.permutations(dictionaries):
+              try:
+                  files = restore(b''.join(permutation)); break
+              except Exception as error:
+                  print('Dictionary order did not validate:', type(error).__name__)
+          assert files is not None, 'Neither dictionary order restored the exact manifest'
+          target = pathlib.Path('/tmp/recovered-materials'); target.mkdir()
+          for name, data in files.items():
+              path = target / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(data)
+          print('Verified files:', len(files))
+          print('Manifest SHA256:', hashlib.sha256(files['bootstrap_manifest.json']).hexdigest())
+          print('Read-only recovery complete. No project file was committed, no model was executed.')
+          PY
+      - name: Export for local review
+        uses: actions/upload-artifact@v4
+        with:
+          name: recovered-reviewed-materials
+          path: /tmp/recovered-materials/
+          include-hidden-files: true
+          retention-days: 1
