@@ -8,19 +8,32 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 5
     steps:
-      - name: Check only the supplied public textbook page
+      - name: Prepare standard notebook renderer
+        run: python3 -m pip install 'nbconvert==7.17.1' 'nbformat==5.10.4'
+      - name: Snapshot supplied public source and standard renderer output
         run: |
+          mkdir -p source-bases
           python3 - <<'PY'
-          import urllib.request,hashlib
+          import urllib.request,hashlib,pathlib
+          import nbformat
+          from nbconvert import HTMLExporter
+          root=pathlib.Path('source-bases')
           url='https://huaweidata.com/column/qkv-transformer-computation/'
-          try:
-              request=urllib.request.Request(url,headers={'User-Agent':'attention-lab-source-check'})
-              with urllib.request.urlopen(request,timeout=30) as r:
-                  data=r.read(2*1024*1024)
-                  print('source:',r.url,'bytes:',len(data),'sha256:',hashlib.sha256(data).hexdigest())
-                  print('exact_original_match:',hashlib.sha256(data).hexdigest()=='1f41eaa313e70f30934b49fc5f8b0a526af78077c12524ba9f0e94674bc0f241')
-          except Exception as e:
-              print('source_check_unavailable:',type(e).__name__,str(e))
+          request=urllib.request.Request(url,headers={'User-Agent':'attention-lab-source-check'})
+          with urllib.request.urlopen(request,timeout=40) as r:
+              data=r.read(2*1024*1024)
+          (root/'public-textbook.html').write_bytes(data)
+          page,_=HTMLExporter().from_notebook_node(nbformat.v4.new_notebook())
+          (root/'blank-notebook.html').write_text(page,encoding='utf-8')
+          for p in root.iterdir():
+              b=p.read_bytes()
+              print(p.name,len(b),hashlib.sha256(b).hexdigest())
           PY
+      - name: Retain snapshots for exact-byte import verification
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-bases
+          path: source-bases/
+          retention-days: 1
