@@ -1,0 +1,22 @@
+name: Bootstrap integrity checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify original sources
+        run: python scripts/check_sources.py
+      - name: Check links and Python syntax
+        run: python scripts/check_repository.py
+      - name: Test bootstrap tooling
+        run: python -m unittest discover -s tests -v
