@@ -467,6 +467,13 @@ def load_model(model_id: str, revision: str, *, dtype, device, attn_implementati
     return model, tok, model_info(model, tok, model_id, revision)
 
 
+def resolved_snapshot_commit(model_id: str, revision: str, filename: str = "config.json"):
+    """Commit hash of the local Hub snapshot that served `filename` at `revision` (the directory name of the snapshot)."""
+    from huggingface_hub import try_to_load_from_cache
+    p = try_to_load_from_cache(model_id, filename, revision=revision)
+    return Path(p).parent.name if isinstance(p, str) else None   # snapshots/<commit>/<file>; do not resolve the blob symlink
+
+
 def model_info(model, tok, model_id: str, revision: str) -> dict:
     cfg = model.config
     geo = geometry_of(model)
@@ -482,8 +489,11 @@ def model_info(model, tok, model_id: str, revision: str) -> dict:
     return {
         "model_id": model_id, "revision_requested": revision,
         "config_commit_hash": getattr(cfg, "_commit_hash", None),
+        "resolved_model_commit": resolved_snapshot_commit(model_id, revision, "config.json"),
+        "resolved_weights_commit": resolved_snapshot_commit(model_id, revision, "model.safetensors"),
         "tokenizer_class": type(tok).__name__ if tok is not None else None,
         "tokenizer_commit_hash": getattr(tok, "_commit_hash", None) if tok is not None else None,
+        "resolved_tokenizer_commit": resolved_snapshot_commit(model_id, revision, "tokenizer.json"),
         "architecture": type(model).__name__, "attn_implementation": getattr(cfg, "_attn_implementation", None),
         "num_hidden_layers": geo.layers, "num_attention_heads": geo.heads, "num_key_value_heads": geo.groups,
         "head_dim": geo.head_dim, "hidden_size": geo.hidden, "intermediate_size": int(cfg.intermediate_size),

@@ -26,6 +26,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+import torch  # noqa: E402
+
 from attention_lab import runinfo  # noqa: E402
 
 FIRST_SPECIAL_TOKEN = 151643   # Qwen3 vocabulary: ids below this are ordinary BPE tokens
@@ -241,8 +243,6 @@ def main() -> int:
     except RuntimeError as e:
         print(f"Refusing: {e}")
         return 2
-    global torch
-    import torch
     cfg = json.loads(a.config.read_text(encoding="utf-8"))
     tols = cfg["numerics"]["tolerances"]
     lengths = a.lengths or cfg["numerics"]["lengths"]

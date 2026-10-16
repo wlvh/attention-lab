@@ -83,7 +83,9 @@ def main() -> int:
                             "paired_ratio_vs_wrapped_full": pr.get("paired_ratio_vs_wrapped_full"),
                             "seq_step_median_ms": q and q["step_median_ms"], "seq_total_ms_median": q and q["total_ms_median"],
                             "seq_first16_ms": q and q["first16_median_ms"], "seq_last16_ms": q and q["last16_median_ms"], "seq_slope_us_per_step": q and q["slope_ms_per_step_median"] * 1e3,
-                            "seq_n": q and q["n"], "k_last": (pr.get("sequences") or [{}])[-1].get("k_last"), "selected_last": (pr.get("sequences") or [{}])[-1].get("selected_last")}
+                            "seq_n": q and q["n"], "k_last": (pr.get("sequences") or [{}])[-1].get("k_last"), "selected_last": (pr.get("sequences") or [{}])[-1].get("selected_last"),
+                            "seq_series_ms": [[round(x, 3) for x in sq["ms"]] for sq in (pr.get("sequences") or [])],
+                            "seq_memory": [sq.get("memory") for sq in (pr.get("sequences") or [])]}
                     cond["cells"].append(cell)
                 if "sparse" in res and "wrapped_full" in res:
                     pr = res["sparse"].get("paired_ratio_vs_wrapped_full") or {}

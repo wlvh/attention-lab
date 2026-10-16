@@ -435,7 +435,9 @@ class RealCheckpointCPU(Checks):
                 got = info.get(key)
                 if got is not None:
                     self.assertEqual(got, want, key)
-            self.assertEqual(info["config_commit_hash"], cfg["revision"])
+            self.assertEqual(info["resolved_model_commit"], cfg["revision"], "snapshot commit must be the pinned revision")
+            self.assertEqual(info["resolved_weights_commit"], cfg["revision"])
+            self.assertEqual(info["resolved_tokenizer_commit"], cfg["revision"])
             L = CONFIG["numerics"]["cpu_float32_reference_length"]
             ids = torch.randint(0, 151643, (1, L), generator=torch.Generator().manual_seed(0))
             ref = model(ids).logits
