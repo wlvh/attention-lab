@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "gate": "G1b",
+  "track": "mac_mps",
+  "status": "config_and_preset_tolerances; written before any G1b measurement",
+  "model": {
+    "id": "Qwen/Qwen3-0.6B",
+    "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+    "tokenizer_revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+    "source": "official Hugging Face Hub repo, main commit as of 2026-10-17; the only model downloaded in this gate",
+    "expected_from_config_json": {
+      "num_hidden_layers": 28, "num_attention_heads": 16, "num_key_value_heads": 8, "head_dim": 128,
+      "hidden_size": 1024, "intermediate_size": 3072, "vocab_size": 151936, "max_position_embeddings": 40960,
+      "rope_theta": 1000000, "tie_word_embeddings": true
+    },
+    "frozen": true,
+    "note": "shapes are read from the loaded config at run time and compared with these values; G1a's 32-head / 36-layer defaults are not reused"
+  },
+  "index": {"r": 32, "fixed_prefix": 4, "fixed_recent": 64, "position_variant": "P0", "trained": false,
+            "features": "q_norm/k_norm output before the main RoPE", "layout": "zT [B,G,r,C] contiguous per layer"},
+  "numerics": {
+    "lengths": [32, 128, 512],
+    "dtypes": ["float32", "bfloat16"],
+    "device": "mps",
+    "cpu_float32_reference_length": 128,
+    "tolerances": {
+      "float64_tiny_model": {"logits_atol": 1e-9, "logits_rel_norm": 1e-10, "cache_atol": 1e-10},
+      "float32": {"logits_atol": 1e-2, "logits_rel_norm": 1e-3, "cache_atol": 1e-3, "argmax_agreement_min": 0.99},
+      "bfloat16": {"logits_atol": 1.0, "logits_rel_norm": 2e-2, "cache_atol": 0.25, "argmax_agreement_min": 0.95}
+    },
+    "comparisons": [
+      "unmodified model (no cache) vs wrapped full path, one forward over all positions: logits at every position",
+      "unmodified model DynamicCache K/V vs wrapped static cache K/V after the same tokens: per layer",
+      "wrapped full path one-shot vs wrapped + static cache fed chunk by chunk then one token at a time: logits and cache",
+      "D with every candidate selected (rho = 1) vs wrapped full path: logits; a partial read is not required to match"
+    ],
+    "rule": "tolerances are fixed here before the first run and are not loosened to make a path pass; greedy text similarity does not count"
+  },
+  "benchmark": {
+    "dtype": "bfloat16",
+    "batch": 1,
+    "prompt_lengths": [8192, 16384, 32256],
+    "steps": 128,
+    "rho": [0.03125],
+    "capacity_rule": "N0 + steps (32256 + 128 = 32384 <= 32768)",
+    "k_rule": "k0 = min(round(rho * (N0 + 1)), candidates at the first step); fixed within the request; legal length grows by one per step",
+    "prefill_chunk": 2048,
+    "single_step": {"warmup": 10, "repeats": 50, "order": "palindromic cycles over the measured paths"},
+    "sequence_repeats": 3,
+    "paths": ["native_dynamic", "native_static", "wrapped_full", "sparse"],
+    "timing_scope": "one full forward step: model entry (token id) to next-token vocabulary scores via logits_to_keep=1; torch.mps.synchronize() before and after; prefill and index build timed separately",
+    "tokens": "seeded random token ids below the first special token; the same 128 continuation tokens for every path, fed one at a time",
+    "memory_fields": ["torch.mps.current_allocated_memory", "torch.mps.driver_allocated_memory", "ru_maxrss"],
+    "compile": "eager first; block compile (mlp + norms) attempted for every path with failures recorded",
+    "profile": "separate from timing; aten op list of one wrapped_full step and one sparse step"
+  },
+  "verdicts": {
+    "engineering_done": ["numerics within preset tolerance", "cache + index connected correctly (contracts pass)", "128 continuous steps and rollback pass", "results regenerate from recorded runs"],
+    "performance_pass": "same model, device, dtype and work: a setting shows a repeatable full-step D/A <= 0.90 (10% threshold is an investment gate, not a theorem)"
+  },
+  "memory": {"warning_bytes": 80000000000, "stop_bytes": 100000000000, "obey_lower_os_limit": true},
+  "environment": {"PYTORCH_ENABLE_MPS_FALLBACK": "must be unset or 0", "PYTORCH_MPS_HIGH_WATERMARK_RATIO": "must not be zero"},
+  "cloud_enabled": false,
+  "device_time_budget_seconds_first_formal_run": 7200
+}
