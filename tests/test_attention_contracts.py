@@ -61,9 +61,19 @@ def up(x, dtype):
 
 
 class Checks(unittest.TestCase):
+    @staticmethod
+    def _pair(a, b, dtype):
+        """Compare in the reference precision of `dtype`: float64 stays float64, MPS dtypes are compared in float32.
+
+        Review finding (PR #1): an earlier version cast both sides to float32 before applying the float64 tolerance
+        of 1e-10, which erased differences up to ~1e-7 before they could be measured. Moving to the CPU first is
+        required because MPS has no float64.
+        """
+        rd = dt_of(ref_dtype(dtype))
+        return a.detach().cpu().to(rd), b.detach().cpu().to(rd)
+
     def assert_close(self, a, b, dtype, what):
-        a = a.detach().float().cpu()
-        b = b.detach().float().cpu()
+        a, b = self._pair(a, b, dtype)
         self.assertTrue(torch.isfinite(a).all(), f"{what}: non-finite output")
         diff = float((a - b).abs().max())
         rel = float((a - b).norm() / (b.norm() + 1e-30))
@@ -71,8 +81,36 @@ class Checks(unittest.TestCase):
         self.assertLessEqual(rel, TOL[dtype]["rel_norm"], f"{what}: rel norm diff {rel:.3e} > {TOL[dtype]['rel_norm']}")
 
     def assert_not_close(self, a, b, dtype, what):
-        diff = float((a.detach().float().cpu() - b.detach().float().cpu()).abs().max())
+        a, b = self._pair(a, b, dtype)
+        diff = float((a - b).abs().max())
         self.assertGreater(diff, 10 * TOL[dtype]["atol"], f"{what}: expected a detectable difference, got {diff:.3e}")
+
+
+@unittest.skipUnless(torch is not None, "torch not installed")
+class AssertionHarnessTests(Checks):
+    """The harness itself must be able to fail. These are the counterexamples the PR review asked for."""
+
+    def test_float64_difference_of_1e8_must_fail(self):
+        a = torch.tensor([1.0], dtype=torch.float64)
+        b = torch.tensor([1.0 + 1e-8], dtype=torch.float64)
+        self.assertEqual(float((a.float() - b.float()).abs().max()), 0.0, "sanity: a float32 downcast hides this difference")
+        with self.assertRaises(AssertionError):
+            self.assert_close(a, b, "float64", "1 vs 1+1e-8 in float64")
+        self.assert_close(a, a + 1e-13, "float64", "1e-13 is inside the float64 tolerance (atol 1e-10, rel 1e-12)")
+
+    def test_float32_and_bfloat16_tolerances_still_bind(self):
+        a = torch.ones(4, dtype=torch.float32)
+        with self.assertRaises(AssertionError):
+            self.assert_close(a, a + 1e-3, "float32", "1e-3 must exceed the float32 tolerance")
+        self.assert_close(a, a + 1e-6, "float32", "1e-6 is inside the float32 tolerance")
+        c = torch.ones(4, dtype=torch.bfloat16)
+        with self.assertRaises(AssertionError):
+            self.assert_close(c, c + 0.5, "bfloat16", "0.5 must exceed the bfloat16 tolerance")
+
+    def test_non_finite_output_must_fail(self):
+        a = torch.tensor([float("nan")], dtype=torch.float64)
+        with self.assertRaises(AssertionError):
+            self.assert_close(a, torch.zeros(1, dtype=torch.float64), "float64", "nan output")
 
 
 @unittest.skipUnless(torch is not None, "torch not installed")

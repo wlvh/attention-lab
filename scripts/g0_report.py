@@ -80,14 +80,17 @@ def main() -> int:
     L.append(f"- **索引打分不是按字节比例变便宜。** z 宽 32、K 宽 128，字节比 1/4，但 zᵀ 视图打分 {v32['score_us_per_layer']:.0f} µs 与整层 K 扫描 {sc['rotating_workset']['us_per_layer']:.0f} µs 相当；预转置后 {v32['score_zT_contig_us_per_layer']:.0f} µs。细长 matmul 不是带宽受限内核。教材说的“载荷比例不等于时间比例”在这里直接出现。")
     L.append(f"- **链式成本有固定底。** 8K 时最优链 {ipc['N8192']['chain_best_us_per_layer']:.0f} µs，32K 时 {v32['chain_best_us_per_layer']:.0f} µs，随 N 增长缓慢；top-k 一项就占 {ipc['N8192']['topk_us_per_layer']:.0f} 到 {v32['topk_us_per_layer']:.0f} µs。短上下文时这个底就是收益被吞掉的原因。\n")
     L.append("## 6. 回填后的 G1a 预测表\n")
-    L.append(f"带宽取第 3 节的注意力扫描值 {bw/1e9:.0f} GB/s，ρ = 1/32，r = 32，固定集合 68。S1 只计索引键读加入选 KV 读一次；S2 另计 gather 写与重读。\"链式成本\"为第 5 节实测的每层 µs 乘以层数。净值 = S1 节省 − 最优链式成本，**未计入子集注意力本身（每层约一个小算子，36 层约 1 ms）**，也未计入密集注意力内核相对带宽模型的偏差。\n")
-    L.append("| 模型 | N | 注意力占每步流量 | S1 节省 ms | S2 节省 ms | 朴素链式 ms/步 | 最优链式 ms/步 | 净值 S1−最优链 ms | 方向 |\n|---|---:|---:|---:|---:|---:|---:|---:|---|")
+    L.append(f"带宽取第 3 节的注意力扫描值 {bw/1e9:.0f} GB/s，ρ = 1/32，r = 32，固定集合 68。比较的两边必须来自同一套划分：A 一侧是完整 KV 按该带宽的理想读取时间；D 一侧是第 5 节实测的最优链式成本（索引打分、top-k、取 K/V）乘以层数。净值 = A 理想读取 − 最优链式，**未计入子集注意力本身**（G1a 实测每层 14 到 30 µs，36 层约 0.5 到 1 ms），也未计入密集注意力内核相对带宽模型的偏差。S1 与 S2 列是 D 的理想读取情景，只作参考，不再参与净值。\n")
+    L.append("| 模型 | N | 注意力占每步流量 | A 完整 KV 理想读取 ms | S1 D 理想读取 ms | S2 D 理想读取 ms | 朴素链式 ms/步 | 最优链式 ms/步 | 净值 A理想−最优链 ms | 方向 |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|---|")
     for row in roof["rows"]:
         m, n = row["model"], row["n"]; v = ipc[f"N{n}"]; Lyr = LAYERS[m]
         naive = Lyr * v["chain_us_per_layer"] / 1000; best = Lyr * v["chain_best_us_per_layer"] / 1000
-        s1 = row["saved_s1_scenario_ms"]; s2 = row["saved_s2_scenario_ms"]; net = s1 - best
+        t_a = row["dense_kv_bytes"] / bw * 1e3
+        d1 = row["d_s1_bytes"] / bw * 1e3; d2 = row["d_s2_bytes"] / bw * 1e3
+        net = t_a - best
         arrow = "D 可能更快" if net > 1.0 else ("持平区" if net > -1.0 else "D 可能更慢")
-        L.append(f"| {m} | {n} | {100*row['attention_fraction_of_assumed_total_traffic']:.0f}% | {s1:.1f} | {s2:.1f} | {naive:.1f} | {best:.1f} | {net:+.1f} | {arrow} |")
+        L.append(f"| {m} | {n} | {100*row['attention_fraction_of_assumed_total_traffic']:.0f}% | {t_a:.1f} | {d1:.1f} | {d2:.1f} | {naive:.1f} | {best:.1f} | {net:+.1f} | {arrow} |")
+    L.append("\n**更正（2026-10-17，PR #1 评审）。** 首版此表的净值写成“S1 节省 − 最优链式”。S1 已按理想载荷扣掉索引键读与入选 KV 读，实测链式又包含同一批工作的真实耗时，等于把这部分成本扣了两次。首版数值（4B）为 8K −0.9、16K +1.1、32K +4.5 ms；更正后见上表。更正使 D 更有利，三个长度的方向不变。首版表保留在 git 历史与 `reports/cards/G0_mac_m4max.md` 的更正说明中。")
     L.append("\n读表规则：这是 G1a 开跑前的预测，不是结果。两条路径各自的访存下界相减不是耗时差上界；密集注意力内核的实际时间由 G1a 测，可能高于或低于带宽模型。朴素链式一列说明：若 G1a 直接用 `torch.gather`，所有组合都会得到\"D 更慢\"，而那是原语问题，不是架构问题。\n")
     L.append("## 7. 对 G1a 的含义\n")
     L.append("- 实现要求：索引键按 [G, r, N] 连续存放；gather 用拉平后的 `index_select`；top-k 只对候选域一次。不满足这三条的实现不进入正式计时。")

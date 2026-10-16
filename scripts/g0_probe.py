@@ -83,9 +83,15 @@ def main() -> int:
     if os.environ.get("PYTORCH_ENABLE_MPS_FALLBACK") == "1":
         print("Refusing: PYTORCH_ENABLE_MPS_FALLBACK=1 would hide unsupported MPS ops behind CPU fallback.")
         return 2
-    if os.environ.get("PYTORCH_MPS_HIGH_WATERMARK_RATIO") == "0":
-        print("Refusing: PYTORCH_MPS_HIGH_WATERMARK_RATIO=0 disables the MPS memory guard.")
-        return 2
+    hw = os.environ.get("PYTORCH_MPS_HIGH_WATERMARK_RATIO")
+    if hw is not None:
+        try:
+            hw_off = float(hw) == 0.0          # "0", "0.0", "0e0" all disable the guard
+        except ValueError:
+            hw_off = False
+        if hw_off:
+            print("Refusing: PYTORCH_MPS_HIGH_WATERMARK_RATIO=0 disables the MPS memory guard.")
+            return 2
 
     import torch
     import torch.nn.functional as F

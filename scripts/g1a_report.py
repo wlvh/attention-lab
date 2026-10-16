@@ -29,7 +29,8 @@ def load_runs(paths, include_quick=False):
         d = json.loads(Path(p).read_text())
         if d.get("quick") and not include_quick:
             continue
-        d["_path"] = str(Path(p).relative_to(ROOT)) if Path(p).is_relative_to(ROOT) else str(p)
+        d["_path"] = str(Path(p).relative_to(ROOT)) if Path(p).resolve().is_relative_to(ROOT) else str(p)
+        d["_abs_path"] = str(Path(p).resolve())
         runs.append(d)
     return runs
 
@@ -119,7 +120,7 @@ def main() -> int:
     L.append(f"| torch / Python | {S.get('torch')} / {H.get('python')}，MPS；fallback 与内存保护环境变量均未设置 |")
     L.append(f"| 形状 | {shape_main}（G=8 组，H=32 查询头，h=4，d=128，r=32），B=1，T=1，query_position=N−1 |")
     L.append(f"| 固定集合 | 首 {4} + 近 {64}；候选域 = 合法域 − F；k0 = min(round(ρN0), |候选|) |")
-    L.append(f"| 计时 | 每 pass {first['args']['layers']} 层步；预热 {first['args']['warmup']}、正式 {first['args']['repeats']}；每 pass 前后 `torch.mps.synchronize()`；中位数与 p95 |")
+    L.append(f"| 计时 | 每 pass {first['args']['layers']} 层步；预热 {first['args']['warmup']}、正式 {first['args']['repeats']}；每 pass 前后 `torch.mps.synchronize()`；中位数与 p95。**p95 是 pass 耗时 ÷ 层数的 p95，不是单个解码步延迟的 p95** |")
     L.append(f"| 工作集 | rotating：{first['args']['layers']} 层各自缓冲轮换；hot：同一层重复 |")
     L.append(f"| 代码 | commit {first['git'].get('commit')}，dirty diff sha256 {first['git'].get('dirty_diff_sha256')} |")
     L.append(f"| 独立进程 | eager {len(eager)} 个；含 compile 的 {len(compile_runs)} 个 |\n")
@@ -129,7 +130,7 @@ def main() -> int:
     for dtype in dtypes:
         for workset in ("rotating", "hot"):
             L.append(f"\n### {dtype} · {workset} · eager\n")
-            L.append("| N | ρ | k | 读取数 S | A µs | A p95 | D_full µs | D_full/A | D_read µs | D_read/A | 进程数 |\n|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
+            L.append("| N | ρ | k | 读取数 S | A µs | A p95（pass÷层数） | D_full µs | D_full/A | D_read µs | D_read/A | 进程数 |\n|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
             for N in lengths:
                 for rho in rhos:
                     A = get(dtype, "eager", workset, N, rho, "A")
@@ -170,7 +171,8 @@ def main() -> int:
                     break
             L.append(f"| {dtype} | {N} | " + " | ".join(f(v["median"]) if v else "—" for v in vals.values()) + f" | {chosen} |")
 
-    L.append("\n## 5. D 的分段成本（eager、rotating、每层 µs；各段单独计时，之和不等于链式时间，因为提交与执行有重叠）\n")
+    L.append("\n## 5. D 的分段成本（eager、rotating、每层 µs）\n")
+    L.append("各段单独计时，且 top-k、合并、gather、子集注意力复用同一份预先算好的中间量（s0、top0、rows0、ksub0/vsub0）；完整链式则在链中产生并消费本层的新中间量。因此分段之和与链式时间不相等，差异可能来自数据依赖、分配、缓存状态和提交方式，**现有证据不能分离这些来源**。\n")
     comps = ["comp:z_append", "comp:u_proj", "comp:score_candidates", "comp:topk", "comp:merge_rows", "comp:gather_k", "comp:gather_v", "comp:subset_attention"]
     L.append("| dtype | N | ρ | " + " | ".join(c.split(':')[1] for c in comps) + " | 分段之和 | D_full 链式 |\n|---|---:|---:|" + "---:|" * (len(comps) + 2))
     for dtype in dtypes:
@@ -242,6 +244,8 @@ def main() -> int:
     L.append("- 随机张量下 top-k 名单近似均匀；真实轨迹的局部性、ρ 与 k 规则需重测。")
     L.append("- A 采用本机实测最快的合法 GQA 变体；SDPA 内核名称以 aten 调度层为准，Metal 内核级别未用 Instruments 核对。")
     L.append("- 没有模型、任务、质量结论；MPS 结果不推 CUDA。")
+    L.append("- summary.json 中的 `memory_peaks` 是各 (dtype, N) 结束时 `torch.mps` 分配量的时点快照，不是运行期真实峰值。")
+    L.append("- 六个正式进程按 A、D_full、D_read 的固定顺序、相同数据种子执行；顺序效应未在本轮消除。交错顺序的补测见 `reports/g1a_supplement_mac_m4max.md`。")
 
     a.out.write_text("\n".join(L) + "\n", encoding="utf-8")
     cond = {"schema_version": 1, "kind": "benchmark_summary", "runs": [r["run_id"] for r in runs], "pass_ratio": PASS_RATIO, "verdicts": verdicts,
@@ -253,7 +257,7 @@ def main() -> int:
     manifests = []
     home = str(Path.home())
     for r in runs:
-        mp = ROOT / "runs" / r["run_id"] / "manifest.json"
+        mp = Path(r["_abs_path"]).parent / "manifest.json"      # next to its summary.json, so an extracted archive works too
         if mp.exists():
             manifests.append(json.loads(mp.read_text().replace(home, "~")))   # no absolute home paths in public files
     a.manifest.write_text(json.dumps({"schema_version": 1, "kind": "benchmark", "runs": manifests}, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
