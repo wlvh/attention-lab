@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "kind": "provenance_archive",
+  "created_utc": "2026-10-16T16:56:00Z",
+  "note": "Raw per-pass JSONL, summary.json, manifest.json and profiles.txt of the seven G1a runs (one smoke, five eager, one eager+compile), the sequence log and script, and the as-run benchmark source. Extract in a clean directory and regenerate the report without a GPU.",
+  "archive_contents": [
+    "g1a-formal.log",
+    "g1a-mac-20261016T145105Z-quick",
+    "g1a-mac-20261016T145200Z-p1",
+    "g1a-mac-20261016T145616Z-p2",
+    "g1a-mac-20261016T150105Z-p3",
+    "g1a-mac-20261016T150606Z-p4",
+    "g1a-mac-20261016T151108Z-p5",
+    "g1a-mac-20261016T151610Z-compile",
+    "g1a_formal_sequence.sh",
+    "microbench_at_formal_runs.py"
+  ],
+  "files": [
+    {
+      "path": "reports/provenance/g1a_runs_20261016.tar.gz",
+      "bytes": 3097657,
+      "sha256": "0f8012fcca0ec865b0eab270aaa417b5503c55953c5c1ea6d6b42461c7cc3bca"
+    },
+    {
+      "path": "reports/provenance/microbench_at_formal_runs.py",
+      "bytes": 34343,
+      "sha256": "4c1e5b66d998e45501fba3693cc01a691d36ea68aefedda3d495f04b2adbce03"
+    },
+    {
+      "path": "reports/provenance/microbench_post_run_edit.diff",
+      "bytes": 1097,
+      "sha256": "f6a60cc631b587b835168d3299d1e5f9ac13768675d8c55e687b933b3b08208e"
+    }
+  ],
+  "regenerate": [
+    "tar xzf reports/provenance/g1a_runs_20261016.tar.gz -C /tmp/g1a_check",
+    "python scripts/g1a_report.py --runs /tmp/g1a_check/runs/g1a-mac-*/summary.json --out /tmp/g1a_check/g1a.md --json /tmp/g1a_check/summary.json --manifest /tmp/g1a_check/manifest.json",
+    "diff /tmp/g1a_check/g1a.md reports/g1a_mac_m4max.md"
+  ]
+}

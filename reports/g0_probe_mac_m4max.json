@@ -1,0 +1,347 @@
+{
+  "kind": "capability_and_bandwidth_probe",
+  "run_id": "g0-mac-20261016T131252Z",
+  "utc_start": "2026-10-16T13:12:52+00:00",
+  "host": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "macos": "27.0.1",
+    "python": "3.12.10",
+    "chip": "Apple M4 Max",
+    "gpu_cores": 40,
+    "physical_memory_bytes": 137438953472
+  },
+  "software": {
+    "torch": "2.14.1",
+    "python_executable": "~/Projects/attention-lab/.venv/bin/python",
+    "env": {
+      "PYTORCH_ENABLE_MPS_FALLBACK": null,
+      "PYTORCH_MPS_HIGH_WATERMARK_RATIO": null,
+      "PYTORCH_MPS_LOW_WATERMARK_RATIO": null
+    }
+  },
+  "args": {
+    "runs_dir": "runs",
+    "sizes_gib": [
+      0.25,
+      1.0,
+      4.0
+    ],
+    "repeats": 12,
+    "scan_layers": 36,
+    "scan_n": 32768,
+    "skip_compile": false
+  },
+  "probes": {
+    "mps_available": {
+      "status": "ok",
+      "is_built": true,
+      "is_available": true
+    },
+    "memory_apis": {
+      "recommended_max_memory": 115448725504,
+      "current_allocated_memory": 0,
+      "driver_allocated_memory": 475136,
+      "status": "ok",
+      "probe_seconds": 0.0
+    },
+    "dtype_matmul": {
+      "float32": {
+        "supported": true,
+        "rel_err_vs_cpu_fp32": 0.0
+      },
+      "float16": {
+        "supported": true,
+        "rel_err_vs_cpu_fp32": 0.0003595674061216414
+      },
+      "bfloat16": {
+        "supported": true,
+        "rel_err_vs_cpu_fp32": 0.0028922436758875847
+      },
+      "float64": {
+        "supported": false,
+        "error_type": "TypeError",
+        "error": "Cannot convert a MPS Tensor to float64 dtype as the MPS framework doesn't support float64. Please use float32 instead."
+      },
+      "status": "ok",
+      "probe_seconds": 0.07
+    },
+    "selection_ops": {
+      "topk_indices_match": true,
+      "topk_values_rel_err": 0.0,
+      "index_select_exact": true,
+      "masked_softmax_rel_err": 1.7701593435504037e-07,
+      "masked_softmax_finite": true,
+      "status": "ok",
+      "probe_seconds": 0.057
+    },
+    "sdpa": {
+      "mha_repeated_kv": {
+        "supported": true,
+        "rel_err": 3.716488947702601e-07
+      },
+      "enable_gqa": {
+        "supported": true,
+        "rel_err": 3.716488947702601e-07
+      },
+      "bool_attn_mask": {
+        "supported": true,
+        "rel_err": 3.1880873052614334e-07
+      },
+      "bf16": {
+        "supported": true,
+        "rel_err_vs_fp32": 0.003729530144482851
+      },
+      "status": "ok",
+      "probe_seconds": 0.027
+    },
+    "index_backward_kl": {
+      "loss_cpu": 4.9228434562683105,
+      "loss_mps": 4.9228434562683105,
+      "grad_finite": true,
+      "grad_wq_rel_err": 1.9384137317501882e-07,
+      "grad_wk_rel_err": 1.7073402602818533e-07,
+      "status": "ok",
+      "probe_seconds": 0.017
+    },
+    "dispatch_overhead": {
+      "tiny_matmul_us_per_op": 23.730416821005445,
+      "topk_4096_k32_us_per_op": 59.88138999479512,
+      "index_select_64_of_4096_us_per_op": 5.793469996812443,
+      "synchronize_us": 0.20395498722791672,
+      "status": "ok",
+      "probe_seconds": 0.035
+    },
+    "index_path_cost": {
+      "dtype": "bfloat16",
+      "layers": 36,
+      "rho": 0.03125,
+      "note": "us_per_layer medians over 8 passes; chain = score+topk+gather(K)+gather(V) in one stream",
+      "N8192": {
+        "k": 256,
+        "z_bytes_per_layer": 4194304,
+        "selected_kv_bytes_per_layer": 1048576,
+        "dense_kv_bytes_per_layer": 33554432,
+        "score_us_per_layer": 58.997693284052524,
+        "score_zT_contig_us_per_layer": 45.402777484721604,
+        "topk_us_per_layer": 55.70025031273771,
+        "gather_kv_us_per_layer": 186.60186146411837,
+        "gather_index_select_flat_us_per_layer": 15.9392358101387,
+        "gather_adv_index_us_per_layer": 51.90972216142755,
+        "chain_us_per_layer": 281.3825275451462,
+        "chain_best_us_per_layer": 97.31308333963777
+      },
+      "N16384": {
+        "k": 512,
+        "z_bytes_per_layer": 8388608,
+        "selected_kv_bytes_per_layer": 2097152,
+        "dense_kv_bytes_per_layer": 67108864,
+        "score_us_per_layer": 81.08274940039135,
+        "score_zT_contig_us_per_layer": 40.10301361429608,
+        "topk_us_per_layer": 49.88598569373911,
+        "gather_kv_us_per_layer": 333.03645775756905,
+        "gather_index_select_flat_us_per_layer": 21.150472295832717,
+        "gather_adv_index_us_per_layer": 80.92476410739538,
+        "chain_us_per_layer": 461.47280550535976,
+        "chain_best_us_per_layer": 114.67708342631038
+      },
+      "N32768": {
+        "k": 1024,
+        "z_bytes_per_layer": 16777216,
+        "selected_kv_bytes_per_layer": 4194304,
+        "dense_kv_bytes_per_layer": 134217728,
+        "score_us_per_layer": 136.69676425504602,
+        "score_zT_contig_us_per_layer": 58.21238947747689,
+        "topk_us_per_layer": 69.3854178987547,
+        "gather_kv_us_per_layer": 673.2812641227307,
+        "gather_index_select_flat_us_per_layer": 26.8993050364467,
+        "gather_adv_index_us_per_layer": 153.65104142498845,
+        "chain_us_per_layer": 932.9722225730721,
+        "chain_best_us_per_layer": 166.1006940088959
+      },
+      "status": "ok",
+      "probe_seconds": 2.128
+    },
+    "bandwidth": {
+      "note": "copy counts read+write bytes; sum counts read bytes; mul_out counts read+write. Median of repeats; synchronize around each op.",
+      "0.25GiB_float32": {
+        "bytes": 268435456,
+        "copy": {
+          "gbps_median": 372.2560982670761,
+          "ms_median": 1.4422085077967495,
+          "ms_min": 1.3449580292217433,
+          "ms_max": 1.5300409868359566,
+          "repeats": 12
+        },
+        "sum_read": {
+          "gbps_median": 357.01142807964425,
+          "ms_median": 0.7518959755543619,
+          "ms_min": 0.6972919800318778,
+          "ms_max": 0.8102499996311963,
+          "repeats": 12
+        },
+        "mul_out": {
+          "gbps_median": 402.24450782006596,
+          "ms_median": 1.334687985945493,
+          "ms_min": 1.297915994655341,
+          "ms_max": 1.4788329717703164,
+          "repeats": 12
+        }
+      },
+      "0.25GiB_bfloat16": {
+        "bytes": 268435456,
+        "copy": {
+          "gbps_median": 388.9312118941599,
+          "ms_median": 1.3803749752696604,
+          "ms_min": 1.324417011346668,
+          "ms_max": 1.5452919760718942,
+          "repeats": 12
+        },
+        "sum_read": {
+          "gbps_median": 372.2990952344399,
+          "ms_median": 0.7210209732875228,
+          "ms_min": 0.6622500368393958,
+          "ms_max": 0.7894589798524976,
+          "repeats": 12
+        },
+        "mul_out": {
+          "gbps_median": 382.8525756736775,
+          "ms_median": 1.4022914983797818,
+          "ms_min": 1.3555419864133,
+          "ms_max": 1.509791996795684,
+          "repeats": 12
+        }
+      },
+      "1GiB_float32": {
+        "bytes": 1073741824,
+        "copy": {
+          "gbps_median": 388.144792150852,
+          "ms_median": 5.5326870060525835,
+          "ms_min": 5.162124987691641,
+          "ms_max": 5.815833050291985,
+          "repeats": 12
+        },
+        "sum_read": {
+          "gbps_median": 397.5748111646373,
+          "ms_median": 2.700729004573077,
+          "ms_min": 2.4870840134099126,
+          "ms_max": 2.914792043156922,
+          "repeats": 12
+        },
+        "mul_out": {
+          "gbps_median": 413.04379071019116,
+          "ms_median": 5.1991670043207705,
+          "ms_min": 4.93712502066046,
+          "ms_max": 5.3305840119719505,
+          "repeats": 12
+        }
+      },
+      "1GiB_bfloat16": {
+        "bytes": 1073741824,
+        "copy": {
+          "gbps_median": 409.13541218110856,
+          "ms_median": 5.248833476798609,
+          "ms_min": 5.066415993496776,
+          "ms_max": 5.511375027708709,
+          "repeats": 12
+        },
+        "sum_read": {
+          "gbps_median": 441.6494252021786,
+          "ms_median": 2.4312084715347737,
+          "ms_min": 2.2844999912194908,
+          "ms_max": 2.53649998921901,
+          "repeats": 12
+        },
+        "mul_out": {
+          "gbps_median": 409.6346116872162,
+          "ms_median": 5.2424370078369975,
+          "ms_min": 5.1024999702349305,
+          "ms_max": 5.467000009957701,
+          "repeats": 12
+        }
+      },
+      "4GiB_float32": {
+        "bytes": 4294967296,
+        "copy": {
+          "gbps_median": 412.9710130200517,
+          "ms_median": 20.800333004444838,
+          "ms_min": 20.60154196806252,
+          "ms_max": 20.897750044241548,
+          "repeats": 6
+        },
+        "sum_read": {
+          "gbps_median": 443.0741832703789,
+          "ms_median": 9.693562518805265,
+          "ms_min": 9.490749973338097,
+          "ms_max": 10.067124967463315,
+          "repeats": 6
+        },
+        "mul_out": {
+          "gbps_median": 427.40423369170384,
+          "ms_median": 20.0979164801538,
+          "ms_min": 19.915334007237107,
+          "ms_max": 20.276417024433613,
+          "repeats": 6
+        }
+      },
+      "4GiB_bfloat16": {
+        "bytes": 4294967296,
+        "copy": {
+          "gbps_median": 411.92759517765984,
+          "ms_median": 20.853020512731746,
+          "ms_min": 20.508541958406568,
+          "ms_max": 21.14620798965916,
+          "repeats": 6
+        },
+        "sum_read": {
+          "gbps_median": 456.07446950421513,
+          "ms_median": 9.417249995749444,
+          "ms_min": 8.95662495167926,
+          "ms_max": 9.75049997214228,
+          "repeats": 6
+        },
+        "mul_out": {
+          "gbps_median": 389.6376198664029,
+          "ms_median": 22.045957972295582,
+          "ms_min": 21.333792014047503,
+          "ms_max": 22.493667027447373,
+          "repeats": 6
+        }
+      },
+      "status": "ok",
+      "probe_seconds": 2.221
+    },
+    "attention_scan_qk": {
+      "layers": 36,
+      "n": 32768,
+      "dtype": "bfloat16",
+      "k_bytes_per_layer": 67108864,
+      "k_bytes_total": 2415919104,
+      "rotating_workset": {
+        "ms_median_per_pass": 6.195416470291093,
+        "gbps_median": 389.9526554163174,
+        "us_per_layer": 172.09490195253036
+      },
+      "hot_same_layer": {
+        "ms_median_per_pass": 5.882832978386432,
+        "gbps_median": 410.6727341871005,
+        "us_per_layer": 163.4120271774009
+      },
+      "status": "ok",
+      "probe_seconds": 0.28
+    },
+    "torch_compile_elementwise": {
+      "supported": true,
+      "first_call_s": 1.0184078750316985,
+      "second_call_ms": 0.25520898634567857,
+      "rel_err": 0.0,
+      "status": "ok",
+      "probe_seconds": 1.02
+    }
+  },
+  "utc_end": "2026-10-16T13:12:58+00:00",
+  "memory_after": {
+    "current_allocated_memory": 0,
+    "driver_allocated_memory": 42762240
+  }
+}

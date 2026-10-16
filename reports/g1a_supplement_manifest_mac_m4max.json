@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "run_id": "g1a-supp-20261016T170030Z-formal",
+  "kind": "benchmark_supplement",
+  "status": "done",
+  "created_at_utc": "2026-10-16T17:00:30+00:00",
+  "git": {
+    "commit": "4dd95df7b155ba8fba621b42d88ee3af17dd9d65",
+    "branch": "task/g0-g1a-mac",
+    "dirty_files": [],
+    "dirty_diff_sha256": null
+  },
+  "source_hashes": {
+    "src/attention_lab/__init__.py": "e8257adc5a4c70dd8c477c96bdda2ba60f3956019d7975c141bc24275e236346",
+    "src/attention_lab/decode.py": "f0dde0182b1c9df8b4417a31b1994d86215e0e38ae4e5fd5eb4ed1606cc514ee",
+    "src/attention_lab/full.py": "b3b0f6c8cce5f5abecc55dd07a0aaa14afdc305da5df7a6d2502168ef479d23a",
+    "src/attention_lab/indexer.py": "911db9e5af2b6ddf81fe1424369a55baf60fc878ec849c92b6bfdc860b2dcf85",
+    "src/attention_lab/reference.py": "bdd13df4ed5ced09a7e56d9227a480837b63049ebb4b68145d07f6eb5683c2ec",
+    "src/attention_lab/runinfo.py": "3d1d4cfbcbf5dca90ddc0cdcc007c5d3d12ccdbd5a4b457ef1a2dbb4be419e7c",
+    "src/attention_lab/selection.py": "a0dbe7aa0f0b586c358d633b276c0ed9baf3bbaed18d88d57fbfe9434cea9cfd",
+    "src/attention_lab/sparse.py": "bbe8805b45a4f95ff2aed9c31cdb906fce66ecf4e7e6b31632584abd569aeb55",
+    "bench/microbench.py": "69216b81d7054b74d7b98559d4d81a823c130030d2e75e4a659972fb2778b4e9",
+    "bench/supplement_g1a.py": "52ff18bb0faf959d97f16abbc3aea11408796a2a5b1b5be94deec9ef1c2aaf85"
+  },
+  "config_sha256": null,
+  "model_revision": null,
+  "tokenizer_revision": null,
+  "data_sha256": null,
+  "seed": 0,
+  "device": "mps",
+  "host": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "macos": "27.0.1",
+    "python": "3.12.10",
+    "chip": "Apple M4 Max",
+    "gpu_cores": 40,
+    "physical_memory_bytes": 137438953472
+  },
+  "software": {
+    "torch": "2.14.1",
+    "python_executable": "~/Projects/attention-lab/.venv/bin/python",
+    "mps_built": true,
+    "mps_available": true,
+    "env": {
+      "PYTORCH_ENABLE_MPS_FALLBACK": null,
+      "PYTORCH_MPS_HIGH_WATERMARK_RATIO": null,
+      "PYTORCH_MPS_LOW_WATERMARK_RATIO": null,
+      "PYTORCH_MPS_FAST_MATH": null,
+      "TORCH_COMPILE_DEBUG": null
+    },
+    "recommended_max_memory": 115448725504,
+    "current_allocated_memory": 0,
+    "driver_allocated_memory": 475136
+  },
+  "backend": "mps",
+  "dtype": [
+    "bfloat16",
+    "float32"
+  ],
+  "command": "python bench/supplement_g1a.py --dtypes bfloat16 float32 --lengths 8192 16384 32768 --cycles 40 --warmup 10 --tag formal",
+  "timing_scope": "single layer decode read stage; per pass = layers layer-steps; interleaved single passes; sync before/after pass",
+  "memory_units": "bytes",
+  "budget": {
+    "cloud_usd_actual": 0,
+    "cloud_usd_committed": 0,
+    "device_seconds": 166.6973490829696
+  },
+  "artifacts": [
+    "microbench.jsonl",
+    "summary.json",
+    "manifest.json"
+  ],
+  "args": {
+    "dtypes": [
+      "bfloat16",
+      "float32"
+    ],
+    "lengths": [
+      8192,
+      16384,
+      32768
+    ],
+    "rhos": [
+      0.03125,
+      0.125
+    ],
+    "layers": 36,
+    "groups": 8,
+    "heads": 32,
+    "head_dim": 128,
+    "index_dim": 32,
+    "a_backend": "sdpa_fold",
+    "warmup": 10,
+    "cycles": 40,
+    "slack": 2048,
+    "runs_dir": "~/Projects/attention-lab/runs",
+    "seed": 0,
+    "tag": "formal",
+    "quick": false
+  },
+  "limitations": [
+    "random tensors, one layer, batch 1, T=1; no model, no task, no quality statement; MPS only"
+  ],
+  "finished_at_utc": "2026-10-16T17:03:17+00:00"
+}

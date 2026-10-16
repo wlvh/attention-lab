@@ -1,0 +1,11 @@
+--- runs/microbench_at_formal_runs.py	2026-10-17 00:44:36
++++ bench/microbench.py	2026-10-16 23:53:16
+@@ -255,7 +255,7 @@
+                 "command": command, "timing_scope": "single layer decode read stage; per pass = layers layer-steps; sync before/after pass",
+                 "memory_units": "bytes", "budget": {"cloud_usd_actual": 0, "cloud_usd_committed": 0, "device_seconds": None},
+                 "artifacts": ["microbench.jsonl", "summary.json", "manifest.json", "profiles.txt"],
+-                "args": {k: (str(v) if isinstance(v, Path) else v) for k, v in vars(a).items()},
++                "args": {k: (runinfo.sanitize(str(v)) if isinstance(v, Path) else v) for k, v in vars(a).items()},
+                 "limitations": ["random tensors, one layer, batch 1, T=1; no model, no task, no quality statement; MPS only"]}
+     manifest["config_sha256"] = runinfo.sha256_file(ROOT / "configs/mac_gate1.json") if (ROOT / "configs/mac_gate1.json").exists() else None
+     (out_dir / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
