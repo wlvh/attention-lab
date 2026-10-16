@@ -168,8 +168,10 @@ def profile_step(torch, fn, sync):
         sync()
     ops = [{"name": e.name, "input_shapes": [list(s) for s in (e.input_shapes or [])], "cpu_time_us": float(e.cpu_time_total)}
            for e in prof.events() if e.name.startswith("aten::")]
-    table = prof.key_averages(group_by_input_shape=False).table(sort_by="cpu_time_total", row_limit=45)
-    return ops, table
+    ka = prof.key_averages(group_by_input_shape=False)
+    table = ka.table(sort_by="cpu_time_total", row_limit=45)
+    cpu_self_total_us = float(sum(k.self_cpu_time_total for k in ka))   # CPU-side time of the whole step (dispatch + encoding), no GPU time
+    return ops, table, cpu_self_total_us
 
 
 def length_evidence(ops, lengths, d):
@@ -421,9 +423,10 @@ def main() -> int:
                     try:
                         run = P.select(name)
                         P.restore(name)
-                        ops, table = profile_step(torch, lambda: run.step(ids_dev[:, N0:N0 + 1]), sync)
+                        ops, table, cpu_us = profile_step(torch, lambda: run.step(ids_dev[:, N0:N0 + 1]), sync)
                         P.restore(name)
-                        prof[name] = {"aten_ops": len(ops), "distinct_ops": len({o["name"] for o in ops}),
+                        prof[name] = {"aten_ops": len(ops), "distinct_ops": len({o["name"] for o in ops}), "cpu_self_total_ms": cpu_us / 1e3,
+                                      "top_level_ops": sum(1 for o in ops if o["name"] not in ("aten::view", "aten::reshape", "aten::transpose", "aten::unsqueeze", "aten::squeeze", "aten::expand", "aten::slice", "aten::select", "aten::as_strided", "aten::t", "aten::permute", "aten::empty", "aten::empty_like", "aten::empty_strided", "aten::detach", "aten::alias", "aten::_unsafe_view", "aten::resolve_conj", "aten::resolve_neg", "aten::size", "aten::stride", "aten::is_nonzero", "aten::item", "aten::_local_scalar_dense", "aten::contiguous")),
                                       "length_matmul_ops": length_evidence(ops, (N0 + 1, cap), geo.head_dim),
                                       "ops_touching_length": sorted({o["name"] for o in ops if any((N0 + 1) in s or cap in s for s in o["input_shapes"])}),
                                       "sdpa_dispatch": sorted({o["name"] for o in ops if "scaled_dot_product" in o["name"] or "sdp" in o["name"]}),
@@ -432,7 +435,7 @@ def main() -> int:
                                       "cat_calls": sum(1 for o in ops if o["name"] == "aten::cat")}
                         prof[name]["full_length_matmul_detected"] = bool(prof[name]["length_matmul_ops"])
                         profiles_txt.append(f"=== N0={N0} {name} ===\n{table}\n")
-                        print(f"  profile {name:<15s} aten ops {prof[name]['aten_ops']:5d}  length-matmul ops {len(prof[name]['length_matmul_ops']):3d}  topk {prof[name]['topk_calls']}  index_select {prof[name]['index_select_calls']}  cat {prof[name]['cat_calls']}  sdpa {prof[name]['sdpa_dispatch']}")
+                        print(f"  profile {name:<15s} aten ops {prof[name]['aten_ops']:5d} (non-view {prof[name]['top_level_ops']:5d})  CPU self total {prof[name]['cpu_self_total_ms']:6.2f} ms  length-matmul ops {len(prof[name]['length_matmul_ops']):3d}  topk {prof[name]['topk_calls']}  index_select {prof[name]['index_select_calls']}  cat {prof[name]['cat_calls']}  sdpa {prof[name]['sdpa_dispatch']}")
                     except Exception as e:
                         prof[name] = {"status": "error", "error_type": type(e).__name__, "error": runinfo.sanitize(str(e))[:400]}
                         print(f"  profile {name} ERROR {type(e).__name__}: {e}")

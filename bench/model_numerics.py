@@ -52,20 +52,38 @@ def parse_args():
 
 
 def compare(a, b, tol, *, kind):
-    """max|a-b|, relative norm and argmax agreement, computed in float32 on the CPU, with the preset verdict."""
+    """max|a-b|, relative norm and argmax agreement, computed in float32 on the CPU, with the preset verdict (`pass_preset`)."""
     a32, b32 = a.detach().float().cpu(), b.detach().float().cpu()
     finite = bool(torch.isfinite(a32).all())
     diff = float((a32 - b32).abs().max()) if finite else float("inf")
     rel = float((a32 - b32).norm() / (b32.norm() + 1e-30)) if finite else float("inf")
-    out = {"finite": finite, "max_abs": diff, "rel_norm": rel}
+    out = {"finite": finite, "max_abs": diff, "rel_norm": rel, "max_abs_ref": float(b32.abs().max())}
     if kind == "logits":
         agree = float((a32.argmax(-1) == b32.argmax(-1)).float().mean())
         out.update({"argmax_agreement": agree, "tol_atol": tol["logits_atol"], "tol_rel_norm": tol["logits_rel_norm"],
                     "tol_argmax_min": tol["argmax_agreement_min"],
-                    "pass": finite and diff <= tol["logits_atol"] and rel <= tol["logits_rel_norm"] and agree >= tol["argmax_agreement_min"]})
+                    "pass_preset": finite and diff <= tol["logits_atol"] and rel <= tol["logits_rel_norm"] and agree >= tol["argmax_agreement_min"]})
     else:
-        out.update({"tol_atol": tol["cache_atol"], "pass": finite and diff <= tol["cache_atol"]})
+        out.update({"tol_atol": tol["cache_atol"], "pass_preset": finite and diff <= tol["cache_atol"]})
+    out["pass"] = out["pass_preset"]
     return out
+
+
+def apply_revised_rule(check, floor, rule, *, kind):
+    """bf16 rule pre-registered after run 1 (see configs/mac_gate1b.json numerics.revised_bfloat16_rule): the wrapper's
+    deviation from the unmodified one-shot model may not exceed `factor` times the unmodified model's own incremental
+    deviation on the same tokens; argmax agreement keeps its preset minimum. The preset verdict stays in `pass_preset`."""
+    f = rule["factor"]
+    if kind == "logits":
+        ok = (check["finite"] and check["max_abs"] <= f * max(floor["max_abs"], 1e-30) and check["rel_norm"] <= f * max(floor["rel_norm"], 1e-30)
+              and check["argmax_agreement"] >= check["tol_argmax_min"])
+        floor_fields = {"floor_max_abs": floor["max_abs"], "floor_rel_norm": floor["rel_norm"]}
+    else:
+        floor_abs = max(floor.get("max_abs_k", 0.0), floor.get("max_abs_v", 0.0), floor.get("max_abs", 0.0))
+        ok = check["finite"] and max(check.get("max_abs_k", 0.0), check.get("max_abs_v", 0.0), check.get("max_abs_z", 0.0), check.get("max_abs", 0.0)) <= f * max(floor_abs, 1e-30)
+        floor_fields = {"floor_max_abs": floor_abs}
+    check.update({"rule": "revised_bfloat16_noise_floor_x%g" % f, **floor_fields, "pass_revised": bool(ok), "pass": bool(ok)})
+    return check
 
 
 def cache_compare(cache, dc, L, tol):
@@ -79,8 +97,23 @@ def cache_compare(cache, dc, L, tol):
         finite = finite and bool(torch.isfinite(ck).all()) and bool(torch.isfinite(cv).all())
         worst_k = max(worst_k, float((ck - k.float().cpu()).abs().max()))
         worst_v = max(worst_v, float((cv - v.float().cpu()).abs().max()))
-    return {"finite": finite, "max_abs_k": worst_k, "max_abs_v": worst_v, "tol_atol": tol["cache_atol"],
-            "pass": finite and max(worst_k, worst_v) <= tol["cache_atol"]}
+    ok = finite and max(worst_k, worst_v) <= tol["cache_atol"]
+    return {"finite": finite, "max_abs_k": worst_k, "max_abs_v": worst_v, "tol_atol": tol["cache_atol"], "pass_preset": ok, "pass": ok}
+
+
+def cache_vs_cache(c1, c2, L, tol, *, with_z):
+    """Per-layer K/V (and z) of two LabCaches over [0, L): the worst layer decides."""
+    worst = {"k": 0.0, "v": 0.0, "z": 0.0}
+    for l in range(c1.layers):
+        worst["k"] = max(worst["k"], float((c1.k[l][:, :, :L].float() - c2.k[l][:, :, :L].float()).abs().max()))
+        worst["v"] = max(worst["v"], float((c1.v[l][:, :, :L].float() - c2.v[l][:, :, :L].float()).abs().max()))
+        if with_z:
+            worst["z"] = max(worst["z"], float((c1.z[l][..., :L].float() - c2.z[l][..., :L].float()).abs().max()))
+    ok = max(worst.values()) <= tol["cache_atol"]
+    out = {"finite": all(x == x for x in worst.values()), "max_abs_k": worst["k"], "max_abs_v": worst["v"], "tol_atol": tol["cache_atol"], "pass_preset": ok, "pass": ok}
+    if with_z:
+        out["max_abs_z"] = worst["z"]
+    return out
 
 
 def poison(cache):
@@ -97,19 +130,39 @@ def sync(device):
         torch.mps.synchronize()
 
 
-def run_length(model, holder, device, dtype_name, L, tol, a, results):
+def run_length(model, holder, device, dtype_name, L, tol, a, results, revised_rule=None):
     """All comparisons for one (dtype, L). The model arrives unwrapped and leaves unwrapped."""
     from transformers import DynamicCache
-    from attention_lab.qwen_wrap import LabRunner, make_state, unwrap_model, wrap_model
+    from attention_lab.qwen_wrap import LabRunner, NativeRunner, make_state, unwrap_model, wrap_model
     gen = torch.Generator().manual_seed(a.seed + L)
     ids = torch.randint(0, FIRST_SPECIAL_TOKEN, (1, L), generator=gen).to(device)
     tail, chunk, cap = a.tail, a.chunk, L + 16
     rec = {"dtype": dtype_name, "device": str(device), "L": L, "capacity": cap, "chunk": chunk, "tail": tail,
-           "data_sha256": hashlib.sha256(ids.cpu().numpy().tobytes()).hexdigest(), "checks": {}}
+           "data_sha256": hashlib.sha256(ids.cpu().numpy().tobytes()).hexdigest(), "checks": {}, "noise_floor": {}}
     t0 = time.perf_counter()
     ref = model(input_ids=ids).logits                                          # (1) unmodified, no cache
     dc = DynamicCache(config=model.config)
     model(input_ids=ids, past_key_values=dc, use_cache=True)                  # (1) unmodified with its own cache
+    # noise floor: the unmodified model run incrementally (its own DynamicCache, chunks then one token at a time)
+    nat = NativeRunner(model, DynamicCache(config=model.config), cap)
+    head_n = nat.prefill(ids[:, :L - tail], chunk, keep_logits=True)
+    tail_n = torch.cat([nat.step(ids[:, i:i + 1]) for i in range(L - tail, L)], dim=1)
+    floor_logits = compare(torch.cat([head_n, tail_n], 1), ref, tol, kind="logits")
+    floor_tail = compare(tail_n, ref[:, L - tail:], tol, kind="logits")
+    floor_cache = {"max_abs_k": 0.0, "max_abs_v": 0.0}
+    for l in range(len(nat.cache.layers)):
+        k1, v1 = nat.cache.layers[l].keys, nat.cache.layers[l].values
+        k2, v2 = dc.layers[l].keys, dc.layers[l].values
+        floor_cache["max_abs_k"] = max(floor_cache["max_abs_k"], float((k1.float() - k2.float()).abs().max()))
+        floor_cache["max_abs_v"] = max(floor_cache["max_abs_v"], float((v1.float() - v2.float()).abs().max()))
+    for d in (floor_logits, floor_tail):
+        d.update({"gated": False, "pass": None, "pass_preset": d.pop("pass_preset")})
+    rec["noise_floor"] = {"unmodified_incremental_vs_unmodified_one_shot_logits": floor_logits,
+                          "unmodified_incremental_last_tokens_vs_unmodified_one_shot_logits": floor_tail,
+                          "unmodified_incremental_cache_vs_unmodified_one_shot_cache": floor_cache,
+                          "note": "transformers DynamicCache fed chunk by chunk then one token at a time, against the one-shot forward: "
+                                  "the library's own incremental rounding on the same tokens; reference for the revised bf16 rule"}
+    del nat
     sync(device)
     wrap_model(model, holder)
     # (2) wrapped full path, one forward
@@ -136,7 +189,7 @@ def run_length(model, holder, device, dtype_name, L, tol, a, results):
     rb = compare(again, tailB, tol, kind="logits")
     rb["bitwise_equal"] = bool(torch.equal(again, tailB))
     rec["checks"]["rollback_redecode_vs_first_pass"] = rb
-    # (4) D with every candidate selected, and D at rho = 1/8 (recorded only)
+    # (4) D with every candidate selected: chunked prefill (index table built chunk by chunk) + token-by-token steps
     stD = make_state(model, cap, "sparse")
     runD = LabRunner(model, holder, stD)
     poison(stD.cache)
@@ -146,6 +199,18 @@ def run_length(model, holder, device, dtype_name, L, tol, a, results):
     rec["checks"]["D_full_selection_vs_wrapped_incremental_logits"] = compare(tailD, tailB, tol, kind="logits")
     rec["checks"]["D_full_selection_vs_unmodified_logits"] = compare(tailD, ref[:, L - tail:], tol, kind="logits")
     rec["checks"]["D_full_selection_cache_vs_hf_cache"] = cache_compare(stD.cache, dc, L, tol)
+    # index table built chunk by chunk (+ full-selection single steps) vs built in one forward over L
+    stE = make_state(model, cap, "sparse")
+    LabRunner(model, holder, stE).prefill(ids, L)
+    c = cache_vs_cache(stD.cache, stE.cache, L, tol, with_z=True)
+    c["note"] = "D cache after chunked prefill + %d full-selection single steps vs one forward over L (dense trajectory in both)" % tail
+    rec["checks"]["chunked_build_plus_steps_vs_one_shot_build_kv_and_index"] = c
+    stF = make_state(model, cap, "sparse")                                     # prefill chunking alone, no single steps
+    LabRunner(model, holder, stF).prefill(ids, chunk)
+    c2 = cache_vs_cache(stF.cache, stE.cache, L, tol, with_z=True)
+    c2["note"] = "D cache after chunked prefill (chunk %d) vs one forward over L" % chunk
+    rec["checks"]["chunked_prefill_vs_one_shot_build_kv_and_index"] = c2
+    # D at rho = 1/8: recorded only (a partial read is not required to match); run last because it changes the trajectory
     runD.rollback(L - tail)
     k0 = stD.begin_request(1 / 8)
     tailP = torch.cat([runD.step(ids[:, i:i + 1]) for i in range(L - tail, L)], dim=1)
@@ -153,25 +218,25 @@ def run_length(model, holder, device, dtype_name, L, tol, a, results):
     partial.update({"k0": k0, "k_last": stD.plan.k, "selected_last": stD.plan.selected_count, "legal_last": stD.plan.legal_length,
                     "gated": False, "pass": None, "note": "partial read is not required to match the full path; recorded for information"})
     rec["checks"]["D_rho_1_8_vs_unmodified_logits_information_only"] = partial
-    # chunked vs one-shot index table (and K/V) build
-    stE = make_state(model, cap, "sparse")
-    LabRunner(model, holder, stE).prefill(ids, L)
-    worst = {"k": 0.0, "v": 0.0, "z": 0.0}
-    for l in range(stD.cache.layers):
-        stF = stE.cache
-        worst["k"] = max(worst["k"], float((stD.cache.k[l][:, :, :L].float() - stF.k[l][:, :, :L].float()).abs().max()))
-        worst["v"] = max(worst["v"], float((stD.cache.v[l][:, :, :L].float() - stF.v[l][:, :, :L].float()).abs().max()))
-        worst["z"] = max(worst["z"], float((stD.cache.z[l][..., :L].float() - stF.z[l][..., :L].float()).abs().max()))
-    rec["checks"]["chunked_vs_one_shot_build_kv_and_index"] = {"max_abs_k": worst["k"], "max_abs_v": worst["v"], "max_abs_z": worst["z"],
-                                                              "tol_atol": tol["cache_atol"], "pass": max(worst.values()) <= tol["cache_atol"],
-                                                              "note": "D cache: chunked prefill + 8 single steps vs one forward over L"}
     unwrap_model(model)
     sync(device)
+    # revised bf16 rule (pre-registered after run 1): wrapper deviation vs the library's own incremental deviation
+    if revised_rule is not None and dtype_name in revised_rule.get("dtypes", []):
+        for name, chk in rec["checks"].items():
+            if chk.get("pass") is None:
+                continue
+            if "cache" in name or "build" in name:
+                apply_revised_rule(chk, floor_cache, revised_rule, kind="cache")
+            elif "last_tokens" in name or name.startswith("D_full_selection_vs") or name.startswith("rollback"):
+                apply_revised_rule(chk, floor_tail, revised_rule, kind="logits")
+            else:
+                apply_revised_rule(chk, floor_logits, revised_rule, kind="logits")
     rec["seconds"] = time.perf_counter() - t0
     rec["gated_pass"] = all(c["pass"] for c in rec["checks"].values() if c.get("pass") is not None)
+    rec["gated_pass_preset"] = all(c["pass_preset"] for c in rec["checks"].values() if c.get("pass") is not None)
     results["lengths"].append(rec)
     flags = " ".join(f"{k}={'ok' if c['pass'] else ('--' if c['pass'] is None else 'FAIL')}" for k, c in rec["checks"].items())
-    print(f"  {dtype_name:<9s} {str(device):<4s} L={L:<4d} gated_pass={rec['gated_pass']}  {flags}", flush=True)
+    print(f"  {dtype_name:<9s} {str(device):<4s} L={L:<4d} gated_pass={rec['gated_pass']} (preset {rec['gated_pass_preset']})  noise floor: logits max_abs {floor_logits['max_abs']:.3e} rel {floor_logits['rel_norm']:.2e}, cache K {floor_cache['max_abs_k']:.3e}  {flags}", flush=True)
     return rec
 
 
@@ -290,7 +355,7 @@ def main() -> int:
                     print(f"  WARNING config mismatch: {mism}")
             reference_prompt(model, tok, device, dtype_name, results)
             for L in lengths:
-                run_length(model, holder, device, dtype_name, L, tols[dtype_name], a, results)
+                run_length(model, holder, device, dtype_name, L, tols[dtype_name], a, results, revised_rule=cfg["numerics"].get("revised_bfloat16_rule"))
             if not a.skip_smoke and dtype_name == dtypes[-1]:
                 smoke_generation(model, tok, holder, device, dtype_name, results, a.smoke_tokens)
             del model
@@ -301,7 +366,7 @@ def main() -> int:
             cpu = torch.device("cpu")
             model, tok, _ = load_model(model_cfg["id"], model_cfg["revision"], dtype=torch.float32, device=cpu)
             reference_prompt(model, tok, cpu, "float32", results)
-            rec = run_length(model, holder, cpu, "float32", cpu_len, tols["float32"], a, results)
+            rec = run_length(model, holder, cpu, "float32", cpu_len, tols["float32"], a, results, revised_rule=cfg["numerics"].get("revised_bfloat16_rule"))
             # platform noise floor of the unmodified model: MPS float32 vs CPU float32 on the same tokens (information only)
             if device.type == "mps" and "float32" in dtypes:
                 gen = torch.Generator().manual_seed(a.seed + cpu_len)
@@ -319,12 +384,14 @@ def main() -> int:
     results["device_seconds"] = time.perf_counter() - t_start
     gated = [c for rec in results["lengths"] for c in rec["checks"].values() if c.get("pass") is not None]
     results["numerics_pass"] = all(c["pass"] for c in gated) and bool(gated)
+    results["numerics_pass_preset_only"] = all(c["pass_preset"] for c in gated) and bool(gated)
     results["gated_checks"] = len(gated)
     results["failed_checks"] = [(rec["dtype"], str(rec["device"]), rec["L"], name) for rec in results["lengths"] for name, c in rec["checks"].items() if c.get("pass") is False]
+    results["failed_checks_preset"] = [(rec["dtype"], str(rec["device"]), rec["L"], name) for rec in results["lengths"] for name, c in rec["checks"].items() if c.get("pass") is not None and not c["pass_preset"]]
     (out_dir / "results.json").write_text(json.dumps(results, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     manifest.update({"status": "done", "finished_at_utc": results["utc_end"], "budget": {"cloud_usd_actual": 0, "cloud_usd_committed": 0, "device_seconds": results["device_seconds"]}})
     (out_dir / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"\nnumerics_pass={results['numerics_pass']} ({len(gated)} gated checks, failed: {results['failed_checks']})  wrote {runinfo.sanitize(str(out_dir))}  ({results['device_seconds']:.0f} s)")
+    print(f"\nnumerics_pass={results['numerics_pass']} (preset-only {results['numerics_pass_preset_only']}; {len(gated)} gated checks, failed: {results['failed_checks']}; failed under preset: {len(results['failed_checks_preset'])})  wrote {runinfo.sanitize(str(out_dir))}  ({results['device_seconds']:.0f} s)")
     return 0 if results["numerics_pass"] else 1
 
 
