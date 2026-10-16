@@ -1,0 +1,8 @@
+{
+  "kind": "historical_private_publisher_dry_run",
+  "current_repository": "wlvh/attention-lab",
+  "current_visibility": "public",
+  "legacy_publisher_required": false,
+  "cloud_compute_started": false,
+  "note": "The owner created the public repository. Do not run the legacy private publisher."
+}

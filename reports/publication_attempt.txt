@@ -1,0 +1,5 @@
+Historical record from the initial local packaging attempt, not the current publication status.
+Actual initial local attempt: no authenticated CLI in that environment.
+exit_code=1
+Publication incomplete: gh is missing.
+Current repository is public and supplied by its owner; see PROJECT_STATUS.md and public_publication.md.

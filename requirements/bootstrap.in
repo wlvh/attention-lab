@@ -1,0 +1,14 @@
+# First-resolution inputs, NOT a lockfile. Resolve and test on the Mac, then freeze.
+# No pretrained weights are installed by this list.
+numpy
+torch
+transformers
+safetensors
+huggingface-hub
+pytest
+matplotlib
+jupyterlab
+ipykernel
+nbformat
+nbclient
+nbconvert
