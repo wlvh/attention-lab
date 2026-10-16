@@ -1,0 +1,338 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_publication",
+  "scope": "Project files; workflow definitions are excluded",
+  "source_originals_manifest": "docs/source_manifest.json",
+  "files": [
+    {
+      "path": ".attention_lab_bootstrap",
+      "bytes": 49,
+      "sha256": "87db6a6df36483ca7d89230a565202651162acbf7527b5c12e71cb401bf4ffb4"
+    },
+    {
+      "path": ".editorconfig",
+      "bytes": 154,
+      "sha256": "e609e87b7249fe6875bff29b1ac0890550ced9a32fde61950a03a60e20d27a1f"
+    },
+    {
+      "path": ".gitattributes",
+      "bytes": 129,
+      "sha256": "f924a28edd3e7ed8cc2561ecb9c980b5749079156d3898d61d32cfb22c6940ed"
+    },
+    {
+      "path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "bytes": 500,
+      "sha256": "20e0e6514a06e3250ebdcf919e35c442708f1026d29fad49365cbb9ceac59b99"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 268,
+      "sha256": "609429d04e1f68c3fd9156894adef1560e5dc0d3d9faed90b245101f401aff4f"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 5316,
+      "sha256": "8062afecf896a176314b307dd605dfc7542c92a7830aa7c9191f72d94098071b"
+    },
+    {
+      "path": "PROJECT_STATUS.md",
+      "bytes": 1747,
+      "sha256": "006a14e15df3a639b1c2e5b0d0a0b953f24490a95264a009a4a5224184410249"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4712,
+      "sha256": "9dac1a78886b81466cce864f06159e33e0bef4ec0de644ed008594727ecdf3c9"
+    },
+    {
+      "path": "RIGHTS.md",
+      "bytes": 749,
+      "sha256": "d8eed904320ceaac06e32d43533b7ada4505a065fdbededda61ae6dfe8937964"
+    },
+    {
+      "path": "START_HERE.md",
+      "bytes": 2704,
+      "sha256": "bfd4baffac78333609c2e448c1222ca7e73d58b6284a1a55222e9ee0389da1dd"
+    },
+    {
+      "path": "configs/mac_gate1.json",
+      "bytes": 1141,
+      "sha256": "e489acf233a9feb3a906ab66ed6a68285af3fd5daef8f530f3c057be6bbee151"
+    },
+    {
+      "path": "docs/BACKGROUND.md",
+      "bytes": 4002,
+      "sha256": "2adaf4fe8942bcbbc1434ff584fd18be39602368e0b7bb32457bf21a35a68dad"
+    },
+    {
+      "path": "docs/BUDGET.md",
+      "bytes": 2720,
+      "sha256": "e7305f15fb7365e74f4cc992497327a725cf16d0fe96ae7e4ea1b669ffa808f4"
+    },
+    {
+      "path": "docs/CODEX_HANDOFF.md",
+      "bytes": 3119,
+      "sha256": "a309334075df1b55213b5153a0c9a527874dce0ac69151f043a6559776c1d2c8"
+    },
+    {
+      "path": "docs/DECISIONS.md",
+      "bytes": 3662,
+      "sha256": "c22ef808423ce682a083dd97dd30baf87690d7c8756c47c465d25d926b02594f"
+    },
+    {
+      "path": "docs/IMPLEMENTATION.md",
+      "bytes": 5223,
+      "sha256": "349ed13472ecf4db4dfca99fbdea6a92c7ab42f95aaa18e8bfe9ec6ba98b110a"
+    },
+    {
+      "path": "docs/MAC_RUNBOOK.md",
+      "bytes": 6147,
+      "sha256": "7681df73d9624169715b16ae63ece1a7f9e0ad084e662659ed336a4bc9e50602"
+    },
+    {
+      "path": "docs/MEASUREMENT.md",
+      "bytes": 4972,
+      "sha256": "c87f306e29fac35d126d3e8a54306bd62c4f5e12a98946f9d33398311f3cdb8d"
+    },
+    {
+      "path": "docs/PLAN_CURRENT.md",
+      "bytes": 11029,
+      "sha256": "bbb9754e4e1c9c9fa95c8a59ef5fb06276a69aa6bf1984bfff40fa97d0d93da1"
+    },
+    {
+      "path": "docs/REFERENCE_MAP.md",
+      "bytes": 2787,
+      "sha256": "d35fde07cc28d3b51b07405e3e7b07fb793b9a6f6b0679e9a2089561dbaffaf4"
+    },
+    {
+      "path": "docs/RESULTS_SCHEMA.md",
+      "bytes": 1821,
+      "sha256": "ab3b6965a4b300a8da124a4cb43bf57a8b08f9ff0dfb7c818bd105edebbc3fa9"
+    },
+    {
+      "path": "docs/SOURCES.md",
+      "bytes": 3658,
+      "sha256": "280a9bd72f1852e7fafc2fe6d86d8024d8b3f9a5b9768519c345643d65caed3b"
+    },
+    {
+      "path": "docs/TEACHING_NOTEBOOKS.md",
+      "bytes": 3006,
+      "sha256": "977fd4d3d71d6e8eaf559a324778e10f1c9500196573a49ee338cd322ac14e17"
+    },
+    {
+      "path": "docs/archive/PLAN_training_proposal.md",
+      "bytes": 27778,
+      "sha256": "dca822f084912bf45ea659caa2226729993dfd0ad673686d284ed1aad5377894"
+    },
+    {
+      "path": "docs/archive/PLAN_v2.md",
+      "bytes": 35801,
+      "sha256": "2bade1f800c35bad4efe04282033c392f19dbbd40b7fd04f757b1f25208a2181"
+    },
+    {
+      "path": "docs/archive/PLAN_v3.md",
+      "bytes": 26663,
+      "sha256": "97e9302d5e04e97c0d4341515671cae8cf80a84416643083c4c7becf420df9db"
+    },
+    {
+      "path": "docs/archive/README.md",
+      "bytes": 663,
+      "sha256": "200fec671924d6579ee7adef5f8f42c14568b87678d81906c90f9f7d0a458588"
+    },
+    {
+      "path": "docs/archive/attention_review_evidence.zip",
+      "bytes": 5003,
+      "sha256": "60b42147d59436c177a89d28fd639bf10c476553ed7958260518789f83e05667"
+    },
+    {
+      "path": "docs/archive/attention_tradeoff_plan_v2.zip",
+      "bytes": 28520,
+      "sha256": "1bfbfe68e89871c3c150be7cef54c4703f06600807aa6f8333ef612a0f973f7c"
+    },
+    {
+      "path": "docs/archive/kv_principle_rerun_tests.txt",
+      "bytes": 1657,
+      "sha256": "222ff11cae7b73969bb0f58dd99abea579c6635f4ba20dff89d9ffc8825503b7"
+    },
+    {
+      "path": "docs/archive/roofline_original.py",
+      "bytes": 3445,
+      "sha256": "ee36ca89f572c742e74c114c5ed3e1b3a0e0b5e185d6d7bddf057408cd525cb2"
+    },
+    {
+      "path": "docs/archive/transformer_teaching_plan.zip",
+      "bytes": 18748,
+      "sha256": "17fdf2e5ab570078545d952804bc7cb4c8c0b851ae4b8e0e3efd04df3c8e9251"
+    },
+    {
+      "path": "docs/reference/handbook_with_exercises_updated(4).html",
+      "bytes": 838364,
+      "sha256": "1f41eaa313e70f30934b49fc5f8b0a526af78077c12524ba9f0e94674bc0f241"
+    },
+    {
+      "path": "docs/source_manifest.json",
+      "bytes": 2861,
+      "sha256": "32e2d85b8d645de3bc6e1e7e159180311d15763badaac1ec1aa977c51f01ab63"
+    },
+    {
+      "path": "docs/tasks/00_PUBLISH.md",
+      "bytes": 1163,
+      "sha256": "b0b37ab812f603e9cb812cc205243e56d7f0aa127c4522ba109fe249ce5a417c"
+    },
+    {
+      "path": "docs/tasks/01_G0_G1A.md",
+      "bytes": 2762,
+      "sha256": "cde9b5e23062a8bf0fae585d3841e7ddd1e0600cf943dc81652a0455e1e0c9d4"
+    },
+    {
+      "path": "docs/tasks/02_G1B_MODEL.md",
+      "bytes": 908,
+      "sha256": "4bb24e3a8b9b2d306375734480392f8377900910bde3257dc966c136f2f12a18"
+    },
+    {
+      "path": "docs/tasks/03_G2_TO_G5.md",
+      "bytes": 1392,
+      "sha256": "9a48d2667abbec33e6a538b7098cb08ef1506dde89523077ee06f3a651b16711"
+    },
+    {
+      "path": "docs/templates/gate_card.md",
+      "bytes": 674,
+      "sha256": "619e80c3f86cd84210b4a3c2c954d0a711b1c35792a679e5596e393cbe703f1e"
+    },
+    {
+      "path": "docs/templates/run_manifest.json",
+      "bytes": 620,
+      "sha256": "1f6bd578a556aa48a71dd574f1de8a859d5f145532e07db01ee2ab949d049ed9"
+    },
+    {
+      "path": "notebooks/00_orientation.ipynb",
+      "bytes": 10829,
+      "sha256": "de274182d0345b4d42e8717713291d357f2e2fb8ad88dd570a6029935fc55600"
+    },
+    {
+      "path": "notebooks/README.md",
+      "bytes": 288,
+      "sha256": "3f5a9d8a9bcc2c0b605d7f81dc5fe6f6994fa38ceaeec1a68e5ced5f4b07c790"
+    },
+    {
+      "path": "pyproject.toml",
+      "bytes": 322,
+      "sha256": "c03be8cc7021a412490c2b05168123c153f82dcda83da7153d21e5af87fa221f"
+    },
+    {
+      "path": "reports/00_orientation.html",
+      "bytes": 300896,
+      "sha256": "705989b838aa275b969761c6695a8e4546bb7fb7a05287c81a4680f8e3bbe9da"
+    },
+    {
+      "path": "reports/README.md",
+      "bytes": 296,
+      "sha256": "4733b8c09a62d297de8c051812cb35ce6946a7dfc77970d21a6570b519fb6be7"
+    },
+    {
+      "path": "reports/bootstrap_tests.txt",
+      "bytes": 1937,
+      "sha256": "96d18a432ee0bd269552b9b0c964f3f886e5513b2609c995ac03e2122b8c8b0c"
+    },
+    {
+      "path": "reports/bootstrap_validation.md",
+      "bytes": 546,
+      "sha256": "46313c1d36ffc5cb0ee39bc36a22c8c7ea643213b3972368906f404a529d9687"
+    },
+    {
+      "path": "reports/cuda_4080_assumption_table.md",
+      "bytes": 1411,
+      "sha256": "60556f4d32e79f9575b5c9c8d352cce4ae18dcdd96122db891422d4e4289255a"
+    },
+    {
+      "path": "reports/initial_import_manifest.json",
+      "bytes": 10273,
+      "sha256": "c4fabbccbbebfd44f1667ba724e016e27bf512015bfa407341f698ecdbf394f8"
+    },
+    {
+      "path": "reports/public_publication.md",
+      "bytes": 774,
+      "sha256": "b723ca98e910b3b2e7c3d3f0606bf35ce50edc03246f1a5b32100e45e4a10cba"
+    },
+    {
+      "path": "reports/publication_attempt.txt",
+      "bytes": 324,
+      "sha256": "2fc61beb5bc8f16b77c506e3a4d7a03c4e9151275798d31273375fdc2a2f6c54"
+    },
+    {
+      "path": "reports/publication_dry_run.json",
+      "bytes": 300,
+      "sha256": "09ee1bec3e26e7380885922083e2aea1277329b370e9b22654ec469a101f7787"
+    },
+    {
+      "path": "reports/repository_checks.txt",
+      "bytes": 123,
+      "sha256": "aade832496f10cb69a703dc2df2086f07f56943915c46f59d2b01522b2b6f10d"
+    },
+    {
+      "path": "reports/roofline_predictions.json",
+      "bytes": 11482,
+      "sha256": "3cdbb8f1f85a5501dc67e442f748e8ef1438143a0254bc697d1f1ba16ebc3f14"
+    },
+    {
+      "path": "reports/source_checks.txt",
+      "bytes": 101,
+      "sha256": "cb9c26d1899f53d69cb540036f9ce0731be77c454df21f7864971922acd52da7"
+    },
+    {
+      "path": "requirements/bootstrap.in",
+      "bytes": 257,
+      "sha256": "68ebce010b579c1769fb57851b6b5ca86b9ae6fdeb8b6510ae5dacbf5b1b21a0"
+    },
+    {
+      "path": "runs/README.md",
+      "bytes": 335,
+      "sha256": "1b5245382ef1d1d4d8df779ba0719041af87e7b210fcb3b5a723f098e666301c"
+    },
+    {
+      "path": "scripts/check_repository.py",
+      "bytes": 2525,
+      "sha256": "57a3ea99935a70bcdd38cd7c022a04303449ad3fdb6873a94ea4a6418926c4df"
+    },
+    {
+      "path": "scripts/check_sources.py",
+      "bytes": 1110,
+      "sha256": "4cbef6534878d382ab554a358270fbaefdaca849535ea048846884ee7fcc4d11"
+    },
+    {
+      "path": "scripts/environment_inventory.py",
+      "bytes": 3322,
+      "sha256": "db047044eac7502056118d430d210fce8d8a8fce36e4a339469c48c33374a74b"
+    },
+    {
+      "path": "scripts/publish_repo.py",
+      "bytes": 9630,
+      "sha256": "14e32aaeb6271b675eee1b61b4a9078cc03f817442b3061d75b35e8bc50d44ae"
+    },
+    {
+      "path": "scripts/restore_verified_prefix.py",
+      "bytes": 6301,
+      "sha256": "165cb5bf714e2e36b5a51e16dd1eb99ae75538b86ebfc714947245d13ca95c62"
+    },
+    {
+      "path": "scripts/roofline.py",
+      "bytes": 8072,
+      "sha256": "5506a9ec34adfc04bdaef46f4f62f8768378aad87a95afb4705fe56f14da87eb"
+    },
+    {
+      "path": "src/attention_lab/__init__.py",
+      "bytes": 162,
+      "sha256": "bd909eaeb649d1975e7a6e774a2d0fcd0fd6e7129ec24632f4b85df7245a90d7"
+    },
+    {
+      "path": "tests/test_bootstrap.py",
+      "bytes": 2866,
+      "sha256": "a10135ba830c4f570acdfcadecc2e256b1c37cdcb31c5116c08992a8ce94bbd6"
+    },
+    {
+      "path": "tests/test_roofline.py",
+      "bytes": 2673,
+      "sha256": "3823fea0101d8212d4d6097f855f5dfbaa2a577d2a70e13648161d51269c27bd"
+    }
+  ]
+}

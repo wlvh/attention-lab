@@ -1,0 +1,7 @@
+* text=auto
+*.md text eol=lf
+*.py text eol=lf
+*.json text eol=lf
+*.ipynb text eol=lf
+docs/archive/* -text
+docs/reference/* -text

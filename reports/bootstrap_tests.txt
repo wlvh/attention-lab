@@ -1,0 +1,25 @@
+test_archived_source_hashes (test_bootstrap.BootstrapTests.test_archived_source_hashes) ... ok
+test_dry_run_never_publishes (test_bootstrap.BootstrapTests.test_dry_run_never_publishes) ... ok
+test_manifest_rejects_wrong_directory (test_bootstrap.BootstrapTests.test_manifest_rejects_wrong_directory) ... ok
+test_missing_cli_fails_without_commands (test_bootstrap.BootstrapTests.test_missing_cli_fails_without_commands) ... ok
+test_name_validation (test_bootstrap.BootstrapTests.test_name_validation) ... ok
+test_origin_strict (test_bootstrap.BootstrapTests.test_origin_strict) ... ok
+test_public_remote_rejected (test_bootstrap.BootstrapTests.test_public_remote_rejected) ... ok
+test_wrong_account_stops_before_git_or_creation (test_bootstrap.BootstrapTests.test_wrong_account_stops_before_git_or_creation) ... ok
+test_candidate_vs_all_scan (test_roofline.RooflineTests.test_candidate_vs_all_scan) ... ok
+test_cli_json_and_zero (test_roofline.RooflineTests.test_cli_json_and_zero) ... ok
+test_fp32_payload (test_roofline.RooflineTests.test_fp32_payload) ... ok
+test_full_clamped (test_roofline.RooflineTests.test_full_clamped) ... ok
+test_index_parameter_counts (test_roofline.RooflineTests.test_index_parameter_counts) ... ok
+test_invalid_values (test_roofline.RooflineTests.test_invalid_values) ... ok
+test_no_bandwidth_no_latency (test_roofline.RooflineTests.test_no_bandwidth_no_latency) ... ok
+test_original_scenario_4b32k (test_roofline.RooflineTests.test_original_scenario_4b32k) ... ok
+test_s2_adds_two_selected_passes (test_roofline.RooflineTests.test_s2_adds_two_selected_passes) ... ok
+test_same_precision_ratio (test_roofline.RooflineTests.test_same_precision_ratio) ... ok
+test_short_fixed_overlap (test_roofline.RooflineTests.test_short_fixed_overlap) ... ok
+test_zero_rho (test_roofline.RooflineTests.test_zero_rho) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.048s
+
+OK

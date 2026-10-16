@@ -1,0 +1,2 @@
+Checked 41 current local document links, archived source hashes and Python syntax.
+PASS — not a model or GPU validation.

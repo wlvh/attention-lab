@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-16",
+  "purpose": "Original-byte preservation, not verification of all source claims",
+  "files": [
+    {
+      "path": "docs/archive/PLAN_v3.md",
+      "original_filename": "PLAN_v3.md",
+      "bytes": 26663,
+      "sha256": "97e9302d5e04e97c0d4341515671cae8cf80a84416643083c4c7becf420df9db",
+      "description": "User-uploaded Fable 5.1 plan v3; original bytes"
+    },
+    {
+      "path": "docs/archive/roofline_original.py",
+      "original_filename": "roofline.py",
+      "bytes": 3445,
+      "sha256": "ee36ca89f572c742e74c114c5ed3e1b3a0e0b5e185d6d7bddf057408cd525cb2",
+      "description": "User-uploaded roofline script; original bytes"
+    },
+    {
+      "path": "docs/reference/handbook_with_exercises_updated(4).html",
+      "original_filename": "handbook_with_exercises_updated(4).html",
+      "bytes": 838364,
+      "sha256": "1f41eaa313e70f30934b49fc5f8b0a526af78077c12524ba9f0e94674bc0f241",
+      "description": "User-provided handbook; original bytes"
+    },
+    {
+      "path": "docs/archive/PLAN_v2.md",
+      "original_filename": "PLAN.md",
+      "bytes": 35801,
+      "sha256": "2bade1f800c35bad4efe04282033c392f19dbbd40b7fd04f757b1f25208a2181",
+      "description": "Prior conversation generated plan; superseded"
+    },
+    {
+      "path": "docs/archive/PLAN_training_proposal.md",
+      "original_filename": "PLAN.md",
+      "bytes": 27778,
+      "sha256": "dca822f084912bf45ea659caa2226729993dfd0ad673686d284ed1aad5377894",
+      "description": "Prior from-scratch training proposal; superseded"
+    },
+    {
+      "path": "docs/archive/attention_review_evidence.zip",
+      "original_filename": "attention_review_evidence.zip",
+      "bytes": 5003,
+      "sha256": "60b42147d59436c177a89d28fd639bf10c476553ed7958260518789f83e05667",
+      "description": "Prior conversation evidence archive; not rerun for GPU claims"
+    },
+    {
+      "path": "docs/archive/attention_tradeoff_plan_v2.zip",
+      "original_filename": "attention_tradeoff_plan_v2.zip",
+      "bytes": 28520,
+      "sha256": "1bfbfe68e89871c3c150be7cef54c4703f06600807aa6f8333ef612a0f973f7c",
+      "description": "Complete prior v2 package; superseded, preserved for provenance"
+    },
+    {
+      "path": "docs/archive/transformer_teaching_plan.zip",
+      "original_filename": "transformer_teaching_plan.zip",
+      "bytes": 18748,
+      "sha256": "17fdf2e5ab570078545d952804bc7cb4c8c0b851ae4b8e0e3efd04df3c8e9251",
+      "description": "Complete earlier training plan package; superseded"
+    },
+    {
+      "path": "docs/archive/kv_principle_rerun_tests.txt",
+      "original_filename": "rerun_tests.txt",
+      "bytes": 1657,
+      "sha256": "222ff11cae7b73969bb0f58dd99abea579c6635f4ba20dff89d9ffc8825503b7",
+      "description": "Prior conversation CPU test transcript; not a current Mac result"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+test_cache_shape_counts_kv_heads_not_q_heads (test_kv_lab.KVLabTests.test_cache_shape_counts_kv_heads_not_q_heads) ... ok
+test_copy_on_write_separates_branches (test_kv_lab.KVLabTests.test_copy_on_write_separates_branches) ... ok
+test_double_release_rejected (test_kv_lab.KVLabTests.test_double_release_rejected) ... ok
+test_early_change_breaks_hash_chain (test_kv_lab.KVLabTests.test_early_change_breaks_hash_chain) ... ok
+test_eviction_recovers_correctly (test_kv_lab.KVLabTests.test_eviction_recovers_correctly) ... ok
+test_full_block_hit_leaves_one_block (test_kv_lab.KVLabTests.test_full_block_hit_leaves_one_block) ... ok
+test_identity_includes_weights_and_namespace (test_kv_lab.KVLabTests.test_identity_includes_weights_and_namespace) ... ok
+test_incremental_matches_full (test_kv_lab.KVLabTests.test_incremental_matches_full) ... ok
+test_invalid_inputs_rejected (test_kv_lab.KVLabTests.test_invalid_inputs_rejected) ... ok
+test_online_global_softmax (test_kv_lab.KVLabTests.test_online_global_softmax) ... ok
+test_packed_int4_bytes_and_bound (test_kv_lab.KVLabTests.test_packed_int4_bytes_and_bound) ... ok
+test_past_not_mutated_and_no_private_alias (test_kv_lab.KVLabTests.test_past_not_mutated_and_no_private_alias) ... ok
+test_prefix_hit_processes_only_suffix (test_kv_lab.KVLabTests.test_prefix_hit_processes_only_suffix) ... ok
+test_reference_count_protects_second_reader (test_kv_lab.KVLabTests.test_reference_count_protects_second_reader) ... ok
+test_wrong_splice_is_detectable (test_kv_lab.KVLabTests.test_wrong_splice_is_detectable) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.353s
+
+OK

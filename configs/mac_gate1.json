@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "status": "design_only_executor_not_implemented",
+  "track": "mac_mps",
+  "gate": "G0_G1a",
+  "shape": {
+    "batch": 1,
+    "kv_groups": 8,
+    "query_heads": [
+      16,
+      32
+    ],
+    "head_dim": 128,
+    "index_dim": 32
+  },
+  "correctness_lengths": [
+    32,
+    128,
+    512
+  ],
+  "benchmark_lengths": [
+    8192,
+    16384,
+    32768
+  ],
+  "rho": [
+    0.03125,
+    0.125
+  ],
+  "fixed_prefix": 4,
+  "fixed_recent": 64,
+  "k_rule": "fixed_per_request_from_N0_clamped_to_candidates",
+  "dtypes": {
+    "first": "float32",
+    "low_precision": "probe_before_selecting"
+  },
+  "execution_modes": [
+    "eager",
+    "compile_only_if_capability_test_passes"
+  ],
+  "worksets": [
+    "hot",
+    "rotating_measured_bytes"
+  ],
+  "memory": {
+    "warning_bytes": 80000000000,
+    "stop_bytes": 100000000000,
+    "obey_lower_os_limit": true
+  },
+  "cloud_enabled": false,
+  "model_downloads_enabled": false,
+  "prediction_bandwidth_bytes_per_second": null,
+  "measurement": {
+    "warmups_initial_max": 20,
+    "repeats_initial_max": 50,
+    "independent_runs_target": 5,
+    "profile_separately": true
+  }
+}
