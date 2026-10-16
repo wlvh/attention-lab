@@ -37,6 +37,7 @@ def numerics_table(res):
         for name, c in rec["checks"].items():
             rows.append({"dtype": rec["dtype"], "device": rec["device"], "L": rec["L"], "check": name, "max_abs": c.get("max_abs", max(c.get("max_abs_k", 0), c.get("max_abs_v", 0), c.get("max_abs_z", 0))),
                          "rel_norm": c.get("rel_norm"), "argmax_agreement": c.get("argmax_agreement"), "tol_atol": c.get("tol_atol"), "pass": c.get("pass"),
+                         "pass_preset": c.get("pass_preset"), "pass_revised": c.get("pass_revised"), "floor_max_abs": c.get("floor_max_abs"), "floor_rel_norm": c.get("floor_rel_norm"),
                          "bitwise_equal": c.get("bitwise_equal"), "k0": c.get("k0")})
     return rows
 
@@ -130,11 +131,21 @@ def main() -> int:
 
     if num_cond:
         L.append("## 2. 数值对照（三段 + 索引接入契约）\n")
-        L.append(f"判定：**{'通过' if num_cond['numerics_pass'] else '未通过'}**（{num_cond['gated_checks']} 项门控检查" + (f"，失败：{num_cond['failed_checks']}" if num_cond["failed_checks"] else "") + "）。容差来自 `configs/mac_gate1b.json`，运行前预设。\n")
-        L.append("| dtype | device | L | 检查 | max abs | 相对范数 | argmax 一致 | 容差 atol | 通过 |\n|---|---|---:|---|---:|---:|---:|---:|---|")
+        npre = num.get("numerics_pass_preset_only")
+        L.append(f"判定：**{'通过' if num_cond['numerics_pass'] else '未通过'}**（{num_cond['gated_checks']} 项门控检查" + (f"，失败：{num_cond['failed_checks']}" if num_cond["failed_checks"] else "")
+                 + f"）；只按运行前的绝对预设则为 **{'通过' if npre else '未通过'}**（{len(num.get('failed_checks_preset', []))} 项 bf16 检查未过预设）。float32 的判定全部按预设；bf16 按卡片登记的修订判据：封装偏差 ≤ 2 × 未改模型自身逐 token 路径对自身一次前向的偏差（噪声底）。容差来自 `configs/mac_gate1b.json`。\n")
+        L.append("| dtype | device | L | 检查 | max abs | 相对范数 | argmax 一致 | 预设 atol | 预设 | 噪声底 max abs | 修订 |\n|---|---|---:|---|---:|---:|---:|---:|---|---:|---|")
         for row in num_cond["checks"]:
-            L.append(f"| {row['dtype']} | {row['device']} | {row['L']} | {row['check']} | {row['max_abs']:.3e} | {f(row['rel_norm'], 3) if row['rel_norm'] is None else format(row['rel_norm'], '.3e')} | "
-                     f"{f(row['argmax_agreement'], 3)} | {row['tol_atol']} | {'✓' if row['pass'] else ('记录' if row['pass'] is None else '✗')}{' 逐位相同' if row.get('bitwise_equal') else ''} |")
+            pre = '✓' if row.get('pass_preset') else ('记录' if row['pass'] is None else '✗')
+            rev = '—' if row.get('pass_revised') is None else ('✓' if row['pass_revised'] else '✗')
+            L.append(f"| {row['dtype']} | {row['device']} | {row['L']} | {row['check']} | {row['max_abs']:.3e} | {'—' if row['rel_norm'] is None else format(row['rel_norm'], '.3e')} | "
+                     f"{f(row['argmax_agreement'], 3)} | {row['tol_atol']} | {pre}{' 逐位相同' if row.get('bitwise_equal') else ''} | {'—' if row.get('floor_max_abs') is None else format(row['floor_max_abs'], '.2e')} | {rev} |")
+        L.append("\n噪声底（未改模型自身：DynamicCache 分块后逐 token，对自身一次前向）：")
+        for rec in num["lengths"]:
+            nf = rec.get("noise_floor", {})
+            if nf:
+                a_, c_ = nf["unmodified_incremental_vs_unmodified_one_shot_logits"], nf["unmodified_incremental_cache_vs_unmodified_one_shot_cache"]
+                L.append(f"- {rec['dtype']} {rec['device']} L={rec['L']}：词表分数 max abs {a_['max_abs']:.3e}，相对范数 {a_['rel_norm']:.3e}，argmax 一致 {a_['argmax_agreement']:.3f}；缓存 K {c_['max_abs_k']:.3e}，V {c_['max_abs_v']:.3e}")
         if num_cond["cpu_vs_mps_unmodified"]:
             c = num_cond["cpu_vs_mps_unmodified"]
             L.append(f"\n未改模型 MPS float32 对 CPU float32（平台噪声底，不门控）：max abs {c['max_abs']:.3e}，相对范数 {c['rel_norm']:.3e}，argmax 一致 {c['argmax_agreement']:.3f}。\n")

@@ -157,12 +157,12 @@ def run_length(model, holder, device, dtype_name, L, tol, a, results, revised_ru
         floor_cache["max_abs_v"] = max(floor_cache["max_abs_v"], float((v1.float() - v2.float()).abs().max()))
     for d in (floor_logits, floor_tail):
         d.update({"gated": False, "pass": None, "pass_preset": d.pop("pass_preset")})
+    nat_logits, nat_tail, nat_cache = torch.cat([head_n, tail_n], 1), tail_n, nat.cache
     rec["noise_floor"] = {"unmodified_incremental_vs_unmodified_one_shot_logits": floor_logits,
                           "unmodified_incremental_last_tokens_vs_unmodified_one_shot_logits": floor_tail,
                           "unmodified_incremental_cache_vs_unmodified_one_shot_cache": floor_cache,
                           "note": "transformers DynamicCache fed chunk by chunk then one token at a time, against the one-shot forward: "
                                   "the library's own incremental rounding on the same tokens; reference for the revised bf16 rule"}
-    del nat
     sync(device)
     wrap_model(model, holder)
     # (2) wrapped full path, one forward
@@ -182,6 +182,12 @@ def run_length(model, holder, device, dtype_name, L, tol, a, results, revised_ru
     rec["checks"]["wrapped_incremental_last_tokens_vs_unmodified_logits"] = compare(tailB, ref[:, L - tail:], tol, kind="logits")
     rec["checks"]["wrapped_incremental_cache_vs_hf_cache"] = cache_compare(stB.cache, dc, L, tol)
     rec["checks"]["wrapped_incremental_vs_one_shot_logits"] = compare(torch.cat([head, tailB], 1), one, tol, kind="logits")
+    # same schedule on both sides: wrapped static cache vs the library's own DynamicCache, both fed chunk by chunk then token by token
+    same = compare(torch.cat([head, tailB], 1), nat_logits, tol, kind="logits")
+    same["bitwise_equal"] = bool(torch.equal(torch.cat([head, tailB], 1), nat_logits))
+    rec["checks"]["wrapped_incremental_vs_unmodified_incremental_logits"] = same
+    rec["checks"]["wrapped_incremental_cache_vs_unmodified_incremental_cache"] = cache_compare(stB.cache, nat_cache, L, tol)
+    del nat
     # rollback: same tokens again must reproduce the first pass; the rolled-back suffix is poisoned first
     runB.rollback(L - tail)
     poison(stB.cache)
