@@ -52,7 +52,8 @@ def header_coverage(run, doc_id, mk, span):
 def mark(r):
     if r is None:
         return "—"
-    return f"{r['predicted'][0] if r['predicted'] else '∅'} {'✓' if r['exact_match'] else '✗'}{'（编号）' if r.get('answered_with_ids') else ''}"
+    exact = r["exact_match"] if "exact_match" in r else r["exact"]
+    return f"{r['predicted'][0] if r['predicted'] else '∅'} {'✓' if exact else '✗'}{'（编号）' if r.get('answered_with_ids') else ''}"
 
 
 def main() -> int:

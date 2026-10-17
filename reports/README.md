@@ -15,10 +15,12 @@
 | `03_what_is_lost_when_reading_less.html` | 第三份实验课：G2-lite，少看历史会丢掉什么——四种读取方式在 T1 / T2 上的质量对照、覆盖率、代表案例、反事实改写 | 读取下列 G2-lite 实测结果，tiny 模型 CPU 契约重放 |
 | `g2lite_mac_m4max.md` | G2-lite 报告：基线可用性、四方法对照与配对四格、覆盖率、代表案例、反事实改写、成本 | 实测（48 份探索样本，无区间统计） |
 | `g2lite_summary_mac_m4max.json`、`g2lite_answers_mac_m4max.json`、`g2lite_manifest_mac_m4max.json` | G2-lite 精简表格与案例、逐题回答与解析、三遍 run 的 manifest（含 model / tokenizer revision、配置版本、数据 digest） | 实测 |
-| `cards/G0_mac_m4max.md`、`cards/G1a_mac_m4max.md`、`cards/G1b_mac_m4max.md`、`cards/G2lite_mac_m4max.md` | 关卡卡片：运行前预测、运行后观察、解释、决策 | 预测写于运行前 |
+| `g2lite_replay_header_mac_m4max.md` | G2-lite 单变量重放：把表头钉进近期窗口 B 的名单（BH，读取数与 B 相同）并以缩短同样名额的 B（BM）作对照，与归档的第二遍 B 配对，只回答「B 在窗口内仍答错是否因为表头不在名单里」 | 实测（24 份 T1 资料 × 2 档 ρ，诊断变体，无区间统计） |
+| `g2lite_replay_header_summary_mac_m4max.json`、`g2lite_replay_header_manifest_mac_m4max.json` | 重放的配对表、集合计数、四格与逐请求回答；重放 run 的 manifest 与参照 run 的标识 | 实测 |
+| `cards/G0_mac_m4max.md`、`cards/G1a_mac_m4max.md`、`cards/G1b_mac_m4max.md`、`cards/G2lite_mac_m4max.md`、`cards/G2lite_replay_header_mac_m4max.md` | 关卡卡片：运行前预测、运行后观察、解释、决策 | 预测写于运行前 |
 | `g0_*.json`、`g1a_*.json`、`g1a_supplement_*.json` | 上述报告的精简数据与 manifest | 实测 |
 | `g0_roofline_mac_bw390.{md,json}` | 以实测 390 GB/s 回填的载荷情景 | 预测 |
 | `provenance/` | 跑分时的基准源码快照、跑分后 diff、原始 run 归档与哈希清单 | 证据链，`scripts/check_provenance.py` 校验 |
 | `bootstrap_validation.md`、`public_publication.md` | 启动工具与发布记录 | 不是 GPU 结果 |
 
-重新生成：`python scripts/g0_report.py`、`python scripts/g1a_report.py`、`python scripts/g1a_supplement_report.py`、`python scripts/g1b_report.py`、`python scripts/g2lite_report.py`。无 GPU 从归档重生 G1a 报告的步骤见 `provenance/README.md`。
+重新生成：`python scripts/g0_report.py`、`python scripts/g1a_report.py`、`python scripts/g1a_supplement_report.py`、`python scripts/g1b_report.py`、`python scripts/g2lite_report.py`、`python scripts/g2lite_replay_report.py`（需要 `runs/` 里有重放 run 与参照 run，见 `provenance/README.md`）。无 GPU 从归档重生 G1a 报告的步骤见 `provenance/README.md`。

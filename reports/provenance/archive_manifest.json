@@ -140,6 +140,11 @@
       "path": "reports/provenance/g2lite/g2lite_quality_post_g2lite_edit.diff",
       "bytes": 9099,
       "sha256": "4048e9e3ddef87b15269221b959064234c41a421eaf430dc38ce0a75643a1d4a"
+    },
+    {
+      "path": "reports/provenance/g2lite_replay_runs_20261017.tar.gz",
+      "bytes": 248909,
+      "sha256": "5b1705ae1fce341ba80639c5a7b747e95e5e8305a189295c738fa7d077ce9f22"
     }
   ],
   "regenerate": [

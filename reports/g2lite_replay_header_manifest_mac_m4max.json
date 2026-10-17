@@ -1,0 +1,188 @@
+{
+ "runs": [
+  {
+   "schema_version": 1,
+   "run_id": "g2lite-20261017T140840Z-replay-header",
+   "kind": "quality-diagnostic-replay",
+   "calibration": false,
+   "diagnostic_replay": true,
+   "diagnostic_methods": {
+    "BH": {
+     "mode": "sparse",
+     "selector": "recent_pinned",
+     "label": "近期窗口+表头：F ∪ 表头全部 token 的位置 ∪ 最近 k − |表头| 个候选（名额总数与 B 相同）"
+    },
+    "BM": {
+     "mode": "sparse",
+     "selector": "recent",
+     "k0_minus_pinned": true,
+     "label": "近期窗口减名额（对照）：F ∪ 最近 k − |表头| 个候选，不含表头（读取数比 B 少 |表头|）"
+    }
+   },
+   "status": "done",
+   "created_at_utc": "2026-10-17T14:08:41+00:00",
+   "git": {
+    "commit": "e3296ece44a7f0257e0882d8e129b048c6cb41d1",
+    "branch": "task/g2-lite-replay-header",
+    "dirty_files": [],
+    "dirty_diff_sha256": null
+   },
+   "source_hashes": {
+    "src/attention_lab/__init__.py": "d062a672a9cecbba9f877533f62d0688919d6929cf6e756771ca5a7f53a9c857",
+    "src/attention_lab/decode.py": "8862476a98ec8314d86e7eac41309252acd9822b0b42dd55f33c86a86ad59dd8",
+    "src/attention_lab/full.py": "b3b0f6c8cce5f5abecc55dd07a0aaa14afdc305da5df7a6d2502168ef479d23a",
+    "src/attention_lab/g2lite_data.py": "90ffcf414db00c1da10840c4ad70fc64581fe67ee1a3e6ccabd4245b823858dd",
+    "src/attention_lab/g2lite_eval.py": "be8cc6a17cd007fe2cb50782d5a4a2ad28354eb80d2d94e8312d65c52df62b8c",
+    "src/attention_lab/indexer.py": "911db9e5af2b6ddf81fe1424369a55baf60fc878ec849c92b6bfdc860b2dcf85",
+    "src/attention_lab/metal_attend.py": "21f0e4f8b8f16e46abd74b1bd32865a565012e9bae754bd8985e495da1b9ac6e",
+    "src/attention_lab/metal_score.py": "f4ec5b2daeda24e5776d62913350e3c3c0a1069ac65d06f2937831490472b4bd",
+    "src/attention_lab/qwen_wrap.py": "089c7a35a63e1a94df7f31e818725c8c37626de5f49659ffe02da805fb1ce55d",
+    "src/attention_lab/reference.py": "bdd13df4ed5ced09a7e56d9227a480837b63049ebb4b68145d07f6eb5683c2ec",
+    "src/attention_lab/runinfo.py": "9d38b853cf6b30557e31d0ea9d7624aa8c227fa3938a9454327c4bd406f83b41",
+    "src/attention_lab/selection.py": "a0dbe7aa0f0b586c358d633b276c0ed9baf3bbaed18d88d57fbfe9434cea9cfd",
+    "src/attention_lab/sparse.py": "bbe8805b45a4f95ff2aed9c31cdb906fce66ecf4e7e6b31632584abd569aeb55",
+    "bench/g2lite_quality.py": "2e01abe3d15ccbc25319ccf21bbd99105bd5eb07e56cb4781ed40df15ca73825",
+    "bench/microbench.py": "69216b81d7054b74d7b98559d4d81a823c130030d2e75e4a659972fb2778b4e9",
+    "bench/model_decode_bench.py": "c49612d6e2abf4f00ca58413a1fb1a96cdfe45691500134fb11ef7d35e5005a4",
+    "bench/model_numerics.py": "f6316183eb759d4927862826d9fd13ed93381628cdeaf531e87c686aebdc6878",
+    "bench/p0_score_kernel.py": "e27107278eee999cba3729071585e1da81723ef337e744e2388611cc47d7db07",
+    "bench/p1_attend_kernel.py": "7bb181423e86f6073acbf3c62497fda82f48a57bd641623a26f47eec83bc1ec6",
+    "bench/supplement_g1a.py": "52ff18bb0faf959d97f16abbc3aea11408796a2a5b1b5be94deec9ef1c2aaf85"
+   },
+   "config_sha256": "4aa1703fc88c290098337a90fb5af297370c1c3ada25d93323cee1b964f5987e",
+   "config_version": 2,
+   "model_id": "Qwen/Qwen3-0.6B",
+   "model_revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+   "tokenizer_revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+   "weights": {
+    "file": "model.safetensors",
+    "sha256": "f47f71177f32bcd101b7573ec9171e6a57f4f4d31148d38e382306f42996874b",
+    "bytes": 1503300328
+   },
+   "chat_template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+   "data_sha256": "00dd5a7d0e4fd41c39c37a4cc63983730ed2e2ecc01339551dfd175911b04bea",
+   "data_seed": 20261017,
+   "generator_version": 2,
+   "indexer_seed": 0,
+   "uniform_base_seed": 7,
+   "device": "mps",
+   "backend": "mps",
+   "dtype": "bfloat16",
+   "host": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "macos": "27.0.1",
+    "python": "3.12.10",
+    "chip": "Apple M4 Max",
+    "gpu_cores": 40,
+    "physical_memory_bytes": 137438953472
+   },
+   "software": {
+    "torch": "2.14.1",
+    "python_executable": "~/Projects/attention-lab/.venv/bin/python",
+    "mps_built": true,
+    "mps_available": true,
+    "env": {
+     "PYTORCH_ENABLE_MPS_FALLBACK": null,
+     "PYTORCH_MPS_HIGH_WATERMARK_RATIO": null,
+     "PYTORCH_MPS_LOW_WATERMARK_RATIO": null,
+     "PYTORCH_MPS_FAST_MATH": null,
+     "TORCH_COMPILE_DEBUG": null
+    },
+    "recommended_max_memory": 115448725504,
+    "current_allocated_memory": 1199702528,
+    "driver_allocated_memory": 1216823296,
+    "transformers": "5.20.0"
+   },
+   "command": "python bench/g2lite_quality.py --tasks T1 --lengths 2K 8K --methods B BH BM --tag replay-header",
+   "hf_hub_offline": "1",
+   "timing_scope": "per request: question + template-suffix decode steps, then greedy generation, torch.mps.synchronize() at segment boundaries plus an implicit sync per step (EOS check); coverage bookkeeping ops are inside the request time; prefix prefill (chunked, index table built) timed separately; model load separate. Quality run, not a speed benchmark.",
+   "memory_units": "bytes",
+   "budget": {
+    "cloud_usd_actual": 0,
+    "cloud_usd_committed": 0,
+    "device_seconds": 98.8790564580122
+   },
+   "artifacts": [
+    "data.jsonl",
+    "quality.jsonl",
+    "summary.json",
+    "manifest.json",
+    "positions/*.npz"
+   ],
+   "args": {
+    "config": "~/Projects/attention-lab/.claude/worktrees/youthful-jackson-2501c8/configs/mac_g2lite.json",
+    "methods": [
+     "B",
+     "BH",
+     "BM"
+    ],
+    "rhos": [
+     0.03125,
+     0.125
+    ],
+    "tasks": [
+     "T1"
+    ],
+    "lengths": [
+     "2K",
+     "8K"
+    ],
+    "docs_per_cell": null,
+    "doc_indices": null,
+    "variants": [
+     "base"
+    ],
+    "usable_from": null,
+    "cases_from": null,
+    "chunk": 2048,
+    "runs_dir": "~/Projects/attention-lab/.claude/worktrees/youthful-jackson-2501c8/runs",
+    "tag": "replay-header",
+    "quick": false,
+    "calibration": false
+   },
+   "usable_from": null,
+   "move_cases": [],
+   "n_docs": 24,
+   "limitations": [
+    "48 exploratory documents at most; T1/T2 record lookup only; Qwen3-0.6B bf16 on MPS; untrained indexer; no training; no statistical interval claims"
+   ],
+   "finished_at_utc": "2026-10-17T14:10:19+00:00"
+  }
+ ],
+ "reference_runs": [
+  {
+   "run_id": "g2lite-20261017T130319Z-pass2-ABCD0",
+   "git": {
+    "commit": "af62df48d2a993dc6b4e0369ee4137bd6cc47615",
+    "branch": "task/g2-lite-mac",
+    "dirty_files": [],
+    "dirty_diff_sha256": null
+   },
+   "config_sha256": "4aa1703fc88c290098337a90fb5af297370c1c3ada25d93323cee1b964f5987e",
+   "data_sha256": "00dd5a7d0e4fd41c39c37a4cc63983730ed2e2ecc01339551dfd175911b04bea",
+   "source_hashes": {
+    "src/attention_lab/__init__.py": "d062a672a9cecbba9f877533f62d0688919d6929cf6e756771ca5a7f53a9c857",
+    "src/attention_lab/decode.py": "273e3abe809312ab824707a0de63df54967d73fb13e63c73b5d6c2b409e9a183",
+    "src/attention_lab/full.py": "b3b0f6c8cce5f5abecc55dd07a0aaa14afdc305da5df7a6d2502168ef479d23a",
+    "src/attention_lab/g2lite_data.py": "7a82de22754a838768607e3e2b1789e9ce4a82d7e284e614be5897ab84a7ceff",
+    "src/attention_lab/g2lite_eval.py": "be8cc6a17cd007fe2cb50782d5a4a2ad28354eb80d2d94e8312d65c52df62b8c",
+    "src/attention_lab/indexer.py": "911db9e5af2b6ddf81fe1424369a55baf60fc878ec849c92b6bfdc860b2dcf85",
+    "src/attention_lab/metal_attend.py": "21f0e4f8b8f16e46abd74b1bd32865a565012e9bae754bd8985e495da1b9ac6e",
+    "src/attention_lab/metal_score.py": "f4ec5b2daeda24e5776d62913350e3c3c0a1069ac65d06f2937831490472b4bd",
+    "src/attention_lab/qwen_wrap.py": "a4ae836a3ae63aa3d8de47d92f0aaa8ccf90a62f5d29524863e80ac6d13d14ca",
+    "src/attention_lab/reference.py": "bdd13df4ed5ced09a7e56d9227a480837b63049ebb4b68145d07f6eb5683c2ec",
+    "src/attention_lab/runinfo.py": "9d38b853cf6b30557e31d0ea9d7624aa8c227fa3938a9454327c4bd406f83b41",
+    "src/attention_lab/selection.py": "a0dbe7aa0f0b586c358d633b276c0ed9baf3bbaed18d88d57fbfe9434cea9cfd",
+    "src/attention_lab/sparse.py": "bbe8805b45a4f95ff2aed9c31cdb906fce66ecf4e7e6b31632584abd569aeb55",
+    "bench/g2lite_quality.py": "d397c5013adac63f9413f388956091b483dd9e5aa48229e49d7f8aa500ab804a",
+    "bench/microbench.py": "69216b81d7054b74d7b98559d4d81a823c130030d2e75e4a659972fb2778b4e9",
+    "bench/model_decode_bench.py": "c49612d6e2abf4f00ca58413a1fb1a96cdfe45691500134fb11ef7d35e5005a4",
+    "bench/model_numerics.py": "f6316183eb759d4927862826d9fd13ed93381628cdeaf531e87c686aebdc6878",
+    "bench/p0_score_kernel.py": "e27107278eee999cba3729071585e1da81723ef337e744e2388611cc47d7db07",
+    "bench/p1_attend_kernel.py": "7bb181423e86f6073acbf3c62497fda82f48a57bd641623a26f47eec83bc1ec6",
+    "bench/supplement_g1a.py": "52ff18bb0faf959d97f16abbc3aea11408796a2a5b1b5be94deec9ef1c2aaf85"
+   }
+  }
+ ]
+}
