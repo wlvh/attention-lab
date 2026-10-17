@@ -7985,7 +7985,7 @@ src/attention_lab/sparse.py     测速时 bbe8805b45a4  当前 bbe8805b45a4  一
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
-<pre>W1017 17:03:59.892000 57492 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+<pre>W1017 20:07:25.315000 61174 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
 </pre>
 </div>
 </div>
@@ -8671,7 +8671,7 @@ float32  cpu    128  D_rho_1_8_vs_unmodified_logits_information_only            
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p><strong>观察与解释。</strong> 整步耗时（eager，固定 N 单步中位数）：封装 A 13.3 / 16.0 / 21.2 ms，D 16.1 / 16.8 / 19.7 ms；配对比值 D/A 1.210 / 1.054 / 0.930（32K 范围 0.872 到 0.986，50 个循环里 7 个 ≤ 0.90）。预测的「A ≈ 35 到 55 ms、CPU 提交主导」失效：A 比预测快 2 到 3 倍；但预测的机制既没有被证实也没有被单独排除——剖析只记录了 CPU 活动，aten 算子自时间之和（A 4 ms、D 8 ms）不等于进程 CPU 时间，aten 事件数也不等于 GPU 核启动数。保留下来的是结论的形状：一个与 N 无关的固定底决定比值。把 A 的三个点按 G1a 每层注意力时间乘 28 层扣除，基底约 10.2 ms，三个 N0 一致；权重读取 1.19 GB 按 330 GB/s 只占 3.6 ms，其余约 6.6 ms 与一步里约 3000 个非视图 aten 算子调用同时出现（折算每个约 2 µs，这是除法，不是测得的核时长）；基底的归因未分离，候选包括 GPU 核数量与启动延迟、CPU 提交、Python 开销与分配器。D 比 A 多 422 个非视图算子，在 8K 处对应 2.8 ms，注意力字节的节省要到 32K 才盖过它。</p>
-<p><strong>单层省下的时间剩一半。</strong> 同形状探针里 D 每层比 A 省 110 µs（352 对 240 µs），28 层 3.1 ms；整步只省 1.5 ms，再除以 21 ms 的整步就是 7%。两个原因：注意力之外的 10 ms 基底摊薄比值；D 的 14 个相互依赖的小核放进模型更长的依赖链后每层贵了约 100 µs（G1a 的「链式高于分段之和」）。块编译（MLP + RMSNorm 融合，四路径共用）只让 A 快 2% 到 5%，比值不变（0.934）；「少两个核」的 D 变体探针每层只省 7 到 15 µs，到不了 0.90。原生 DynamicCache（库默认）在 32K 每步 39 ms，比封装 A 慢 89%，来自每步 torch.cat 复制 3.7 GB；原生 StaticCache 慢 5% 到 8%（<code>enable_gqa</code> 的 SDPA 与每步构造满容量遮罩）。</p>
+<p><strong>单层省下的时间剩一半，这要拆成两个问题。</strong> 同形状探针里 D 每层比 A 省 110 µs（352 对 240 µs），28 层 3.1 ms；整步只省 1.5 ms，占 21 ms 整步的 7%。第一个问题是百分比为什么小：设两边共同的、不受本次优化影响的时间为 B，则改善比例 = (A读取 − D读取) / (B + A读取)，共同部分越大，同样的节省占整步的比例越小；约 10 ms 与 N 无关的基底就是这个 B，这一点可由算式说明。第二个问题是绝对节省为什么从 3.1 ms 变成 1.5 ms：相减时 B 被消掉，所以基底解释不了少掉的 1.6 ms。观察到的候选原因是 D 的链进入模型后每层更贵（模型内 211 到 340 µs，对探针 262 µs，G1a 也见过「链式高于分段之和」），但这只是观察，形状、工作集和调度差异的贡献没有分离。**百分比被稀释可由算式说明；绝对节省没有完整兑现是局部实验向整模型迁移时的成本变化，原因尚未解释完。**块编译（MLP + RMSNorm 融合，四路径共用）只让 A 快 2% 到 5%，比值不变（0.934）；「少两个核」的 D 变体探针每层只省 7 到 15 µs，到不了 0.90。原生 DynamicCache（库默认）在 32K 每步 39 ms，比封装 A 慢 89%，来自每步 torch.cat 复制 3.7 GB；原生 StaticCache 慢 5% 到 8%（<code>enable_gqa</code> 的 SDPA 与每步构造满容量遮罩）。</p>
 <p><strong>替代解释（未排除）。</strong> 温度与分配器状态可解释 ±5% 的摆动（只跑了一个正式进程；显式阶段修复后的最小对照给出 A 21.76 / D 19.25 ms、D/A 0.884，在正式范围内）；基底的归因未分离；D 在模型里比探针每层贵 100 µs 的原因未分离。</p>
 </div>
 </div>
@@ -8865,13 +8865,7 @@ def build_step_plan(cache: LabCache, legal_length: int, k0: int) -&gt; StepPlan:
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>
-g1b-mac-20261016T202847Z-formal N0=8192：</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>
+g1b-mac-20261016T202847Z-formal N0=8192：
   原生 A · DynamicCache      aten 算子  5260（非视图 3041）  CPU 侧自时间   4.18 ms  对比整步墙钟 24.15 ms  触及长度的 matmul 类算子 0  top-k 0  index_select 1  SDPA ['aten::_scaled_dot_product_attention_math_for_mps', 'aten::scaled_dot_product_attention']
   原生 A · StaticCache       aten 算子  5838（非视图 3421）  CPU 侧自时间   4.79 ms  对比整步墙钟 14.19 ms  触及长度的 matmul 类算子 56  top-k 0  index_select 1  SDPA ['aten::_scaled_dot_product_attention_math_for_mps', 'aten::scaled_dot_product_attention']
   封装 A                     aten 算子  5736（非视图 3041）  CPU 侧自时间   4.15 ms  对比整步墙钟 13.32 ms  触及长度的 matmul 类算子 0  top-k 0  index_select 1  SDPA ['aten::_scaled_dot_product_attention_math_for_mps', 'aten::scaled_dot_product_attention']
@@ -8927,7 +8921,7 @@ g1b-mac-20261016T202847Z-formal N0=32256：
 | 数值 fp32 过且余量一个量级；bf16 max|Δ| 0.1–0.5 | 是 | 词表分数两个量级、缓存 1.56 倍；0.16–0.30 | 部分成立（缓存一项失效；bf16 容差本身定错，见问题一） |
 | 块编译能编、A 降到 20–35 ms | 五成；是 | 能编；A 只降 2–5% | 能编成立；前提失效 |</p>
 <p><strong>决策（<code>reports/cards/G1b_mac_m4max.md</code>）。</strong> 工程完成：数值对应、缓存与索引连接正确、连续 128 步与回退通过、结果可从记录重生成。性能：<code>correct_but_not_faster</code>（所测长上下文设置观察到约 7% 的耗时改善，未达到预先约定的 10% 投资门槛，因此不继续追加速度优化；索引器未训练、无任务质量评测，7% 不是可实际使用的提速方案）——没有设置呈现每个循环都 ≤ 0.90 的整步收益；32K ρ = 1/32 是"有收益但不足 10%"的临界档（0.930，范围 0.87–0.99）。预登记的修正（块编译）两边同测后格局不变；剖析指向 D 链的核数量，同形状探针显示少两个核只能到 0.915，所以没有为它跑正式一轮，也没有改缓存布局。按预登记规则收口速度主线：不以速度为前提进入 G2，不训练，不换更大模型（更大模型基底更大）。要越过门槛需要把 D 的 14 个小核融合成少数核（自定义 Metal 核）或换到核启动成本不同的 CUDA 轨道，两者都不在本关授权内，由用户决定。</p>
-<p><strong>这一课的结论。</strong> 单层微基准回答的是"读取阶段少了多少"，整模型回答的是"一步里这点节省占多少"。在 0.6B 模型、MPS、bf16 上，一步的 10 ms 基底和 D 链的 14 个小核把 G1a 每层 108 µs 的节省压成整步 7%；比值随 N 的走向与 G1a 完全一致，量级却被摊薄。这不是 CUDA 结论，也不是质量结论。</p>
+<p><strong>这一课的结论。</strong> 单层微基准回答的是"读取阶段少了多少"，整模型回答的是"一步里这点节省占多少"。在 0.6B 模型、MPS、bf16 上，一步约 10 ms 的基底把注意力节省的百分比摊薄到整步 7%，而绝对节省从单层外推的 3.1 ms 缩到 1.5 ms 的原因只观察到候选（D 链在模型内每层更贵）、尚未分离；比值随 N 的走向与 G1a 完全一致，量级却被摊薄。这不是 CUDA 结论，也不是质量结论。</p>
 </div>
 </div>
 </div>

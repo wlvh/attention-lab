@@ -7900,7 +7900,7 @@ G1a runs: g1a-mac-20261016T145200Z-p1, g1a-mac-20261016T145616Z-p2, g1a-mac-2026
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>bench/microbench.py             跑分时 4c1e5b66d998  当前 69216b81d705  不同
-src/attention_lab/__init__.py   跑分时 e8257adc5a4c  当前 e8257adc5a4c  一致
+src/attention_lab/__init__.py   跑分时 e8257adc5a4c  当前 93aed4476499  不同
 src/attention_lab/decode.py     跑分时 f0dde0182b1c  当前 f0dde0182b1c  一致
 src/attention_lab/full.py       跑分时 b3b0f6c8cce5  当前 b3b0f6c8cce5  一致
 src/attention_lab/indexer.py    跑分时 911db9e5af2b  当前 911db9e5af2b  一致
@@ -8381,9 +8381,9 @@ A                           109.6    202.9    405.3
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>检查。</strong> 字节比与时间比是两条不同的曲线：32K、ρ=1/32 时 D 只读 A 的 4% 字节，时间却是 A 的 74%；8K 时字节比也是 4%，时间却是 A 的 1.78 倍。</p>
+<p><strong>检查。</strong> 字节比与时间比是两条不同的曲线，而字节比本身要分两个口径说。32K、ρ=1/32 时，主注意力只读 1,092 个位置，占 3.3%，入选 K/V 约 4.3 MiB；但为了决定读谁，索引器还要扫描 32,700 个候选位置的索引键，约 16 MiB。按“索引键读一次加入选 K/V 读一次”的载荷模型，上表的字节比是 0.16，不是 4%。时间比是 0.74。8K 时字节比同样是 0.16，时间比却是 1.78。<strong>名单很短，不等于得到名单很便宜：获得名单本身也要读取信息。</strong> 16% 仍是载荷账本，不是实测的内存总流量。</p>
 <p><strong>解释。</strong> A 的时间随 N 线性增长（bf16 约 330 GB/s 的有效读取），D 的时间由一条 8 个算子的链决定，其中 top-k、打分随 N 缓慢增长，其余几乎与 N 无关，所以 D 有一个约 180 到 300 µs 的固定底。两条曲线在 ρ=1/32 时于 16K 与 32K 之间交叉。<strong>"少读"只在 A 本身足够贵的时候才换得到时间。</strong> ρ=1/8 时读取数是 1/32 的 3.8 倍，gather 与子集注意力各多约 40 µs，32K 处 D_full 与 A 持平。</p>
-<p><strong>反例与边界。</strong> 教材的"载荷比例不等于时间比例"在这里以两种方式出现：索引键字节只有 K 的 1/4，打分时间却与扫整层 K 相当；读取字节 4%，时间 74%。这些是单层读取阶段的数字，不是整模型每步时间；整模型里还有权重读取、FFN 等，稀疏注意力只能影响其中注意力的一份。没有模型、没有任务、没有质量结论：这个索引器是随机初始化的，它<strong>没有学会</strong>找重要信息，本页只回答"筛选路径的计算成本有没有空间"。</p>
+<p><strong>反例与边界。</strong> 教材的"载荷比例不等于时间比例"在这里以两种方式出现：索引键字节只有 K 的 1/4，打分时间却与扫整层 K 相当；含索引扫描的读取载荷约 16%（入选位置只占 3.3%），时间却是 74%。这些是单层读取阶段的数字，不是整模型每步时间；整模型里还有权重读取、FFN 等，稀疏注意力只能影响其中注意力的一份。没有模型、没有任务、没有质量结论：这个索引器是随机初始化的，它<strong>没有学会</strong>找重要信息，本页只回答"筛选路径的计算成本有没有空间"。</p>
 </div>
 </div>
 </div>
