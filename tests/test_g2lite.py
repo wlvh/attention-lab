@@ -425,6 +425,19 @@ class DataGeneratorTests(unittest.TestCase):
             mv = self.gd.rewrite_document(self.tok, CONFIG, d, "value")
             self.assertEqual(mv["header_span"], d["header_span"], "rewrites keep the header where it is")
 
+    def test_filler_block_after_the_header_is_digit_free_prose(self):
+        """The filler replay pins the |header| positions right after the header: they must be filler before the first record."""
+        from attention_lab.selection import FIXED_PREFIX
+        for task, length_tag, i in (("T1", "2K", 0), ("T1", "8K", 11)):
+            d = self.gd.build_document(self.tok, CONFIG, task, length_tag, i)
+            hs, he = d["header_span"]
+            n = he - max(hs, FIXED_PREFIX)
+            self.assertEqual(n, 33)
+            text = self.tok.decode(d["prefix_ids"][he:he + n])
+            self.assertFalse(any(ch.isdigit() for ch in text))
+            self.assertNotIn("编号", text)
+            self.assertLess(he + n, d["record_spans"][0][0])
+
     def test_buckets_place_targets_where_the_plan_says(self):
         n = CONFIG["data"]["n_records"]
         body = n - 2

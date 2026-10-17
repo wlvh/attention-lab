@@ -26,8 +26,12 @@ G2-lite (PR #5), only once reports/g2lite_manifest_mac_m4max.json exists:
    and the committed scorer src/attention_lab/g2lite_eval.py (unchanged since).
 
 Header replay (reports/g2lite_replay_header_manifest_mac_m4max.json), only once it exists:
-9. Every formal replay run manifest names the committed selector, data, scorer, wrapper and harness sources (the replay
-   runs were made on committed code).
+9. Every formal header-replay run manifest names the committed selector, data, scorer and wrapper sources and the as-run
+   harness snapshot reports/provenance/g2lite_replay/g2lite_quality_at_replay_header_run.py (the filler replay edited the
+   harness afterwards; the committed harness differs from that snapshot only by the recorded diff).
+
+Filler replay (reports/g2lite_replay_filler_manifest_mac_m4max.json), only once it exists:
+10. Every formal filler-replay run manifest names the committed sources (made on committed code).
 
 P0 / P1 (PR #3, stopped prototype), only where the kernel sources exist:
 7. The four formal P0/P1 run manifests inside p0p1_runs_20261017.tar.gz name the committed metal_score.py /
@@ -105,7 +109,8 @@ def main() -> int:
               ("g2lite/qwen_wrap_at_g2lite_runs.py", "g2lite/qwen_wrap_post_g2lite_edit.diff", "src/attention_lab/qwen_wrap.py"),
               ("g2lite/decode_at_g2lite_runs.py", "g2lite/decode_post_g2lite_edit.diff", "src/attention_lab/decode.py"),
               ("g2lite/g2lite_data_at_g2lite_runs.py", "g2lite/g2lite_data_post_g2lite_edit.diff", "src/attention_lab/g2lite_data.py"),
-              ("g2lite/g2lite_quality_at_g2lite_runs.py", "g2lite/g2lite_quality_post_g2lite_edit.diff", "bench/g2lite_quality.py"))
+              ("g2lite/g2lite_quality_at_g2lite_runs.py", "g2lite/g2lite_quality_post_g2lite_edit.diff", "g2lite_replay/g2lite_quality_at_replay_header_run.py"),
+              ("g2lite_replay/g2lite_quality_at_replay_header_run.py", "g2lite_replay/g2lite_quality_post_replay_header_edit.diff", "bench/g2lite_quality.py"))
     for snap, diff_file, current in chains:
         target = (ROOT / current) if current.startswith(("src/", "bench/")) else (PROV / current)
         stored_ = changed_lines((PROV / diff_file).read_text(encoding="utf-8"))
@@ -159,17 +164,29 @@ def main() -> int:
                 if run.get("source_hashes", {}).get(f_) != h:
                     errors.append(f"{run.get('run_id')}: {f_} hash != {'as-run snapshot' if 'eval' not in f_ else 'committed file'} (G2-lite runs were made on committed code at af62df4)")
             g2_checked += 1
-    # ---- header replay: formal replay runs on committed code ----
+    # ---- header replay: formal run on the code committed at e3296ec (harness archived as g2lite_replay/* snapshot) ----
     rp_path = ROOT / "reports/g2lite_replay_header_manifest_mac_m4max.json"
     rp_checked = 0
     if rp_path.is_file():
         rp = json.loads(rp_path.read_text(encoding="utf-8"))
-        rp_committed = {f_: sha256(ROOT / f_) for f_ in g2_files}
+        rp_expect = {f_: sha256(ROOT / f_) for f_ in g2_files}
+        rp_expect["bench/g2lite_quality.py"] = sha256(PROV / "g2lite_replay/g2lite_quality_at_replay_header_run.py")
         for run in rp.get("runs", []):
-            for f_, h in rp_committed.items():
+            for f_, h in rp_expect.items():
                 if run.get("source_hashes", {}).get(f_) != h:
-                    errors.append(f"{run.get('run_id')}: {f_} hash != committed file (header-replay runs must be on committed code)")
+                    errors.append(f"{run.get('run_id')}: {f_} hash != {'as-run snapshot' if 'quality' in f_ else 'committed file'} (header-replay run was made on committed code at e3296ec)")
             rp_checked += 1
+    # ---- filler replay: formal run on committed code ----
+    fp_path = ROOT / "reports/g2lite_replay_filler_manifest_mac_m4max.json"
+    fp_checked = 0
+    if fp_path.is_file():
+        fp = json.loads(fp_path.read_text(encoding="utf-8"))
+        fp_committed = {f_: sha256(ROOT / f_) for f_ in g2_files}
+        for run in fp.get("runs", []):
+            for f_, h in fp_committed.items():
+                if run.get("source_hashes", {}).get(f_) != h:
+                    errors.append(f"{run.get('run_id')}: {f_} hash != committed file (filler-replay runs must be on committed code)")
+            fp_checked += 1
     if errors:
         print("\n".join(errors))
         return 1
@@ -178,7 +195,8 @@ def main() -> int:
           f"{len(seen)} archived numerics runs on their snapshots; {len(am['files'])} archived files verified; post-run edits limited to the recorded diffs"
           + (f"; {p0p1_checked} archived P0/P1 manifests name the committed kernels" if p0p1_checked else "")
           + (f"; {g2_checked} G2-lite run manifest(s) on the af62df4 snapshots" if g2_checked else "")
-          + (f"; {rp_checked} header-replay run manifest(s) on committed code." if rp_checked else "."))
+          + (f"; {rp_checked} header-replay run manifest(s) on the e3296ec snapshot" if rp_checked else "")
+          + (f"; {fp_checked} filler-replay run manifest(s) on committed code." if fp_checked else "."))
     return 0
 
 

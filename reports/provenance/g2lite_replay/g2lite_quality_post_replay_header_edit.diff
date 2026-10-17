@@ -1,0 +1,65 @@
+--- reports/provenance/g2lite_replay/g2lite_quality_at_replay_header_run.py
++++ bench/g2lite_quality.py
+@@ -22,6 +22,9 @@
+        BH  recent + header: F + the header's token positions + the k - |header| most recent candidates (B's read count)
+        BM  recent minus:    F + the k - |header| most recent candidates (the window of BH without the header; a control
+                             that reads |header| rows fewer than B)
++       BF  recent + filler: F + the |header| filler positions right after the header (content-neutral, digit-free prose,
++                            checked at run time) + the k - |header| most recent candidates (BH's window and read count;
++                            separates the header's content from its early position, reports/cards/G2lite_replay_filler_mac_m4max.md)
+ A run that uses them is marked `diagnostic_replay` in its summary and is excluded from scripts/g2lite_report.py.
+ """
+ from __future__ import annotations
+@@ -47,9 +50,29 @@
+ 
+ METHODS = ("A", "B", "C", "D0")
+ DIAG_METHODS = {   # header replay diagnostics (not in configs/mac_g2lite.json; see the module docstring)
+-    "BH": {"mode": "sparse", "selector": "recent_pinned", "label": "近期窗口+表头：F ∪ 表头全部 token 的位置 ∪ 最近 k − |表头| 个候选（名额总数与 B 相同）"},
+-    "BM": {"mode": "sparse", "selector": "recent", "k0_minus_pinned": True, "label": "近期窗口减名额（对照）：F ∪ 最近 k − |表头| 个候选，不含表头（读取数比 B 少 |表头|）"},
++    "BH": {"mode": "sparse", "selector": "recent_pinned", "pin": "header", "label": "近期窗口+表头：F ∪ 表头全部 token 的位置 ∪ 最近 k − |表头| 个候选（名额总数与 B 相同）"},
++    "BM": {"mode": "sparse", "selector": "recent", "pin": "header", "k0_minus_pinned": True, "label": "近期窗口减名额（对照）：F ∪ 最近 k − |表头| 个候选，不含表头（读取数比 B 少 |表头|）"},
++    "BF": {"mode": "sparse", "selector": "recent_pinned", "pin": "filler_after_header", "label": "近期窗口+填充句：F ∪ 表头之后同样多的填充句位置 ∪ 最近 k − |表头| 个候选（名额总数与 B 相同，窗口与 BH 相同）"},
+ }
++
++
++def pinned_span(doc: dict, kind: str, tok) -> list:
++    """[start, end) prefix positions pinned by a diagnostic method. "header": the header's token span (positions 3..36 in
++    the formal data; position 3 lies in F, so 33 of them are candidates). "filler_after_header": the same number of
++    positions immediately after the header, which must be digit-free filler before the first record (checked here)."""
++    hs, he = doc["header_span"]
++    if kind == "header":
++        if not doc.get("header_span_exact"):
++            raise RuntimeError(f"{doc['doc_id']}: the header token span does not decode to the header text; refusing to pin it")
++        return [hs, he]
++    if kind == "filler_after_header":
++        n = he - max(hs, FIXED_PREFIX)                           # header positions inside the candidate domain
++        fs, fe = he, he + n
++        text = tok.decode(doc["prefix_ids"][fs:fe])
++        if any(s < fe for s, _ in doc["record_spans"]) or any(ch.isdigit() for ch in text) or "编号" in text:
++            raise RuntimeError(f"{doc['doc_id']}: positions [{fs}, {fe}) are not pure filler; refusing to pin them")
++        return [fs, fe]
++    raise ValueError(f"unknown pin kind {kind!r}")
+ VARIANTS = ("base", "value", "irrelevant", "move")
+ WARN_BYTES, STOP_BYTES = 80_000_000_000, 100_000_000_000
+ 
+@@ -232,9 +255,8 @@
+                 spec = cfg["methods"][method] if method in cfg["methods"] else DIAG_METHODS[method]
+                 cache = cache0.clone()
+                 useed = uniform_seed_for(cfg, doc["doc_id"])
+-                pins = list(range(*doc["header_span"])) if method in DIAG_METHODS else None      # the header's token positions (replay diagnostics)
+-                if pins is not None and not doc.get("header_span_exact"):
+-                    raise RuntimeError(f"{doc['doc_id']}: the header token span does not decode to the header text; refusing to pin it")
++                span = pinned_span(doc, spec["pin"], tok) if method in DIAG_METHODS else None        # positions a replay diagnostic pins (or counts, for BM)
++                pins = list(range(*span)) if span is not None else None
+                 st = LabState(cache, indexers if method == "D0" else None, mode=spec["mode"], selector=spec["selector"] or "index", uniform_seed=useed,
+                               pinned_positions=pins if spec["selector"] == "recent_pinned" else None)
+                 run = LabRunner(model, holder, st)
+@@ -290,7 +312,7 @@
+                        **{k: v for k, v in sc.items()}, "answered_with_ids": bool(sc["predicted"]) and all(p in doc["target_ids"] for p in sc["predicted"]),
+                        "question_ms": q_ms, "generation_ms": g_ms, "steps": steps, "ms_per_step": (q_ms + g_ms) / max(steps, 1),
+                        "uniform_seed": useed if method == "C" else None, "uniform_request_counter": st.request_counter if method == "C" else None,
+-                       "diagnostic": method in DIAG_METHODS, "k0_reference_B": k0_ref, "pinned_span": list(doc["header_span"]) if pins is not None else None,
++                       "diagnostic": method in DIAG_METHODS, "k0_reference_B": k0_ref, "pinned_span": span, "pinned_kind": spec.get("pin") if method in DIAG_METHODS else None,
+                        "n_pinned_candidates": n_pin, "coverage": {"target_tokens": n_target}}
+                 if cov is not None:
+                     c = cov[:steps].float() / max(n_target, 1)                           # fraction of the queried records' positions read, per step/layer/group
