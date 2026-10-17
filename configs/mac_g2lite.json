@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "gate": "G2-lite",
+  "track": "mac_mps",
+  "status": "frozen before any comparison run: data seeds, prompt, parse and stop rules below are not changed after the first formal run; a baseline prompt revision, if ever used, is recorded as a new config version",
+  "config_version": 1,
+  "model": {
+    "id": "Qwen/Qwen3-0.6B",
+    "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+    "tokenizer_revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+    "dtype": "bfloat16",
+    "device": "mps",
+    "frozen": true,
+    "expected_from_config_json": {"num_hidden_layers": 28, "num_attention_heads": 16, "num_key_value_heads": 8, "head_dim": 128, "hidden_size": 1024, "vocab_size": 151936}
+  },
+  "index": {"r": 32, "fixed_prefix": 4, "fixed_recent": 64, "position_variant": "P0", "trained": false, "indexer_seed": 0,
+            "note": "the same untrained GroupedIndexer as G1b (seed * 1000 + layer per layer); D0 = its top-k, never called 'random selection'"},
+  "methods": {
+    "A": {"mode": "full", "selector": null, "label": "完整读取"},
+    "B": {"mode": "sparse", "selector": "recent", "label": "近期窗口：F ∪ 最近 k 个候选位置"},
+    "C": {"mode": "sparse", "selector": "uniform", "label": "均匀随机：F ∪ 候选域内均匀抽取 k 个位置（固定种子，每层每组独立）"},
+    "D0": {"mode": "sparse", "selector": "index", "label": "未训练索引：F ∪ 随机初始化 GroupedIndexer 打分 top-k"}
+  },
+  "rho": [0.03125, 0.125],
+  "budget_rule": "k0 = min(round(rho * N0), candidates at N0) with N0 = prefix tokens + 1 (the first decode step); fixed within a request; k = min(k0, candidates now)",
+  "protocol": {
+    "name": "document_dense_then_sparse",
+    "prefix": "chat-template head + header + record table + table_end, processed once with the full read (chunk 2048) while the index table is built; the question is not part of the shared prefix",
+    "per_method": "an independent clone of the prefix cache; from the first question token on, every token (question, template suffix, generated) is one decode step read by the method's own selector",
+    "rewrites": "rebuild the prefix from scratch; no KV reuse across variants"
+  },
+  "seeds": {"uniform_base": 7, "uniform_rule": "uniform_seed = uniform_base + (sha256(doc_id) mod 2^20); per decode step one numpy default_rng seeded by SeedSequence([uniform_seed, request_counter, step_index]), consumed by the layers in order (a replayed step draws the same rows)"},
+  "data": {
+    "generator_version": 1,
+    "seed": 20261017,
+    "tasks": ["T1", "T2"],
+    "lengths": {"2K": 2048, "8K": 8192},
+    "docs_per_cell": 12,
+    "id_range": [1000, 9999],
+    "value_range": [1000, 9999],
+    "header": "下面是一份记录表。每行一条记录，给出编号和对应的四位数值。\n\n",
+    "record_format": "编号 {id}：{value}\n",
+    "table_end": "\n",
+    "question": {
+      "T1": "问题：编号 {id} 的值是多少？只回答这个四位数。",
+      "T2": "问题：依次给出编号 {id1} 和编号 {id2} 的值，按这个顺序回答，两个四位数之间用逗号隔开，不要其他文字。"
+    },
+    "buckets": {
+      "front": {"fraction": [0.02, 0.10]},
+      "middle": {"fraction": [0.45, 0.55]},
+      "back_near": {"from_end": [3, 5]},
+      "back_far": {"from_end": [13, 20]}
+    },
+    "bucket_plan": {
+      "T1": ["front", "front", "front", "front", "middle", "middle", "middle", "middle", "back_near", "back_near", "back_far", "back_far"],
+      "T2": [["front", "back_near"], ["front", "back_near"], ["front", "back_far"], ["front", "back_far"], ["front", "middle"], ["front", "middle"], ["front", "middle"], ["front", "middle"], ["middle", "back_near"], ["middle", "back_near"], ["middle", "back_far"], ["middle", "back_far"]]
+    },
+    "t2_order_rule": "even doc index: ascending position; odd doc index: descending position",
+    "irrelevant_min_distance_records": 10,
+    "move_to_records_from_end": 3,
+    "rewrite_docs_per_cell": 2,
+    "rewrite_doc_indices": [0, 4],
+    "rewrite_variants_preregistered": ["value", "irrelevant"],
+    "move_case_rule": {"max_per_cell": 2, "condition": "A exact_match and B not exact_match at rho 1/32, else at rho 1/8; lowest doc indices first; T2 moves the queried record that is farther from the end", "variant": "move"}
+  },
+  "prompt": {"chat_template": "the tokenizer's own template at the pinned revision", "enable_thinking": false, "system_message": null,
+             "prefix_boundary": "the rendered text before the question marker '问题：'; checked to be an exact token prefix of the full prompt"},
+  "generation": {"greedy": true, "max_new_tokens": 64, "eos_token_ids": [151645, 151643],
+                 "stop_rule": "stop when the argmax token is an EOS id or when 64 tokens have been generated; the EOS token counts toward the 64 but is not part of the text; truncated = no EOS within 64"},
+  "parsing": {"regex": "(?<!\\d)\\d{4}(?!\\d)",
+              "T1": "the first standalone four-digit number in the generated text must equal the target",
+              "T2": "the first two standalone four-digit numbers must equal the two targets in the asked order",
+              "also_recorded": ["item_correct", "targets_present_any_order", "order_swapped", "format_error (fewer numbers than required)", "truncated"]},
+  "gate": {"baseline_usable_min_exact": 0.80,
+           "meaning": "small-sample usability check of the full read per (task, length) cell; not a quality claim; B/C/D0 are compared only in usable cells",
+           "one_prompt_revision_allowed": true, "study_at_2K_if_8K_unusable": true, "stop_if_both_lengths_unusable": true},
+  "run": {"prefill_chunk": 2048, "capacity_margin": 8, "record_selection_positions_at": "the step that produces the first generated token (per layer, per group, bitset over positions)",
+          "coverage": "per decode step and layer, how many of the queried records' token positions each group read (counts only; no attention weights)"},
+  "budget": {"device_hours_max": 2, "cloud_usd": 0, "cash_usd": 0}
+}

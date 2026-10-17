@@ -14,6 +14,12 @@ no second RoPE is applied. z is built from k_pre, never from the rotated K held 
 the legal length of its first decode step; the legal range grows by one per step; after a rollback the old suffix is
 still in memory but lies outside the legal range and can neither be read nor selected.
 
+G2-lite selectors (docs/tasks/05_G2_LITE.md): a sparse state carries a `selector` that decides who receives the k
+slots of the candidate domain — "index" (D0, the untrained indexer's top-k; the G1b path, unchanged), "recent" (B, the
+k most recent candidate positions) or "uniform" (C, a seeded uniform draw). The fixed set F, the budget k and the
+gathered read are shared; only the row list differs. `record_selection` keeps each layer's row list of the step in
+flight for diagnostics (no attention matrices are stored).
+
 Nothing here trains anything, modifies the installed library, or re-initialises body weights.
 """
 from __future__ import annotations
@@ -25,7 +31,7 @@ from pathlib import Path
 import torch
 from torch import nn
 
-from .decode import sparse_decode_step_kernel
+from .decode import gathered_decode_step_kernel, select_rows_recent, select_rows_uniform, sparse_decode_step_kernel
 from .full import full_attention
 from .indexer import GroupedIndexer, project_keys
 from .selection import FIXED_PREFIX, FIXED_RECENT, fixed_budget, selection_layout
@@ -146,6 +152,9 @@ class StepPlan:
     selected_count: int
     fixed_rows: torch.Tensor   # [B,G,F] row ids in the flattened cache
     off_lo: torch.Tensor       # [B,G,1] offsets + lo
+    step_index: int = 0        # 0 for the first decode step of the request
+    shared_rows: torch.Tensor | None = None   # B: the row list is the same for every layer, built once per step
+    uniform_rng: object | None = None         # C: numpy Generator of this step, seeded from (uniform_seed, request, step)
 
     @property
     def write_col(self) -> int:
@@ -174,24 +183,41 @@ def build_step_plan(cache: LabCache, legal_length: int, k0: int) -> StepPlan:
 # ----------------------------------------------------------------------------------------------------------------------
 # state shared by the wrapped layers and the wrapper module itself
 # ----------------------------------------------------------------------------------------------------------------------
-class LabState:
-    """One read configuration: a cache, optional indexers, the mode (full | sparse) and the plan of the step in flight."""
+SELECTORS = ("index", "recent", "uniform")   # D0 / B / C
 
-    def __init__(self, cache: LabCache, indexers=None, *, mode: str = "full", decode_backend: str = "sdpa_fold",
-                 prefill_backend: str = "sdpa_fold"):
+
+class LabState:
+    """One read configuration: a cache, optional indexers, the mode (full | sparse), the selector of a sparse read
+    (index = D0, recent = B, uniform = C) and the plan of the step in flight."""
+
+    def __init__(self, cache: LabCache, indexers=None, *, mode: str = "full", selector: str = "index",
+                 decode_backend: str = "sdpa_fold", prefill_backend: str = "sdpa_fold", uniform_seed: int = 0):
         if mode not in ("full", "sparse"):
             raise ValueError("mode must be 'full' or 'sparse'")
-        if mode == "sparse" and (indexers is None or not cache.has_index):
-            raise ValueError("sparse mode needs indexers and a cache with an index table")
+        if selector not in SELECTORS:
+            raise ValueError(f"selector must be one of {SELECTORS}")
+        if mode == "sparse" and selector == "index" and (indexers is None or not cache.has_index):
+            raise ValueError("the index selector (D0) needs indexers and a cache with an index table")
         if indexers is not None and len(indexers) != cache.layers:
             raise ValueError("one indexer per layer")
-        self.cache, self.indexers, self.mode = cache, indexers, mode
+        self.cache, self.indexers, self.mode, self.selector = cache, indexers, mode, selector
         self.decode_backend, self.prefill_backend = decode_backend, prefill_backend
+        self.uniform_seed = int(uniform_seed)
+        self.request_counter = 0           # bumped by begin_request: C's draws differ between requests on one state
+        self.record_selection = False      # when True, LabAttention keeps each layer's flat row list of the current step
+        self.last_rows: list = [None] * cache.layers
         self.plan: StepPlan | None = None
         self.phase: str | None = None      # "prefill" | "decode", set by LabRunner before every forward; never inferred from T
         self.rho = None
         self.k0 = None
         self.request_start_length = None
+
+    def uniform_rng(self, step_index: int):
+        """C's generator for one decode step: numpy default_rng seeded by SeedSequence([uniform_seed, request_counter,
+        step_index]). The layers of the step consume it in order; the same step replayed after a rollback (same legal
+        length, same request) draws the same rows, and no two (request, step) pairs share a stream."""
+        import numpy as np  # local import: the wrapper stays importable without numpy
+        return np.random.default_rng([self.uniform_seed, self.request_counter, int(step_index)])
 
     def begin_request(self, rho: float, *, k0=None) -> int:
         """Fix k0 from the legal length of the first decode step: the prefilled tokens plus the first new token.
@@ -202,6 +228,7 @@ class LabState:
         self.rho = None if rho is None else float(rho)
         self.request_start_length = self.cache.valid_length + 1
         self.k0 = fixed_budget(self.request_start_length, self.rho) if k0 is None else int(k0)
+        self.request_counter += 1
         return self.k0
 
 
@@ -260,18 +287,28 @@ class LabAttention(nn.Module):
                 plan = st.plan
                 if plan is None or plan.legal_length != L0 + 1:
                     raise RuntimeError("sparse decode needs a StepPlan built for this step's legal length")
-                idx = st.indexers[l]
-                cache.append(l, k_main, v)                    # K/V once; z of the new key is written by the kernel below
-                out = sparse_decode_step_kernel(q5, q_pre.view(B, G, h, 1, d), cache.k[l], cache.v[l], cache.z[l],
-                                                idx.wq_t_scaled, idx.wk, plan.fixed_rows, plan.off_lo, plan.lo, plan.hi,
-                                                plan.k, plan.selected_count, k_pre_new=k_pre, write_col=plan.write_col,
-                                                scale=self.scaling)
+                if st.selector == "index":                    # D0: score, top-k, merge with F (G1b path, unchanged)
+                    idx = st.indexers[l]
+                    cache.append(l, k_main, v)                # K/V once; z of the new key is written by the kernel below
+                    out, rows = sparse_decode_step_kernel(q5, q_pre.view(B, G, h, 1, d), cache.k[l], cache.v[l], cache.z[l],
+                                                          idx.wq_t_scaled, idx.wk, plan.fixed_rows, plan.off_lo, plan.lo,
+                                                          plan.hi, plan.k, plan.selected_count, k_pre_new=k_pre,
+                                                          write_col=plan.write_col, scale=self.scaling, return_rows=True)
+                else:                                         # B / C: same F, same count, no scoring, no index table
+                    cache.append(l, k_main, v)
+                    if st.selector == "recent":
+                        rows = plan.shared_rows               # built once per step by LabRunner.forward
+                    else:
+                        rows = select_rows_uniform(plan.fixed_rows, plan.off_lo, plan.lo, plan.hi, plan.k, rng=plan.uniform_rng)
+                    out = gathered_decode_step_kernel(q5, cache.k[l], cache.v[l], rows, plan.selected_count, scale=self.scaling)
+                if st.record_selection:
+                    st.last_rows[l] = rows
             else:
                 cache.append(l, k_main, v)
                 out = full_attention(q5, cache.k[l], cache.v[l], valid_length=L0 + 1, backend=st.decode_backend, scale=self.scaling)
         else:   # prefill: the full read over every legal position whatever the chunk size (a one-token chunk included);
                 # the index table is filled from the pre-RoPE K when the cache has one; nothing is selected
-            z = project_keys(k_pre, st.indexers[l].wk) if cache.has_index else None
+            z = project_keys(k_pre, st.indexers[l].wk) if (cache.has_index and st.indexers is not None) else None
             cache.append(l, k_main, v, z)
             out = full_attention(q5, cache.k[l], cache.v[l], valid_length=L0 + T, backend=st.prefill_backend, scale=self.scaling)
         attn = out.view(B, self.num_heads, T, d).transpose(1, 2).reshape(B, T, self.num_heads * d)
@@ -333,11 +370,14 @@ def make_indexers(model, *, r: int = 32, seed: int = 0, dtype=None, device=None)
                            dtype=p.dtype if dtype is None else dtype, seed=seed * 1000 + i) for i in range(geo.layers)]
 
 
-def make_state(model, capacity: int, mode: str, *, r: int = 32, seed: int = 0, batch: int = 1, **kw) -> LabState:
-    with_index = mode == "sparse"
+def make_state(model, capacity: int, mode: str, *, selector: str = "index", r: int = 32, seed: int = 0, batch: int = 1,
+               **kw) -> LabState:
+    """A: mode "full". D0: mode "sparse" (selector "index", cache with index table + indexers). B / C: mode "sparse" with
+    selector "recent" / "uniform" (no index table, no indexers)."""
+    with_index = mode == "sparse" and selector == "index"
     cache = make_cache(model, capacity, with_index=with_index, index_dim=r, batch=batch)
     idx = make_indexers(model, r=r, seed=seed) if with_index else None
-    return LabState(cache, idx, mode=mode, **kw)
+    return LabState(cache, idx, mode=mode, selector=selector, **kw)
 
 
 def wrap_model(model, holder: StateHolder | None = None) -> StateHolder:
@@ -399,6 +439,11 @@ class LabRunner:
                 if st.k0 is None:
                     raise RuntimeError("call state.begin_request(rho) before the first sparse decode step")
                 st.plan = build_step_plan(cache, start + 1, st.k0)
+                st.plan.step_index = start + 1 - st.request_start_length
+                if st.selector == "recent":
+                    st.plan.shared_rows = select_rows_recent(st.plan.fixed_rows, st.plan.off_lo, st.plan.lo, st.plan.hi, st.plan.k)
+                elif st.selector == "uniform":
+                    st.plan.uniform_rng = st.uniform_rng(st.plan.step_index)
         self.holder.state = st
         out = self.model(input_ids=input_ids, position_ids=self.positions[start:start + T].unsqueeze(0),
                          attention_mask=MASK_BYPASS, use_cache=False, logits_to_keep=logits_to_keep)
