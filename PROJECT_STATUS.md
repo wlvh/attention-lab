@@ -1,6 +1,6 @@
 # 接力状态
 
-更新日期：2026-10-17。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_DONE（工程完成；性能 `correct_but_not_faster`，收口速度主线）/ NOTEBOOK_02_DONE / P0_FUSED_SCORE_DONE（停止门通过）/ P1_FUSED_ATTEND_DONE（停止门未通过：比值 0.82 / 0.83 > 0.80）/ FUSED_KERNEL_LINE_STOPPED（用户决定，2026-10-17）/ PR2_MERGED（`e682e9b`）**。`task/p0-fused-score-kernel`（PR #3）是已停止的独立实验原型，目标分支改为 main，待归档评审；可合并的记录不等于内核完成生产验收。
+更新日期：2026-10-17。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_DONE（工程完成；性能 `correct_but_not_faster`，收口速度主线）/ NOTEBOOK_02_DONE / P0_FUSED_SCORE_DONE（停止门通过）/ P1_FUSED_ATTEND_DONE（停止门未通过：比值 0.82 / 0.83 > 0.80）/ FUSED_KERNEL_LINE_STOPPED（用户决定，2026-10-17）/ PR2_MERGED（`e682e9b`）/ PR3_MERGED（`158bad9`）/ PR4_MERGED（`5f55729`）/ G2LITE_DONE（T1 对照完成；T2 `baseline_too_weak`；分支 `task/g2-lite-mac`，PR 待评审）/ G2LITE_REPLAY_HEADER_DONE（B 窗口内失败由「表头不在名单里」解释；分支 `task/g2-lite-replay-header`，PR 待评审，不合并）**。`task/p0-fused-score-kernel`（PR #3）是已停止的独立实验原型，目标分支改为 main，待归档评审；可合并的记录不等于内核完成生产验收。
 
 ## 远端与发布
 
@@ -64,15 +64,38 @@ MPS 能力、带宽、提交开销与索引路径原语成本；关键发现是 
 - 判定：**时间与数值通过，比值门未通过 → 按预登记规则停止**。取行段受随机访存效率限制而非核数量限制，PyTorch 的 index_select 已接近同一下界；用局部节省推出的三段全融合整模型 32K D/A 约 0.84 到 0.88 是情景推算，不是实测也不是严格上限（G1a 到 G1b 已显示局部节省不会原样进入整模型；范围说明的"乐观 0.65"前提不成立）。P0 在 fp32 中算分数，旧路径含 bf16 中间结果，top-k 集合一致率 99.6% 到 99.7%，不是逐位等价替换。G1b 的收口结论维持；不建议 P2。
 - 消耗：设备活跃时间不到 1 分钟，现金 0。累计 G0 + G1a + G1b + P0 + P1 约 57 分钟。
 
+## 本轮完成：G2-lite（Mac M4 Max，2026-10-17 12:38 到 13:08 UTC，分支 `task/g2-lite-mac`，基于 main `158bad9`）
+
+速度主线收口后的独立缩减任务（任务书 `docs/tasks/05_G2_LITE.md`；`03_G2_TO_G5.md` 仍为 BLOCKED）：用真实问题检验「少看历史」丢掉什么。
+
+- 实现：`src/attention_lab/decode.py` 在 `select_rows_kernel`（D0）旁加 `select_rows_recent`（B：F ∪ 最近 k 个候选）与 `select_rows_uniform`（C：F ∪ 候选域内均匀抽取 k 个，numpy SeedSequence 按（种子, 请求, 步）播种，回退重放不变），共用 `gathered_decode_step_kernel`（拉平 index_select + 子集注意力，D0 的核序列不变）；`qwen_wrap.py` 的 `LabState.selector ∈ {index, recent, uniform}`、每步名单记录；`g2lite_data.py`（资料生成，前缀切点逐 token 核对闭合）、`g2lite_eval.py`（冻结的解析与判分、聚合）；`bench/g2lite_quality.py`（三遍：A 基线 → 可用格子四方法 → 改写）；`scripts/g2lite_report.py`。契约 `tests/test_g2lite.py` 11 项（同 F 同名额同读取数、B 为最近窗口、C 由种子决定、全选退化为 A、污染未选行 B / C 逐位不变、B / C 不打分、数据几何与改写）；全仓 78 项通过。
+- 数据设计：冒烟暴露 v1 问题措辞歧义（模型复述编号），校准集（种子 777，与正式种子不同）证明 v1 密集表（169 / 681 条）超出 0.6B 能力（A ≤ 3/12）；改为 v2：每份 16 条「编号 X：Y」记录穿插无数字中文填充句，尾部两条记录放在受控 token 距离上（倒数第一条 32–60，倒数第二条 150–250），2K 前缀 2037–2060 token、8K 8181–8204；全部校准数字在卡片附录与 `configs/mac_g2lite.json` 的 `revision_history`；解析与终止规则未变；预登记的一次提示修正未使用。
+- 结果（Qwen3-0.6B bf16 MPS，ρ ∈ {1/32, 1/8}，k0 = 64 / 256（2K）、256 / 1024（8K），读取数 68 + k0）：基线 A：T1/2K 12/12、T1/8K 10/12（可用）；T2/2K 8/12、T2/8K 1/12（`baseline_too_weak`，不进入对照）。T1 对照：**B 2/12、2/12（2K）与 2/12、3/12（8K），C 0/12 ×4，D0 0/12 ×4**；配对四格没有任何「A 错而稀疏读取对」。B 窗口外 0/34，窗口内 9/14（五个窗口内答错的请求都在大名额或 8K，同一资料上名额变大反而变错出现两次）。失败形态几乎只有一种：答成问题里的编号（C 47/48、D0 48/48、B 窗口外 33/34）；A 在 T1 上从不如此。覆盖率：C 等于 k/M（偏差 ≤ 0.1 pp）；D0 为 k/M 的 1.2–2.2 倍、中间层更成簇，但层组完整覆盖比例 ≤ 2%。反事实：A 改值跟着改 3/3、改无关记录不变 4/4；B / C / D0 改值后 24/24 不变（仍答编号）；移近改写后 B 按资料 3/4、按（资料, ρ）4/8 变对，C / D0 15/16 仍错。「四种方法都对」不存在。
+- 判定：T1 对照完成——在 3%–13% 的读取比例下丢掉的是检索本身（退化为复述问题），未训练索引与均匀随机同为零；T2 `baseline_too_weak`。预测对照见卡片：基线主情景、B 窗口外全错、C 接近零且覆盖率 = k/M、D0 不优于 C、三类案例、反事实签名成立；「B 窗口内全对」「C 错误为编造数」「D0 覆盖率 ≈ k/M」失效。不解锁 G3 / G4。
+- 证据：`reports/g2lite_mac_m4max.md`、`reports/g2lite_summary_mac_m4max.json`、`reports/g2lite_answers_mac_m4max.json`（逐题回答与解析）、`reports/g2lite_manifest_mac_m4max.json`、`reports/cards/G2lite_mac_m4max.md`（预测写于运行前，附校准附录与预测对照）；原始 `runs/g2lite-*/`（本地），归档 `reports/provenance/g2lite_runs_20261017.tar.gz`（含代表案例的名单位图），`check_provenance.py` 覆盖（正式 run 全部在提交 `af62df4` 干净工作树上），报告可从归档无 GPU 逐字节重生。
+- 教学：`notebooks/03_what_is_lost_when_reading_less.ipynb` 从全新内核执行并导出 `reports/03_what_is_lost_when_reading_less.html`（每个案例：资料与问题 → 运行前预测 → 四种方法实际回答 → 各自选择的位置 → 改动一处资料再检查 → 哪些解释得到支持、哪些仍不确定）。
+- 消耗：正式三遍 313 s，加冒烟与校准共约 11 分钟设备活跃时间；现金 0；分配内存峰值 3.4 GB。累计约 70 分钟。
+
+## 本轮完成：G2-lite 单变量重放——表头（Mac M4 Max，2026-10-17 14:07 到 14:10 UTC，分支 `task/g2-lite-replay-header`，基于 `task/g2-lite-mac`）
+
+用户授权的卡片「下一步 (a)」：只回答一个问题——第二遍里近期窗口 B 在被查询记录已落入窗口时仍答错（14 个窗口内请求 9 对 5 错，错的全部复述编号），是否由「表头那句『格式为「编号 X：Y」』不在名单里」解释。
+
+- 实现：`decode.select_rows_recent_pinned`（钉住的候选位置先占名额，其余给最近的未钉住候选；F、k、读取数与 B 相同，不打分）；`qwen_wrap.LabState(selector="recent_pinned", pinned_positions=…)`；资料记录 `header_span`（24 份都是 token 位置 [3, 37)，候选域内 33 个）；`bench/g2lite_quality.py` 的两个诊断方法 **BH**（F ∪ 表头 ∪ 最近 k0 − 33 个候选，读取数与 B 相同）与对照 **BM**（F ∪ 最近 k0 − 33 个候选，BH 的窗口、没有表头），run 标 `diagnostic_replay`，旧报告脚本自动排除；配置 v2 文件逐字节不变。契约 +3 项（81 项、139 子测试通过）。预测先写进 `reports/cards/G2lite_replay_header_mac_m4max.md` 并提交（`e3296ec`），再冒烟、再正式运行。
+- 结果（run `g2lite-20261017T140840Z-replay-header`，24 份 T1 资料 × B / BH / BM × ρ ∈ {1/32, 1/8}，B 重跑与第二遍 48/48 逐位相同）：钉住 33 个表头位置使 2K · 1/32 的窗口由 93 缩到 60 个资料 token，两份 back_near 资料的记录行被窗口起点切开，所以**配对窗口内集合是 12 个请求（第二遍 B 7 对 5 错）**。**BH 12/12（5 个错误全部变对，7 个对的全部保持）；同窗口不含表头的 BM 7/12，与 B 相同；窗口外 34 个请求三者都 0 对。** 同窗口只差表头（BM 对 BH）：5 个 BM 错 BH 对、0 个反向。只缩短窗口不加表头（B 对 BM）：45/48 回答相同，配对集合里 2 个反向改变（T1-2K-08@1/8 变对、T1-8K-09@1/8 变错）。
+- 判定：**(a) 得到支持**——表头在名单里是 B 答对窗口内记录的充分条件；(b) 窗口切入句中、(c) 问题 K/V 由部分读取算出、(d) 窗口越大越易放弃，各自作为充分解释被排除；窗口起点附近内容的次要效应（2/12 反向改变）与 (a) 内部「是格式说明的内容还是靠前的位置」未分离。追加观察：有表头时 8K 的 16 个窗口外请求里 9 个不再复述编号而答成窗口里最后一条记录的值（2K 不变），即 G2-lite 的「退回到复述问题」至少在 8K 上部分是表头缺席的后果。G2-lite 的判定不变；可选的「表头移到末尾」未执行（措辞须改，不是干净的单变量）。
+- 证据：`reports/g2lite_replay_header_mac_m4max.md`、`g2lite_replay_header_summary_mac_m4max.json`、`g2lite_replay_header_manifest_mac_m4max.json`、卡片（预测写于运行前，附预测对照：主预测我押的 S2 错、实测 S1）；原始 run 归档 `reports/provenance/g2lite_replay_runs_20261017.tar.gz`（含全部请求的名单位图）；`reports/provenance/g2lite/` 存 G2-lite 四个源文件的运行时快照与本关 diff，`check_provenance.py` 按快照链校验，旧 G2-lite 报告仍可从归档逐字节重生。正式 run 未用 `caffeinate` 包裹（要求在启动后到达），起止连续、无休眠迹象。
+- 消耗：设备活跃时间 104 s（冒烟 5 s + 正式 99 s），现金 0，分配内存峰值 3.40 GB。累计约 72 分钟。
+
 ## 尚未完成
 
 速度主线按 G1b 收口，融合核路线在 P1 后由用户决定停止（原型与记录在 PR #3，不接入模型路径）；以下均未启动、需用户决定与授权：CUDA 复核轨道（4080 主机）；> 32,768 的上下文；G2 到 G5 的任何质量结论（`docs/tasks/03_G2_TO_G5.md` 仍为 BLOCKED）。本机磁盘在 G1b 运行时只剩约 28 GiB 可用（97%），后续大 run 前需留意。
 
 ## 下一步
 
-1. PR #2 已合并（`e682e9b`）。PR #3（`task/p0-fused-score-kernel`，已停止的独立实验原型）目标分支已改为 main，待用户评审归档；不自行合并。
-2. 融合核路线已由用户决定停止（2026-10-17）：P0 通过、P1 比值门未过，整模型比值的情景推算约 0.84 到 0.88（不是实测）；P2 到 P4 不做。剩余方向由用户另行决定：(a) 以教学与边界结论收口；(b) CUDA 复核轨道；(c) 更长上下文。任何一项都需要明确授权，不自动开始。
-3. 不重跑 G0/G1a，不训练，不租云。
+1. 用户评审 G2-lite 的 PR（分支 `task/g2-lite-mac`，不自行合并）。
+2. 用户评审表头重放的 PR（分支 `task/g2-lite-replay-header`，基于 `task/g2-lite-mac`，指向 main，不自行合并）。
+3. 用户决定方向（都需要明确授权与新任务书，不自动开始）：(a) 表头重放的后续单变量——钉住填充句位置 37–69 而非表头（分离内容与位置）、只钉格式那一句、对照里反向改变的两份资料逐档移动窗口起点，每项约 2–3 分钟设备时间；(b) T2 换更大模型（Qwen3-1.7B）复测基线，需下载约 3.4 GB；(c) G3 训练索引器后在同一协议下复测 D——唯一能把 D 与 C 分开的路径，但速度主线已收口；(d) 融合核 / CUDA / 更长上下文的旧选项不变。
+4. 不重跑 G0/G1a/G1b/G2-lite 的任何一遍，不训练，不租云。
 
 ```bash
 source .venv/bin/activate
@@ -82,6 +105,13 @@ python bench/model_decode_bench.py --compile-blocks --tag formal   # G1b 整模�
 python scripts/g1b_report.py                               # 由非 quick run 重新生成 G1b 报告
 python bench/microbench.py --modes eager --tag pN          # G1a 单进程微基准，约 5 分钟
 python scripts/g1a_report.py
+HF_HUB_OFFLINE=1 python bench/g2lite_quality.py --methods A --tag pass1-A                      # G2-lite 第一遍：A 基线，约 90 秒
+HF_HUB_OFFLINE=1 python bench/g2lite_quality.py --usable-from runs/<pass1>/summary.json --tag pass2   # 第二遍：可用格子四方法，约 2.5 分钟
+HF_HUB_OFFLINE=1 python bench/g2lite_quality.py --usable-from runs/<pass1>/summary.json --variants value irrelevant --doc-indices 0 4 --tag pass3a
+HF_HUB_OFFLINE=1 python bench/g2lite_quality.py --usable-from runs/<pass1>/summary.json --variants move --cases-from runs/<pass2>/quality.jsonl --tag pass3b
+python scripts/g2lite_report.py                            # 由三遍 run 重新生成 G2-lite 报告（不加载模型）
+HF_HUB_OFFLINE=1 caffeinate -i python bench/g2lite_quality.py --tasks T1 --lengths 2K 8K --methods B BH BM --tag replay-header   # 表头重放：24 份 × 6 请求，约 100 秒
+python scripts/g2lite_replay_report.py                     # 与归档的第二遍 B 配对（需 runs/ 里有 pass2 run，见 reports/provenance/README.md）
 ```
 
 ## 接力格式

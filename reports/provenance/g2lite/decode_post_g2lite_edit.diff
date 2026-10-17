@@ -1,0 +1,49 @@
+--- reports/provenance/g2lite/decode_at_g2lite_runs.py
++++ src/attention_lab/decode.py
+@@ -9,7 +9,10 @@
+   select_rows_kernel   D0  the untrained indexer's top-k scores (content-dependent, weights random)
+   select_rows_recent   B   the k most recent candidate positions (a sliding window)
+   select_rows_uniform  C   k positions drawn uniformly without replacement from the candidate domain (seeded)
+-All three feed `gathered_decode_step_kernel`: one flattened index_select of K and of V, then subset attention.
++  select_rows_recent_pinned  B+H  (header replay, reports/cards/G2lite_replay_header_mac_m4max.md) pinned candidate
++                           positions, e.g. the document header, take the first |P| of the k slots; the remaining
++                           k - |P| slots go to the most recent unpinned candidates. Same F and read count as B.
++All of them feed `gathered_decode_step_kernel`: one flattened index_select of K and of V, then subset attention.
+ """
+ from __future__ import annotations
+ 
+@@ -109,6 +112,34 @@
+     return torch.cat([fixed_rows, rel + off_lo], dim=-1).view(-1)
+ 
+ 
++def select_rows_recent_pinned(fixed_rows, off_lo, lo: int, hi: int, k: int, pinned_rel) -> torch.Tensor:
++    """B+H (header replay): the pinned candidate positions take the first |P| of the k slots; the remaining k - |P| slots
++    go to the most recent candidates that are not pinned. Same F and the same read count as B; nothing is scored.
++
++    `pinned_rel` lists candidate-relative indices in [0, hi - lo) (a CPU tensor or any sequence of ints); the caller drops
++    positions that lie in F or outside the candidate domain before calling. The list is assembled on the host (at most a
++    few hundred integers) and copied to the device once per step, like B's arange.
++    """
++    B, G = fixed_rows.shape[:2]
++    if k <= 0:
++        return fixed_rows.reshape(-1)
++    M = hi - lo
++    if k > M:
++        raise ValueError(f"k={k} exceeds the candidate count {M}")
++    pins = sorted({int(p) for p in (pinned_rel.tolist() if hasattr(pinned_rel, "tolist") else pinned_rel)})
++    if pins and not (0 <= pins[0] and pins[-1] < M):
++        raise ValueError("pinned positions must be candidate-relative indices inside [0, hi - lo)")
++    if len(pins) > k:
++        raise ValueError(f"{len(pins)} pinned positions exceed the budget k={k}")
++    pinned_set, recent, i = set(pins), [], M - 1
++    while len(recent) < k - len(pins):            # the most recent unpinned candidates; M - |pins| >= k - |pins| so i stays >= 0
++        if i not in pinned_set:
++            recent.append(i)
++        i -= 1
++    rel = torch.tensor(pins + recent[::-1], dtype=torch.long).to(fixed_rows.device).view(1, 1, k).expand(B, G, k)
++    return torch.cat([fixed_rows, rel + off_lo], dim=-1).view(-1)
++
++
+ def select_rows_uniform(fixed_rows, off_lo, lo: int, hi: int, k: int, *, rng) -> torch.Tensor:
+     """C: k candidate positions drawn uniformly without replacement, independently per (batch, group), merged with F.
+ 

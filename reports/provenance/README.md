@@ -67,3 +67,58 @@ diff /tmp/g1b_check/g1b.md reports/g1b_mac_m4max.md
 ```
 
 `g1b_report.py` 只读 JSON，不导入 torch、不加载模型、不启动 GPU。旧 run 的 manifest 没有被改写。
+
+# G2-lite 证据链归档（PR #5）
+
+## 内容
+
+| 文件 | 作用 |
+|---|---|
+| `g2lite_runs_20261017.tar.gz` | 正式三遍四个 run（`g2lite-20261017T130007Z-pass1-A`、`…T130319Z-pass2-ABCD0`、`…T130551Z-pass3a-rewrites`、`…T130715Z-pass3b-move`）的 data.jsonl（含送入模型的 token id）、quality.jsonl（逐题回答与解析）、summary.json、manifest.json、运行时的 config.json，以及代表案例的 `positions/*.npz`（每层每组第一个生成 token 那一步的名单位图与逐步覆盖率）；冒烟、预检与校准 run 的 quality / summary / manifest / config（不含 data.jsonl）；日志 |
+| `g1b/decode_at_g1a_g1b_runs.py`、`g1b/decode_post_g1b_edit.diff` | G1a 到 G1b 所有 run 使用的 `src/attention_lab/decode.py` 快照，与 G2-lite 对它的全部改动（B、C 的名单生成函数、共用取行核、`return_rows`）；D0 的核序列不变 |
+| `g1b/qwen_wrap_at_g1b_numerics4_and_phasefix_runs.py`、`g1b/qwen_wrap_post_g1b_edit.diff` | G1b 数值 run 4 与附录 run 使用的 `qwen_wrap.py`（PR #2 合并版本）快照，与 G2-lite 对它的全部改动（选择器、每步均匀抽样流、名单记录） |
+
+## 核验
+
+`python scripts/check_provenance.py` 新增：G1b 的数值 run 4 与附录 run 的 manifest 哈希等于 PR #2 版本的 `qwen_wrap.py` 快照；G1a 与 G1b 全部 manifest 的 `decode.py` 哈希等于其快照；提交文件与两份快照只差记录的 diff；`reports/g2lite_manifest_mac_m4max.json` 中每个正式 run 的 manifest 对 `decode.py`、`qwen_wrap.py`、`g2lite_data.py`、`g2lite_eval.py`、`bench/g2lite_quality.py` 的哈希等于提交文件（正式 run 全部在提交 `af62df4` 的干净工作树上运行）。
+
+## 无 GPU、不加载模型重新生成报告
+
+```bash
+mkdir -p /tmp/g2lite_check && tar xzf reports/provenance/g2lite_runs_20261017.tar.gz -C /tmp/g2lite_check
+python scripts/g2lite_report.py --runs-dir /tmp/g2lite_check/runs \
+  --out /tmp/g2lite_check/g2lite.md --json /tmp/g2lite_check/summary.json \
+  --answers /tmp/g2lite_check/answers.json --manifest /tmp/g2lite_check/manifest.json
+diff /tmp/g2lite_check/g2lite.md reports/g2lite_mac_m4max.md
+```
+
+`g2lite_report.py` 只读 JSON / JSONL 与 npz，不导入 torch、不加载模型。校准 run（`-calib-`）与冒烟 run（`-quick-`）被默认排除；它们的数字只出现在卡片的校准附录里。
+
+校准与冒烟 run 是用会话临时目录里的候选配置启动的，归档副本中 summary.json / manifest.json 的 `args.config` 与 `command` 字段把该临时目录替换成了 `<scratchpad>`（它含本机用户名）；实际使用的配置原样归档为同目录的 config.json，正式 run 未做任何改动。
+
+# G2-lite 表头重放证据链归档（分支 `task/g2-lite-replay-header`）
+
+## 内容
+
+| 文件 | 作用 |
+|---|---|
+| `g2lite_replay_runs_20261017.tar.gz` | 重放正式 run（`g2lite-*-replay-header`：B 重跑、BH、BM 在 24 份 T1 资料 × 2 档 ρ）与冒烟 run（`-quick-smoke-replay`）的 data.jsonl、quality.jsonl、summary.json、manifest.json、运行时的 config.json、全部请求的 `positions/*.npz`（每层每组第一个生成 token 那一步的名单位图，表头覆盖率由此算出），以及日志 |
+| `g2lite/decode_at_g2lite_runs.py`、`g2lite/qwen_wrap_at_g2lite_runs.py`、`g2lite/g2lite_data_at_g2lite_runs.py`、`g2lite/g2lite_quality_at_g2lite_runs.py` | G2-lite 四个正式 run（commit `af62df4`）使用的四个源文件快照，SHA-256 与 `reports/g2lite_manifest_mac_m4max.json` 里每份 manifest 一致 |
+| `g2lite/*_post_g2lite_edit.diff` | 重放对这四个文件的全部改动：`select_rows_recent_pinned`（B+H 名单）、`recent_pinned` 选择器与 `pinned_positions`、资料的 `header_span` 字段、诊断方法 BH / BM 与 `diagnostic_replay` 标记。A、B、C、D0 的名单生成与核序列不变 |
+
+## 核验
+
+`python scripts/check_provenance.py` 新增：G2-lite 四份正式 manifest 的 `decode.py` / `qwen_wrap.py` / `g2lite_data.py` / `bench/g2lite_quality.py` 哈希等于 `g2lite/` 快照（`g2lite_eval.py` 未改，仍对提交文件）；G1b 快照到 G2-lite 快照、G2-lite 快照到提交文件各自只差记录的 diff；`reports/g2lite_replay_header_manifest_mac_m4max.json` 中每个重放 run 的五个源文件哈希等于提交文件。
+
+## 无 GPU、不加载模型重新生成重放报告
+
+```bash
+mkdir -p /tmp/g2lite_replay_check && tar xzf reports/provenance/g2lite_runs_20261017.tar.gz -C /tmp/g2lite_replay_check runs/g2lite-20261017T130319Z-pass2-ABCD0
+tar xzf reports/provenance/g2lite_replay_runs_20261017.tar.gz -C /tmp/g2lite_replay_check
+python scripts/g2lite_replay_report.py --runs-dir /tmp/g2lite_replay_check/runs \
+  --reference /tmp/g2lite_replay_check/runs/g2lite-20261017T130319Z-pass2-ABCD0 \
+  --out /tmp/g2lite_replay_check/replay.md --json /tmp/g2lite_replay_check/summary.json --manifest /tmp/g2lite_replay_check/manifest.json
+diff /tmp/g2lite_replay_check/replay.md reports/g2lite_replay_header_mac_m4max.md
+```
+
+参照 run（第二遍的 A 与 B）来自上一节的归档；重放 run 的 `summary.json` 标 `diagnostic_replay`，`scripts/g2lite_report.py` 默认排除它们，旧报告不受影响。

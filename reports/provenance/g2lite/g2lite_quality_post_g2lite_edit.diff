@@ -1,0 +1,103 @@
+--- reports/provenance/g2lite/g2lite_quality_at_g2lite_runs.py
++++ bench/g2lite_quality.py
+@@ -16,6 +16,13 @@
+ Rewrites (value / irrelevant / move) rebuild the prefix from scratch. Pure MPS (refuses CPU fallback or a disabled
+ memory guard). Costs are recorded, but this is a quality run, not a speed benchmark: the bookkeeping is inside the
+ request time and every step syncs for the EOS check.
++
++Header replay (reports/cards/G2lite_replay_header_mac_m4max.md): two diagnostic methods that are not part of the frozen
++config (the config file is byte-identical to the G2-lite runs) and live only here:
++       BH  recent + header: F + the header's token positions + the k - |header| most recent candidates (B's read count)
++       BM  recent minus:    F + the k - |header| most recent candidates (the window of BH without the header; a control
++                            that reads |header| rows fewer than B)
++A run that uses them is marked `diagnostic_replay` in its summary and is excluded from scripts/g2lite_report.py.
+ """
+ from __future__ import annotations
+ 
+@@ -36,8 +43,13 @@
+ from attention_lab import g2lite_data as gd  # noqa: E402
+ from attention_lab import runinfo  # noqa: E402
+ from attention_lab.g2lite_eval import aggregate, cell_key, method_key, score_answer, select_move_cases, usable_cells  # noqa: E402
++from attention_lab.selection import FIXED_PREFIX, FIXED_RECENT, fixed_budget  # noqa: E402
+ 
+ METHODS = ("A", "B", "C", "D0")
++DIAG_METHODS = {   # header replay diagnostics (not in configs/mac_g2lite.json; see the module docstring)
++    "BH": {"mode": "sparse", "selector": "recent_pinned", "label": "近期窗口+表头：F ∪ 表头全部 token 的位置 ∪ 最近 k − |表头| 个候选（名额总数与 B 相同）"},
++    "BM": {"mode": "sparse", "selector": "recent", "k0_minus_pinned": True, "label": "近期窗口减名额（对照）：F ∪ 最近 k − |表头| 个候选，不含表头（读取数比 B 少 |表头|）"},
++}
+ VARIANTS = ("base", "value", "irrelevant", "move")
+ WARN_BYTES, STOP_BYTES = 80_000_000_000, 100_000_000_000
+ 
+@@ -45,7 +57,7 @@
+ def parse_args():
+     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+     ap.add_argument("--config", type=Path, default=ROOT / "configs/mac_g2lite.json")
+-    ap.add_argument("--methods", nargs="+", default=list(METHODS), choices=list(METHODS))
++    ap.add_argument("--methods", nargs="+", default=list(METHODS), choices=list(METHODS) + list(DIAG_METHODS))
+     ap.add_argument("--rhos", type=float, nargs="+", default=None, help="read budgets for B / C / D0 (default: config)")
+     ap.add_argument("--tasks", nargs="+", default=None)
+     ap.add_argument("--lengths", nargs="+", default=None, help="length tags, e.g. 2K 8K")
+@@ -127,6 +139,7 @@
+     cfg, mcfg = a.cfg, a.cfg["model"]
+     dev = torch.device("mps")
+     sync = torch.mps.synchronize
++    diag_methods = {m: DIAG_METHODS[m] for m in a.methods if m in DIAG_METHODS}
+     run_id = "g2lite-" + runinfo.utc_compact() + ("-quick" if a.quick else "") + ("-calib" if a.calibration else "") + (f"-{a.tag}" if a.tag else "")
+     out_dir = a.runs_dir / run_id
+     (out_dir / "positions").mkdir(parents=True, exist_ok=True)
+@@ -160,7 +173,8 @@
+         for d in docs:
+             f.write(json.dumps(d, ensure_ascii=False) + "\n")
+     chat_template_sha = hashlib.sha256((tok.chat_template or "").encode("utf-8")).hexdigest()
+-    manifest = {"schema_version": 1, "run_id": run_id, "kind": "quality", "calibration": a.calibration, "status": "running", "created_at_utc": runinfo.utc_now(),
++    manifest = {"schema_version": 1, "run_id": run_id, "kind": "quality-diagnostic-replay" if diag_methods else "quality", "calibration": a.calibration,
++                "diagnostic_replay": bool(diag_methods), "diagnostic_methods": diag_methods, "status": "running", "created_at_utc": runinfo.utc_now(),
+                 "git": runinfo.git_info(ROOT), "source_hashes": runinfo.source_hashes(ROOT), "config_sha256": runinfo.sha256_file(a.config), "config_version": cfg["config_version"],
+                 "model_id": mcfg["id"], "model_revision": mcfg["revision"], "tokenizer_revision": mcfg["tokenizer_revision"], "weights": weights_file_sha256(mcfg["id"], mcfg["revision"]),
+                 "chat_template_sha256": chat_template_sha, "data_sha256": data_digest, "data_seed": cfg["data"]["seed"], "generator_version": cfg["data"]["generator_version"],
+@@ -215,12 +229,23 @@
+             lut[(span_pos.view(1, -1) + cache0.offsets.view(-1, 1)).reshape(-1)] = 1
+             line = f"[{di+1}/{len(docs)}] {doc['doc_id']:<22s} P={P} Q={Q} n={doc['n_records']} buckets={doc['buckets']} prefill {pre_ms:7.0f} ms |"
+             for method, rho in plan_requests:
+-                spec = cfg["methods"][method]
++                spec = cfg["methods"][method] if method in cfg["methods"] else DIAG_METHODS[method]
+                 cache = cache0.clone()
+                 useed = uniform_seed_for(cfg, doc["doc_id"])
+-                st = LabState(cache, indexers if method == "D0" else None, mode=spec["mode"], selector=spec["selector"] or "index", uniform_seed=useed)
++                pins = list(range(*doc["header_span"])) if method in DIAG_METHODS else None      # the header's token positions (replay diagnostics)
++                if pins is not None and not doc.get("header_span_exact"):
++                    raise RuntimeError(f"{doc['doc_id']}: the header token span does not decode to the header text; refusing to pin it")
++                st = LabState(cache, indexers if method == "D0" else None, mode=spec["mode"], selector=spec["selector"] or "index", uniform_seed=useed,
++                              pinned_positions=pins if spec["selector"] == "recent_pinned" else None)
+                 run = LabRunner(model, holder, st)
+-                k0 = st.begin_request(rho) if method != "A" else None
++                k0_ref = fixed_budget(P + 1, rho) if method != "A" else None                      # B's budget at this request's starting length N0 = P + 1
++                n_pin = sum(1 for p in pins if FIXED_PREFIX <= p < P + 1 - FIXED_RECENT) if pins is not None else None   # pinned positions inside the candidate domain at N0
++                if method == "A":
++                    k0 = None
++                elif spec.get("k0_minus_pinned"):
++                    k0 = st.begin_request(rho, k0=k0_ref - n_pin)                                 # BM: B's window shrunk by the pinned count, no header
++                else:
++                    k0 = st.begin_request(rho)
+                 st.record_selection = method != "A"
+                 max_steps = Q + max_new
+                 cov = torch.zeros(max_steps, L, G, dtype=torch.int32, device=dev) if method != "A" else None
+@@ -265,7 +290,8 @@
+                        **{k: v for k, v in sc.items()}, "answered_with_ids": bool(sc["predicted"]) and all(p in doc["target_ids"] for p in sc["predicted"]),
+                        "question_ms": q_ms, "generation_ms": g_ms, "steps": steps, "ms_per_step": (q_ms + g_ms) / max(steps, 1),
+                        "uniform_seed": useed if method == "C" else None, "uniform_request_counter": st.request_counter if method == "C" else None,
+-                       "coverage": {"target_tokens": n_target}}
++                       "diagnostic": method in DIAG_METHODS, "k0_reference_B": k0_ref, "pinned_span": list(doc["header_span"]) if pins is not None else None,
++                       "n_pinned_candidates": n_pin, "coverage": {"target_tokens": n_target}}
+                 if cov is not None:
+                     c = cov[:steps].float() / max(n_target, 1)                           # fraction of the queried records' positions read, per step/layer/group
+                     cq, cg = c[:Q], c[Q:]
+@@ -297,7 +323,7 @@
+     qf.close()
+     device_s = time.perf_counter() - t_start
+     agg = aggregate(rows, docs, cfg, prefill_ms_by_doc, prev_rows=prev_rows)
+-    summary = {"run_id": run_id, "quick": a.quick, "calibration": a.calibration, "utc_start": manifest["created_at_utc"], "utc_end": runinfo.utc_now(), "device_seconds": device_s, "model_load_seconds": load_s,
++    summary = {"run_id": run_id, "quick": a.quick, "calibration": a.calibration, "diagnostic_replay": bool(diag_methods), "diagnostic_methods": diag_methods, "utc_start": manifest["created_at_utc"], "utc_end": runinfo.utc_now(), "device_seconds": device_s, "model_load_seconds": load_s,
+                "args": args_rec, "config_version": cfg["config_version"], "config_sha256": manifest["config_sha256"], "data_sha256": data_digest, "model_info": {**info, "mismatch_vs_config_json": mism},
+                "host": manifest["host"], "software": manifest["software"], "git": manifest["git"], "source_hashes": manifest["source_hashes"], "usable_from": usable_src, "move_cases": move_cases,
+                "n_docs": len(docs), "n_rows": len(rows), "prefill_ms_by_doc": prefill_ms_by_doc, "aggregate": agg, "memory_end": mem(torch), "_quality_path": runinfo.sanitize(str((out_dir / "quality.jsonl").relative_to(ROOT)))}

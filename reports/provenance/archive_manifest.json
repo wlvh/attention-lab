@@ -75,6 +75,76 @@
       "path": "reports/provenance/g1b/model_numerics_at_formal3_run.py",
       "bytes": 26925,
       "sha256": "5809bd27b39730dfc5c5060676c182bf05561184d5f108158c2dbe052beecbfc"
+    },
+    {
+      "path": "reports/provenance/g2lite_runs_20261017.tar.gz",
+      "bytes": 3480995,
+      "sha256": "69d3f3afb12e10ad20d2cd4f8350c7dd2f1122855ba540004be7775ff1a7c42d"
+    },
+    {
+      "path": "reports/provenance/g1b/decode_at_g1a_g1b_runs.py",
+      "bytes": 6667,
+      "sha256": "f0dde0182b1c9df8b4417a31b1994d86215e0e38ae4e5fd5eb4ed1606cc514ee"
+    },
+    {
+      "path": "reports/provenance/g1b/decode_post_g1b_edit.diff",
+      "bytes": 6105,
+      "sha256": "130ba68cd75e7fa43636c35dc86e44a15782c9c0f98532c3fa5192a8909c95ef"
+    },
+    {
+      "path": "reports/provenance/g1b/qwen_wrap_at_g1b_numerics4_and_phasefix_runs.py",
+      "bytes": 31408,
+      "sha256": "5d6082bf37aeb0ec38fc56e717fe06ccdf4de70f2f2109e4863385540eac091a"
+    },
+    {
+      "path": "reports/provenance/g1b/qwen_wrap_post_g1b_edit.diff",
+      "bytes": 10772,
+      "sha256": "db3b75b789cc387aed10abd6eeefc500d7ea13360b2d208c42666ced490a2156"
+    },
+    {
+      "path": "reports/provenance/g2lite/decode_at_g2lite_runs.py",
+      "bytes": 10072,
+      "sha256": "273e3abe809312ab824707a0de63df54967d73fb13e63c73b5d6c2b409e9a183"
+    },
+    {
+      "path": "reports/provenance/g2lite/decode_post_g2lite_edit.diff",
+      "bytes": 3012,
+      "sha256": "1ddd1d2a62262d18123b72df69cda5de8c11500712bfb934b443cf873e24246d"
+    },
+    {
+      "path": "reports/provenance/g2lite/qwen_wrap_at_g2lite_runs.py",
+      "bytes": 35144,
+      "sha256": "a4ae836a3ae63aa3d8de47d92f0aaa8ccf90a62f5d29524863e80ac6d13d14ca"
+    },
+    {
+      "path": "reports/provenance/g2lite/qwen_wrap_post_g2lite_edit.diff",
+      "bytes": 6817,
+      "sha256": "c63d11a784ae9d7fa7aa23cc47a24e25a424aea64cf680104271e177e7ec74aa"
+    },
+    {
+      "path": "reports/provenance/g2lite/g2lite_data_at_g2lite_runs.py",
+      "bytes": 18883,
+      "sha256": "7a82de22754a838768607e3e2b1789e9ce4a82d7e284e614be5897ab84a7ceff"
+    },
+    {
+      "path": "reports/provenance/g2lite/g2lite_data_post_g2lite_edit.diff",
+      "bytes": 4324,
+      "sha256": "794e2e40885aafdbf7115d2a86d0c77aa1ac22c68ba708f8e0fb01dfff804665"
+    },
+    {
+      "path": "reports/provenance/g2lite/g2lite_quality_at_g2lite_runs.py",
+      "bytes": 21872,
+      "sha256": "d397c5013adac63f9413f388956091b483dd9e5aa48229e49d7f8aa500ab804a"
+    },
+    {
+      "path": "reports/provenance/g2lite/g2lite_quality_post_g2lite_edit.diff",
+      "bytes": 9099,
+      "sha256": "4048e9e3ddef87b15269221b959064234c41a421eaf430dc38ce0a75643a1d4a"
+    },
+    {
+      "path": "reports/provenance/g2lite_replay_runs_20261017.tar.gz",
+      "bytes": 248909,
+      "sha256": "5b1705ae1fce341ba80639c5a7b747e95e5e8305a189295c738fa7d077ce9f22"
     }
   ],
   "regenerate": [
@@ -106,5 +176,11 @@
     "p1-attend-20261017T075802Z-p2",
     "p1-formal.log"
   ],
-  "g1b_note": "Added 2026-10-17 (PR #2 review): the four G1b numerics runs, the formal decode run, the phase-fix appendix run and their logs (home paths replaced by ~), the as-run source snapshots with the post-run diffs, and the P0/P1 run inputs of PR #3 (integrity only). Extract in a clean directory and regenerate reports/g1b_mac_m4max.md with scripts/g1b_report.py, no GPU, no model."
+  "g1b_note": "Added 2026-10-17 (PR #2 review): the four G1b numerics runs, the formal decode run, the phase-fix appendix run and their logs (home paths replaced by ~), the as-run source snapshots with the post-run diffs, and the P0/P1 run inputs of PR #3 (integrity only). Extract in a clean directory and regenerate reports/g1b_mac_m4max.md with scripts/g1b_report.py, no GPU, no model.",
+  "g2lite": {
+    "created_utc": "20261017",
+    "archive": "reports/provenance/g2lite_runs_20261017.tar.gz",
+    "members": 152,
+    "note": "formal G2-lite runs (three passes) with data, answers, summaries, manifests and the as-run config; positions bitsets only for the representative cases; smoke and calibration runs without data files; logs"
+  }
 }
