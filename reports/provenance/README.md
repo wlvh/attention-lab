@@ -122,3 +122,31 @@ diff /tmp/g2lite_replay_check/replay.md reports/g2lite_replay_header_mac_m4max.m
 ```
 
 参照 run（第二遍的 A 与 B）来自上一节的归档；重放 run 的 `summary.json` 标 `diagnostic_replay`，`scripts/g2lite_report.py` 默认排除它们，旧报告不受影响。
+
+# G2-lite 表头重放续篇（填充句钉住）证据链归档（分支 `task/g2-lite-replay-filler-pin`）
+
+## 内容
+
+| 文件 | 作用 |
+|---|---|
+| `g2lite_replay_filler_runs_20261017.tar.gz` | 续篇正式 run（`g2lite-*-replay-filler`：B 重跑、BH 重跑、BF 在 24 份 T1 资料 × 2 档 ρ）与冒烟 run（`-quick-smoke-filler`）的 data.jsonl、quality.jsonl、summary.json、manifest.json、运行时的 config.json、全部请求的 `positions/*.npz`，以及清理后的日志 |
+| `g2lite_replay/g2lite_quality_at_replay_header_run.py` | 表头重放正式 run（commit `e3296ec`）使用的 `bench/g2lite_quality.py` 快照，SHA-256 与 `reports/g2lite_replay_header_manifest_mac_m4max.json` 里的 manifest 一致 |
+| `g2lite_replay/g2lite_quality_post_replay_header_edit.diff` | 续篇对该文件的全部改动：诊断方法 BF（钉住紧接表头的等长填充句位置，运行时检查这段不含数字、不含「编号」、在第一条记录之前）与行记录的 `pinned_span` / `pinned_kind`；B、BH、BM 的名单生成不变 |
+
+## 核验
+
+`python scripts/check_provenance.py` 新增：表头重放 run 的 manifest 对 `bench/g2lite_quality.py` 的哈希等于 `g2lite_replay/` 快照（其余四个源文件仍对提交文件）；G2-lite 快照 → 表头重放快照 → 提交文件各自只差记录的 diff；`reports/g2lite_replay_filler_manifest_mac_m4max.json` 中每个续篇 run 的五个源文件哈希等于提交文件。
+
+## 无 GPU、不加载模型重新生成续篇报告
+
+```bash
+mkdir -p /tmp/g2lite_filler_check && tar xzf reports/provenance/g2lite_runs_20261017.tar.gz -C /tmp/g2lite_filler_check runs/g2lite-20261017T130319Z-pass2-ABCD0
+tar xzf reports/provenance/g2lite_replay_filler_runs_20261017.tar.gz -C /tmp/g2lite_filler_check
+python scripts/g2lite_replay_report.py --runs-dir /tmp/g2lite_filler_check/runs \
+  --reference /tmp/g2lite_filler_check/runs/g2lite-20261017T130319Z-pass2-ABCD0 \
+  --title "$(head -1 reports/g2lite_replay_filler_mac_m4max.md)" --card reports/cards/G2lite_replay_filler_mac_m4max.md \
+  --out /tmp/g2lite_filler_check/filler.md --json /tmp/g2lite_filler_check/summary.json --manifest /tmp/g2lite_filler_check/manifest.json
+diff /tmp/g2lite_filler_check/filler.md reports/g2lite_replay_filler_mac_m4max.md
+```
+
+同一脚本按 run 里出现的变体决定列；表头重放的三个输出在脚本泛化后从归档逐字节重生已核对。

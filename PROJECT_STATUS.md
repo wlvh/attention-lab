@@ -1,6 +1,6 @@
 # 接力状态
 
-更新日期：2026-10-17。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_DONE（工程完成；性能 `correct_but_not_faster`，收口速度主线）/ NOTEBOOK_02_DONE / P0_FUSED_SCORE_DONE（停止门通过）/ P1_FUSED_ATTEND_DONE（停止门未通过：比值 0.82 / 0.83 > 0.80）/ FUSED_KERNEL_LINE_STOPPED（用户决定，2026-10-17）/ PR2_MERGED（`e682e9b`）/ PR3_MERGED（`158bad9`）/ PR4_MERGED（`5f55729`）/ G2LITE_DONE（T1 对照完成；T2 `baseline_too_weak`；分支 `task/g2-lite-mac`，PR 待评审）/ G2LITE_REPLAY_HEADER_DONE（B 窗口内失败由「表头不在名单里」解释；分支 `task/g2-lite-replay-header`，PR 待评审，不合并）**。`task/p0-fused-score-kernel`（PR #3）是已停止的独立实验原型，目标分支改为 main，待归档评审；可合并的记录不等于内核完成生产验收。
+更新日期：2026-10-17。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_DONE（工程完成；性能 `correct_but_not_faster`，收口速度主线）/ NOTEBOOK_02_DONE / P0_FUSED_SCORE_DONE（停止门通过）/ P1_FUSED_ATTEND_DONE（停止门未通过：比值 0.82 / 0.83 > 0.80）/ FUSED_KERNEL_LINE_STOPPED（用户决定，2026-10-17）/ PR2_MERGED（`e682e9b`）/ PR3_MERGED（`158bad9`）/ PR4_MERGED（`5f55729`）/ G2LITE_DONE（T1 对照完成；T2 `baseline_too_weak`；分支 `task/g2-lite-mac`，PR 待评审）/ G2LITE_REPLAY_HEADER_DONE（B 窗口内失败由「表头不在名单里」解释；分支 `task/g2-lite-replay-header`，PR #6 待评审，不合并）/ G2LITE_REPLAY_FILLER_DONE（起作用的是表头的内容，不是靠前的位置；分支 `task/g2-lite-replay-filler-pin`，PR 待评审，不合并）**。`task/p0-fused-score-kernel`（PR #3）是已停止的独立实验原型，目标分支改为 main，待归档评审；可合并的记录不等于内核完成生产验收。
 
 ## 远端与发布
 
@@ -86,6 +86,16 @@ MPS 能力、带宽、提交开销与索引路径原语成本；关键发现是 
 - 证据：`reports/g2lite_replay_header_mac_m4max.md`、`g2lite_replay_header_summary_mac_m4max.json`、`g2lite_replay_header_manifest_mac_m4max.json`、卡片（预测写于运行前，附预测对照：主预测我押的 S2 错、实测 S1）；原始 run 归档 `reports/provenance/g2lite_replay_runs_20261017.tar.gz`（含全部请求的名单位图）；`reports/provenance/g2lite/` 存 G2-lite 四个源文件的运行时快照与本关 diff，`check_provenance.py` 按快照链校验，旧 G2-lite 报告仍可从归档逐字节重生。正式 run 未用 `caffeinate` 包裹（要求在启动后到达），起止连续、无休眠迹象。
 - 消耗：设备活跃时间 104 s（冒烟 5 s + 正式 99 s），现金 0，分配内存峰值 3.40 GB。累计约 72 分钟。
 
+## 本轮完成：G2-lite 单变量重放续篇——钉住填充句而非表头（Mac M4 Max，2026-10-17 17:12 到 17:14 UTC，分支 `task/g2-lite-replay-filler-pin`，基于 `task/g2-lite-replay-header`）
+
+用户选择在本会话继续表头重放的下一个单变量：把 BH 钉住的 33 个表头位置换成紧接表头的 33 个填充句位置 [37, 70)（24 份都是无数字的中文填充句，在第一条记录之前；运行时再检查），其余一切不变，与 B、BH 同 run 配对，分离「表头的内容」与「靠前的位置」。
+
+- 实现：`bench/g2lite_quality.py` 诊断方法 **BF**（`recent_pinned` 钉住 [37, 70)，读取数与 B 相同，窗口与 BH 相同）与运行时填充句检查；`scripts/g2lite_replay_report.py` 按 run 里的变体决定列（上一关三个输出从归档逐字节重生已核对）；契约 +1 项（82 项、139 子测试通过）。预测先写进 `reports/cards/G2lite_replay_filler_mac_m4max.md` 并提交（`5d9b9c7`），再冒烟、再正式运行（`caffeinate -i`，日志在 `runs/`）。
+- 结果（run `g2lite-20261017T171237Z-replay-filler`，24 份 T1 × B / BH / BF × ρ ∈ {1/32, 1/8}，B 与第二遍、BH 与上一关各 48/48 逐位相同）：**配对窗口内集合 12 个请求上 B 7、BH 12、BF 7；第二遍的 5 个错误 BH 全修好、BF 只修好 1 个（并把 B 原本对的 1 个改错）；BF 对 BH 四格 7 / 0 / 5 / 0。** BF 在 48 个请求上生成的 token 序列与上一关「只缩短窗口、什么都不钉」的对照 BM 全部相同——多读那 33 个填充位置没有改变任何一个生成 token。窗口外 BF 0/34，形态与 B 相同（33/34 编号回声）。
+- 判定：**起作用的是表头的内容，不是靠前的位置**（预登记情景 C）。上一关的解释 (a) 收窄为「名单里没有表头那段文本」。仍未分离：表头文本里是格式那半句还是前半句；窗口起点附近内容的次要效应（2/12 反向改变，BM 与 BF 相同）。五条预测全部成立。
+- 证据：`reports/g2lite_replay_filler_mac_m4max.md`、`g2lite_replay_filler_summary_mac_m4max.json`、`g2lite_replay_filler_manifest_mac_m4max.json`、卡片（预测写于运行前，附预测对照）；原始 run 归档 `reports/provenance/g2lite_replay_filler_runs_20261017.tar.gz`；`reports/provenance/g2lite_replay/` 存表头重放的 harness 快照与本关 diff，`check_provenance.py` 按链校验。
+- 消耗：设备活跃时间 103 s（冒烟 4.5 s + 正式 98.6 s），现金 0，分配内存峰值 3.39 GB。累计约 74 分钟。
+
 ## 尚未完成
 
 速度主线按 G1b 收口，融合核路线在 P1 后由用户决定停止（原型与记录在 PR #3，不接入模型路径）；以下均未启动、需用户决定与授权：CUDA 复核轨道（4080 主机）；> 32,768 的上下文；G2 到 G5 的任何质量结论（`docs/tasks/03_G2_TO_G5.md` 仍为 BLOCKED）。本机磁盘在 G1b 运行时只剩约 28 GiB 可用（97%），后续大 run 前需留意。
@@ -93,8 +103,8 @@ MPS 能力、带宽、提交开销与索引路径原语成本；关键发现是 
 ## 下一步
 
 1. 用户评审 G2-lite 的 PR（分支 `task/g2-lite-mac`，不自行合并）。
-2. 用户评审表头重放的 PR（分支 `task/g2-lite-replay-header`，基于 `task/g2-lite-mac`，指向 main，不自行合并）。
-3. 用户决定方向（都需要明确授权与新任务书，不自动开始）：(a) 表头重放的后续单变量——钉住填充句位置 37–69 而非表头（分离内容与位置）、只钉格式那一句、对照里反向改变的两份资料逐档移动窗口起点，每项约 2–3 分钟设备时间；(b) T2 换更大模型（Qwen3-1.7B）复测基线，需下载约 3.4 GB；(c) G3 训练索引器后在同一协议下复测 D——唯一能把 D 与 C 分开的路径，但速度主线已收口；(d) 融合核 / CUDA / 更长上下文的旧选项不变。
+2. 用户评审表头重放的 PR #6（分支 `task/g2-lite-replay-header`）与续篇的 PR（分支 `task/g2-lite-replay-filler-pin`，基于前者），都指向 main，不自行合并。
+3. 用户决定方向（都需要明确授权与新任务书，不自动开始）：(a) 表头文本内部的分离——只钉格式那半句对比只钉前半句；对照里反向改变的两份资料逐档移动窗口起点；每项约 2 分钟设备时间；(b) T2 换更大模型（Qwen3-1.7B）复测基线，需下载约 3.4 GB；(c) G3 训练索引器后在同一协议下复测 D——唯一能把 D 与 C 分开的路径，但速度主线已收口；(d) 融合核 / CUDA / 更长上下文的旧选项不变。
 4. 不重跑 G0/G1a/G1b/G2-lite 的任何一遍，不训练，不租云。
 
 ```bash
@@ -112,6 +122,8 @@ HF_HUB_OFFLINE=1 python bench/g2lite_quality.py --usable-from runs/<pass1>/summa
 python scripts/g2lite_report.py                            # 由三遍 run 重新生成 G2-lite 报告（不加载模型）
 HF_HUB_OFFLINE=1 caffeinate -i python bench/g2lite_quality.py --tasks T1 --lengths 2K 8K --methods B BH BM --tag replay-header   # 表头重放：24 份 × 6 请求，约 100 秒
 python scripts/g2lite_replay_report.py                     # 与归档的第二遍 B 配对（需 runs/ 里有 pass2 run，见 reports/provenance/README.md）
+HF_HUB_OFFLINE=1 caffeinate -i python bench/g2lite_quality.py --tasks T1 --lengths 2K 8K --methods B BH BF --tag replay-filler   # 续篇：钉住填充句，约 100 秒
+python scripts/g2lite_replay_report.py --title "…" --card reports/cards/G2lite_replay_filler_mac_m4max.md --out reports/g2lite_replay_filler_mac_m4max.md --json reports/g2lite_replay_filler_summary_mac_m4max.json --manifest reports/g2lite_replay_filler_manifest_mac_m4max.json
 ```
 
 ## 接力格式
