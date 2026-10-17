@@ -14,6 +14,10 @@ G1b (PR #2 review, finding 3):
 5. The appendix (phase-fix) run and the current numerics run ran on the committed code: their manifest hashes equal the
    committed files.
 6. The three earlier numerics runs inside g1b_runs_20261017.tar.gz ran on the three archived script versions.
+
+P0 / P1 (PR #3, stopped prototype), only where the kernel sources exist:
+7. The four formal P0/P1 run manifests inside p0p1_runs_20261017.tar.gz name the committed metal_score.py /
+   metal_attend.py hashes.
 """
 from __future__ import annotations
 import difflib
@@ -95,12 +99,30 @@ def main() -> int:
     for rid in expected_numerics:
         if rid not in seen:
             errors.append(f"archive lacks runs/{rid}/manifest.json")
+    # ---- P0 / P1 (PR #3, stopped prototype): the archived run manifests must name the committed kernel sources ----
+    p0p1 = PROV / "p0p1_runs_20261017.tar.gz"
+    kernels = {"src/attention_lab/metal_score.py": ROOT / "src/attention_lab/metal_score.py", "src/attention_lab/metal_attend.py": ROOT / "src/attention_lab/metal_attend.py"}
+    p0p1_checked = 0
+    if p0p1.is_file() and all(path.is_file() for path in kernels.values()):
+        committed_k = {k: sha256(v) for k, v in kernels.items()}
+        with tarfile.open(p0p1) as tf:
+            for member in tf.getmembers():
+                parts = Path(member.name).parts
+                if len(parts) >= 3 and parts[-1] == "manifest.json" and ("-p1" in parts[-2] or "-p2" in parts[-2]):
+                    mf = json.loads(tf.extractfile(member).read().decode("utf-8"))
+                    for k, h in committed_k.items():
+                        if k in mf.get("source_hashes", {}) and mf["source_hashes"][k] != h:
+                            errors.append(f"{parts[-2]}: archived manifest hash of {k} != committed file")
+                    p0p1_checked += 1
+        if p0p1_checked != 4:
+            errors.append(f"expected 4 formal P0/P1 run manifests in the archive, found {p0p1_checked}")
     if errors:
         print("\n".join(errors))
         return 1
     print(f"Provenance OK: G1a snapshot {snap_sha[:16]} matches {len(manifest['runs'])} run manifests; G1b decode snapshot matches "
           f"{len(g1b['benchmarks'])} manifest(s), {len(g1b.get('appendix_benchmarks', []))} appendix + {len(g1b.get('numerics', []))} numerics run(s) on committed code, "
-          f"{len(seen)} archived numerics runs on their snapshots; {len(am['files'])} archived files verified; post-run edits limited to the recorded diffs.")
+          f"{len(seen)} archived numerics runs on their snapshots; {len(am['files'])} archived files verified; post-run edits limited to the recorded diffs"
+          + (f"; {p0p1_checked} archived P0/P1 manifests name the committed kernels." if p0p1_checked else "."))
     return 0
 
 
