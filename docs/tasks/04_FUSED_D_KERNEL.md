@@ -1,6 +1,6 @@
 # 任务书：融合 D 链的自定义 Metal 核
 
-状态：**P0 已完成并通过停止门（2026-10-17；两个独立进程 32K 处 fused 69.7 / 70.0 µs ≤ 80，对 PyTorch 链 0.69 / 0.68 ≤ 0.75，数值通过）。P1 已完成，停止门未通过（2026-10-17：S = 1076 处 38.5 / 39.8 µs ≤ 60 通过、数值通过，但对 PyTorch 取行路径的比值 0.82 / 0.83 > 0.80）；按规则停止。P2 到 P4 未授权，且不建议。** P1 结果：`reports/p1_attend_kernel_mac_m4max.md`、`reports/cards/P1_fused_attend_mac_m4max.md`。分支 `task/p0-fused-score-kernel`（基于 `task/g1b-qwen-mac`，PR #2 尚未合并）。结果：`reports/p0_score_kernel_mac_m4max.md`、`reports/cards/P0_fused_score_mac_m4max.md`。范围说明见 [`../SCOPING_FUSED_D_KERNEL.md`](../SCOPING_FUSED_D_KERNEL.md)，G1b 的结论与数据见 `reports/cards/G1b_mac_m4max.md`。
+状态：**P0 已完成并通过停止门（2026-10-17；两个独立进程 32K 处 fused 69.7 / 70.0 µs ≤ 80，对 PyTorch 链 0.69 / 0.68 ≤ 0.75，数值通过）。P1 已完成，停止门未通过（2026-10-17：S = 1076 处 38.5 / 39.8 µs ≤ 60 通过、数值通过，但对 PyTorch 取行路径的比值 0.82 / 0.83 > 0.80）；按规则停止。**用户于 2026-10-17 决定停止融合核路线（"停止"）：P2 到 P4 不做，P0 / P1 的核、契约、基准与报告留作记录，不接进模型路径；速度主线维持 G1b 的收口。** P1 结果：`reports/p1_attend_kernel_mac_m4max.md`、`reports/cards/P1_fused_attend_mac_m4max.md`。分支 `task/p0-fused-score-kernel`（基于 `task/g1b-qwen-mac`，PR #2 尚未合并）。结果：`reports/p0_score_kernel_mac_m4max.md`、`reports/cards/P0_fused_score_mac_m4max.md`。范围说明见 [`../SCOPING_FUSED_D_KERNEL.md`](../SCOPING_FUSED_D_KERNEL.md)，G1b 的结论与数据见 `reports/cards/G1b_mac_m4max.md`。
 
 ## 为什么有这一步
 

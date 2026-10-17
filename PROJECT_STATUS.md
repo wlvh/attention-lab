@@ -1,6 +1,6 @@
 # 接力状态
 
-更新日期：2026-10-17。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_DONE（工程完成；性能 `correct_but_not_faster`，收口速度主线）/ NOTEBOOK_02_DONE / P0_FUSED_SCORE_DONE（停止门通过）/ P1_FUSED_ATTEND_DONE（停止门未通过：比值 0.82 / 0.83 > 0.80；按规则停止，不建议 P2）**。分支 `task/g1b-qwen-mac`（PR #2）与其上的 `task/p0-fused-score-kernel` 待评审。
+更新日期：2026-10-17。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_DONE（工程完成；性能 `correct_but_not_faster`，收口速度主线）/ NOTEBOOK_02_DONE / P0_FUSED_SCORE_DONE（停止门通过）/ P1_FUSED_ATTEND_DONE（停止门未通过：比值 0.82 / 0.83 > 0.80）/ FUSED_KERNEL_LINE_STOPPED（用户决定，2026-10-17）**。分支 `task/g1b-qwen-mac`（PR #2）与其上的 `task/p0-fused-score-kernel` 待评审。
 
 ## 远端与发布
 
@@ -65,12 +65,12 @@ MPS 能力、带宽、提交开销与索引路径原语成本；关键发现是 
 
 ## 尚未完成
 
-速度主线按 G1b 收口，融合核路线在 P1 停止；以下均未启动、需用户决定与授权：融合 D 链的自定义 Metal 核；CUDA 复核轨道（4080 主机）；> 32,768 的上下文；G2 到 G5 的任何质量结论（`docs/tasks/03_G2_TO_G5.md` 仍为 BLOCKED）。本机磁盘在 G1b 运行时只剩约 28 GiB 可用（97%），后续大 run 前需留意。
+速度主线按 G1b 收口，融合核路线在 P1 后由用户决定停止；以下均未启动、需用户决定与授权：融合 D 链的自定义 Metal 核；CUDA 复核轨道（4080 主机）；> 32,768 的上下文；G2 到 G5 的任何质量结论（`docs/tasks/03_G2_TO_G5.md` 仍为 BLOCKED）。本机磁盘在 G1b 运行时只剩约 28 GiB 可用（97%），后续大 run 前需留意。
 
 ## 下一步
 
 1. 用户评审 G1b 的 PR（分支 `task/g1b-qwen-mac`，不自行合并）。
-2. 用户决定方向：(a) 以教学与边界结论收口（当前建议）；(b) 融合核路线：P0 通过、P1 比值门未过，整模型上限修正为约 0.84 到 0.88，不建议继续；若仍要 P2 补全记录需单独授权；(c) CUDA 复核轨道；(d) 更长上下文。任何一项都需要明确授权，不自动开始。
+2. 融合核路线已由用户决定停止（2026-10-17）：P0 通过、P1 比值门未过，整模型上限修正为约 0.84 到 0.88；P2 到 P4 不做。剩余方向由用户另行决定：(a) 以教学与边界结论收口；(b) CUDA 复核轨道；(c) 更长上下文。任何一项都需要明确授权，不自动开始。
 3. 不重跑 G0/G1a，不训练，不租云。
 
 ```bash
