@@ -1,0 +1,103 @@
+--- reports/provenance/g1b/decode_at_g1a_g1b_runs.py
++++ src/attention_lab/decode.py
+@@ -3,6 +3,13 @@
+ D per step: [z append for the newest key] -> u projection -> one matmul over the candidate columns -> one top-k
+ over the candidate domain -> merge with the fixed set as row ids -> index_select of K and V rows -> subset
+ attention. The selection is a list of original positions; nothing is renumbered and the main K is read as stored.
++
++G2-lite adds two alternative row-list generators next to `select_rows_kernel`, with the same fixed set F and the same
++budget k, differing only in who receives the k slots of the candidate domain:
++  select_rows_kernel   D0  the untrained indexer's top-k scores (content-dependent, weights random)
++  select_rows_recent   B   the k most recent candidate positions (a sliding window)
++  select_rows_uniform  C   k positions drawn uniformly without replacement from the candidate domain (seeded)
++All three feed `gathered_decode_step_kernel`: one flattened index_select of K and of V, then subset attention.
+ """
+ from __future__ import annotations
+ 
+@@ -77,7 +84,7 @@
+ 
+ 
+ def select_rows_kernel(u, zT, fixed_rows, off_lo, lo: int, hi: int, k: int) -> torch.Tensor:
+-    """Score the candidate columns once, top-k once, merge with the fixed rows. Returns flat row ids [B*G*S]."""
++    """D0: score the candidate columns once, top-k once, merge with the fixed rows. Returns flat row ids [B*G*S]."""
+     B, G = fixed_rows.shape[:2]
+     if k <= 0:
+         return fixed_rows.reshape(-1)
+@@ -86,10 +93,63 @@
+     return torch.cat([fixed_rows, top + off_lo], dim=-1).view(-1)  # original positions as row ids
+ 
+ 
++def select_rows_recent(fixed_rows, off_lo, lo: int, hi: int, k: int) -> torch.Tensor:
++    """B: the k most recent candidate positions [hi-k, hi) merged with the fixed rows. Same F and count as D0.
++
++    Candidate-relative index i in [0, hi-lo) maps to row off_lo + i, exactly as the top-k indices do in
++    `select_rows_kernel`; nothing is scored, nothing is renumbered.
++    """
++    B, G = fixed_rows.shape[:2]
++    if k <= 0:
++        return fixed_rows.reshape(-1)
++    M = hi - lo
++    if k > M:
++        raise ValueError(f"k={k} exceeds the candidate count {M}")
++    rel = torch.arange(M - k, M, device=fixed_rows.device, dtype=torch.long).view(1, 1, k).expand(B, G, k)
++    return torch.cat([fixed_rows, rel + off_lo], dim=-1).view(-1)
++
++
++def select_rows_uniform(fixed_rows, off_lo, lo: int, hi: int, k: int, *, rng) -> torch.Tensor:
++    """C: k candidate positions drawn uniformly without replacement, independently per (batch, group), merged with F.
++
++    `rng` is a numpy Generator (numpy.random.default_rng seeded from (uniform_seed, request, step) by the caller); the
++    draw is the top-k of i.i.d. float64 uniforms, i.e. a uniformly random k-subset. The layers of one step consume the
++    same generator in order, so a step replayed after a rollback draws the same rows. Not a learned choice.
++    """
++    import numpy as np  # local import: the package stays importable without numpy
++    B, G = fixed_rows.shape[:2]
++    if k <= 0:
++        return fixed_rows.reshape(-1)
++    M = hi - lo
++    if k > M:
++        raise ValueError(f"k={k} exceeds the candidate count {M}")
++    u = torch.from_numpy(rng.random((B, G, M), dtype=np.float64))                # CPU, deterministic given the generator state
++    rel = torch.topk(u, k, dim=-1).indices.to(fixed_rows.device)               # [B,G,k] candidate-relative
++    return torch.cat([fixed_rows, rel + off_lo], dim=-1).view(-1)
++
++
++def gathered_decode_step_kernel(q_main, k_cache, v_cache, rows, selected_count: int, *, scale=None, backend="sdpa"):
++    """Read exactly the listed rows (flat ids into the flattened [B*G*C, d] cache) and attend over them.
++
++    The shared tail of every selective read: D0's rows come from `select_rows_kernel`, B's from `select_rows_recent`,
++    C's from `select_rows_uniform`. Two flattened index_selects (K, V), then subset attention; no torch.gather.
++    """
++    B, G, h, T, d = q_main.shape
++    if T != 1:
++        raise ValueError("a decode step takes exactly one new query position")
++    k_sub = flatten_cache(k_cache).index_select(0, rows).view(B, G, selected_count, d)
++    v_sub = flatten_cache(v_cache).index_select(0, rows).view(B, G, selected_count, d)
++    return subset_attention(q_main, k_sub, v_sub, scale=scale, backend=backend)
++
++
+ def sparse_decode_step_kernel(q_main, q_pre, k_cache, v_cache, zT, wq_t_scaled, wk, fixed_rows, off_lo, lo: int,
+                               hi: int, k: int, selected_count: int, *, k_pre_new=None, write_col: int = -1,
+-                              scale=None, backend="sdpa"):
+-    """One layer's D read for one new query (T == 1). Every D-only cost is inside this function."""
++                              scale=None, backend="sdpa", return_rows: bool = False):
++    """One layer's D read for one new query (T == 1). Every D-only cost is inside this function.
++
++    `return_rows=True` also returns the flat row ids that were read (for selection diagnostics); the device work is the
++    same either way.
++    """
+     B, G, h, T, d = q_main.shape
+     if T != 1:
+         raise ValueError("a decode step takes exactly one new query position")
+@@ -97,9 +157,8 @@
+         zT[..., write_col:write_col + 1].copy_(project_keys(k_pre_new, wk))   # z of the newest key, its own column
+     u = project_queries(q_pre, wq_t_scaled)                                     # [B,G,1,r]
+     rows = select_rows_kernel(u, zT, fixed_rows, off_lo, lo, hi, k)
+-    k_sub = flatten_cache(k_cache).index_select(0, rows).view(B, G, selected_count, d)
+-    v_sub = flatten_cache(v_cache).index_select(0, rows).view(B, G, selected_count, d)
+-    return subset_attention(q_main, k_sub, v_sub, scale=scale, backend=backend)
++    out = gathered_decode_step_kernel(q_main, k_cache, v_cache, rows, selected_count, scale=scale, backend=backend)
++    return (out, rows) if return_rows else out
+ 
+ 
+ def sparse_decode_step(q_main, q_pre, k_cache, v_cache, zT, indexer: GroupedIndexer, request: DecodeRequest, *,
