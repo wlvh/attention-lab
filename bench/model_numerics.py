@@ -51,15 +51,30 @@ def parse_args():
     return ap.parse_args()
 
 
+def both_finite(*tensors) -> bool:
+    """Every compared tensor, on BOTH sides, must be finite over the compared region. Checked before any aggregation."""
+    return all(bool(torch.isfinite(t.detach()).all()) for t in tensors)
+
+
+def worst(values) -> float:
+    """NaN-propagating maximum. Python's max(0.0, nan) silently returns 0.0 (PR #2 review); torch.max propagates NaN."""
+    if not values:
+        return 0.0
+    return float(torch.tensor([float(v) for v in values], dtype=torch.float64).max())
+
+
 def compare(a, b, tol, *, kind):
-    """max|a-b|, relative norm and argmax agreement, computed in float32 on the CPU, with the preset verdict (`pass_preset`)."""
+    """max|a-b|, relative norm and argmax agreement in float32 on the CPU, with the preset verdict (`pass_preset`).
+
+    A non-finite value on EITHER side makes the check fail (`finite` False, `pass` False) and no later rule may flip it.
+    """
     a32, b32 = a.detach().float().cpu(), b.detach().float().cpu()
-    finite = bool(torch.isfinite(a32).all())
+    finite = both_finite(a32, b32)
     diff = float((a32 - b32).abs().max()) if finite else float("inf")
     rel = float((a32 - b32).norm() / (b32.norm() + 1e-30)) if finite else float("inf")
-    out = {"finite": finite, "max_abs": diff, "rel_norm": rel, "max_abs_ref": float(b32.abs().max())}
+    out = {"finite": finite, "max_abs": diff, "rel_norm": rel, "max_abs_ref": float(b32.abs().max()) if finite else float("inf")}
     if kind == "logits":
-        agree = float((a32.argmax(-1) == b32.argmax(-1)).float().mean())
+        agree = float((a32.argmax(-1) == b32.argmax(-1)).float().mean()) if finite else 0.0
         out.update({"argmax_agreement": agree, "tol_atol": tol["logits_atol"], "tol_rel_norm": tol["logits_rel_norm"],
                     "tol_argmax_min": tol["argmax_agreement_min"],
                     "pass_preset": finite and diff <= tol["logits_atol"] and rel <= tol["logits_rel_norm"] and agree >= tol["argmax_agreement_min"]})
@@ -74,45 +89,59 @@ def apply_revised_rule(check, floor, rule, *, kind):
     deviation from the unmodified one-shot model may not exceed `factor` times the unmodified model's own incremental
     deviation on the same tokens; argmax agreement keeps its preset minimum. The preset verdict stays in `pass_preset`."""
     f = rule["factor"]
+    floor_finite = bool(floor.get("finite", True))
     if kind == "logits":
-        ok = (check["finite"] and check["max_abs"] <= f * max(floor["max_abs"], 1e-30) and check["rel_norm"] <= f * max(floor["rel_norm"], 1e-30)
+        ok = (check["finite"] and floor_finite and check["max_abs"] <= f * max(floor["max_abs"], 1e-30) and check["rel_norm"] <= f * max(floor["rel_norm"], 1e-30)
               and check["argmax_agreement"] >= check["tol_argmax_min"])
-        floor_fields = {"floor_max_abs": floor["max_abs"], "floor_rel_norm": floor["rel_norm"]}
+        floor_fields = {"floor_max_abs": floor["max_abs"], "floor_rel_norm": floor["rel_norm"], "floor_finite": floor_finite}
     else:
-        floor_abs = max(floor.get("max_abs_k", 0.0), floor.get("max_abs_v", 0.0), floor.get("max_abs", 0.0))
-        ok = check["finite"] and max(check.get("max_abs_k", 0.0), check.get("max_abs_v", 0.0), check.get("max_abs_z", 0.0), check.get("max_abs", 0.0)) <= f * max(floor_abs, 1e-30)
-        floor_fields = {"floor_max_abs": floor_abs}
+        floor_abs = worst([floor.get("max_abs_k", 0.0), floor.get("max_abs_v", 0.0), floor.get("max_abs", 0.0)])
+        own = worst([check.get("max_abs_k", 0.0), check.get("max_abs_v", 0.0), check.get("max_abs_z", 0.0), check.get("max_abs", 0.0)])
+        ok = check["finite"] and floor_finite and own <= f * max(floor_abs, 1e-30)
+        floor_fields = {"floor_max_abs": floor_abs, "floor_finite": floor_finite}
+    if not check["finite"]:
+        ok = False                                   # a non-finite check stays failed whatever the floor says
     check.update({"rule": "revised_bfloat16_noise_floor_x%g" % f, **floor_fields, "pass_revised": bool(ok), "pass": bool(ok)})
     return check
 
 
 def cache_compare(cache, dc, L, tol):
-    """Per-layer K/V of the static cache against transformers' DynamicCache: the worst layer decides."""
+    """Per-layer K/V of the static cache against transformers' DynamicCache over [0, L): the worst layer decides.
+
+    Both sides are checked for finiteness over the compared region before aggregation; a NaN anywhere fails the check.
+    """
     from attention_lab.qwen_wrap import hf_cache_kv
-    worst_k = worst_v = 0.0
-    finite = True
+    dk, dv, finite = [], [], True
     for l in range(cache.layers):
         k, v = hf_cache_kv(dc, l)
         ck, cv = cache.k[l][:, :, :L].float().cpu(), cache.v[l][:, :, :L].float().cpu()
-        finite = finite and bool(torch.isfinite(ck).all()) and bool(torch.isfinite(cv).all())
-        worst_k = max(worst_k, float((ck - k.float().cpu()).abs().max()))
-        worst_v = max(worst_v, float((cv - v.float().cpu()).abs().max()))
-    ok = finite and max(worst_k, worst_v) <= tol["cache_atol"]
-    return {"finite": finite, "max_abs_k": worst_k, "max_abs_v": worst_v, "tol_atol": tol["cache_atol"], "pass_preset": ok, "pass": ok}
+        kk, vv = k[:, :, :L].float().cpu(), v[:, :, :L].float().cpu()
+        finite = finite and both_finite(ck, cv, kk, vv)
+        dk.append(float((ck - kk).abs().max()))
+        dv.append(float((cv - vv).abs().max()))
+    wk, wv = worst(dk), worst(dv)
+    ok = finite and worst([wk, wv]) <= tol["cache_atol"]
+    return {"finite": finite, "max_abs_k": wk if finite else float("inf"), "max_abs_v": wv if finite else float("inf"), "tol_atol": tol["cache_atol"], "pass_preset": ok, "pass": ok}
 
 
 def cache_vs_cache(c1, c2, L, tol, *, with_z):
-    """Per-layer K/V (and z) of two LabCaches over [0, L): the worst layer decides."""
-    worst = {"k": 0.0, "v": 0.0, "z": 0.0}
+    """Per-layer K/V (and z) of two LabCaches over [0, L): both sides finite first, then the worst layer decides."""
+    dk, dv, dz, finite = [], [], [], True
     for l in range(c1.layers):
-        worst["k"] = max(worst["k"], float((c1.k[l][:, :, :L].float() - c2.k[l][:, :, :L].float()).abs().max()))
-        worst["v"] = max(worst["v"], float((c1.v[l][:, :, :L].float() - c2.v[l][:, :, :L].float()).abs().max()))
+        a_k, b_k = c1.k[l][:, :, :L].float(), c2.k[l][:, :, :L].float()
+        a_v, b_v = c1.v[l][:, :, :L].float(), c2.v[l][:, :, :L].float()
+        finite = finite and both_finite(a_k, b_k, a_v, b_v)
+        dk.append(float((a_k - b_k).abs().max()))
+        dv.append(float((a_v - b_v).abs().max()))
         if with_z:
-            worst["z"] = max(worst["z"], float((c1.z[l][..., :L].float() - c2.z[l][..., :L].float()).abs().max()))
-    ok = max(worst.values()) <= tol["cache_atol"]
-    out = {"finite": all(x == x for x in worst.values()), "max_abs_k": worst["k"], "max_abs_v": worst["v"], "tol_atol": tol["cache_atol"], "pass_preset": ok, "pass": ok}
+            a_z, b_z = c1.z[l][..., :L].float(), c2.z[l][..., :L].float()
+            finite = finite and both_finite(a_z, b_z)
+            dz.append(float((a_z - b_z).abs().max()))
+    wk, wv, wz = worst(dk), worst(dv), worst(dz)
+    ok = finite and worst([wk, wv, wz]) <= tol["cache_atol"]
+    out = {"finite": finite, "max_abs_k": wk if finite else float("inf"), "max_abs_v": wv if finite else float("inf"), "tol_atol": tol["cache_atol"], "pass_preset": ok, "pass": ok}
     if with_z:
-        out["max_abs_z"] = worst["z"]
+        out["max_abs_z"] = wz if finite else float("inf")
     return out
 
 
@@ -149,12 +178,14 @@ def run_length(model, holder, device, dtype_name, L, tol, a, results, revised_ru
     tail_n = torch.cat([nat.step(ids[:, i:i + 1]) for i in range(L - tail, L)], dim=1)
     floor_logits = compare(torch.cat([head_n, tail_n], 1), ref, tol, kind="logits")
     floor_tail = compare(tail_n, ref[:, L - tail:], tol, kind="logits")
-    floor_cache = {"max_abs_k": 0.0, "max_abs_v": 0.0}
+    fk, fv, f_finite = [], [], True
     for l in range(len(nat.cache.layers)):
-        k1, v1 = nat.cache.layers[l].keys, nat.cache.layers[l].values
-        k2, v2 = dc.layers[l].keys, dc.layers[l].values
-        floor_cache["max_abs_k"] = max(floor_cache["max_abs_k"], float((k1.float() - k2.float()).abs().max()))
-        floor_cache["max_abs_v"] = max(floor_cache["max_abs_v"], float((v1.float() - v2.float()).abs().max()))
+        k1, v1 = nat.cache.layers[l].keys.float(), nat.cache.layers[l].values.float()
+        k2, v2 = dc.layers[l].keys.float(), dc.layers[l].values.float()
+        f_finite = f_finite and both_finite(k1, v1, k2, v2)
+        fk.append(float((k1 - k2).abs().max()))
+        fv.append(float((v1 - v2).abs().max()))
+    floor_cache = {"max_abs_k": worst(fk), "max_abs_v": worst(fv), "finite": f_finite}
     for d in (floor_logits, floor_tail):
         d.update({"gated": False, "pass": None, "pass_preset": d.pop("pass_preset")})
     nat_logits, nat_tail, nat_cache = torch.cat([head_n, tail_n], 1), tail_n, nat.cache
