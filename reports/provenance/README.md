@@ -150,3 +150,31 @@ diff /tmp/g2lite_filler_check/filler.md reports/g2lite_replay_filler_mac_m4max.m
 ```
 
 同一脚本按 run 里出现的变体决定列；表头重放的三个输出在脚本泛化后从归档逐字节重生已核对。
+
+# G2-lite 表头重放续二（表头拆半钉住）证据链归档（分支 `task/g2-lite-replay-header-split`）
+
+## 内容
+
+| 文件 | 作用 |
+|---|---|
+| `g2lite_replay/g2lite_quality_at_replay_filler_run.py` | 填充句重放正式 run（commit `5d9b9c7`）使用的 `bench/g2lite_quality.py` 快照，SHA-256 与 `reports/g2lite_replay_filler_manifest_mac_m4max.json` 里的 manifest 一致 |
+| `g2lite_replay/g2lite_quality_post_replay_filler_edit.diff` | 续二对该文件的全部改动：诊断方法 BG（钉住表头格式句的 token 位置 [18, 37)）与 BA（钉住表头前半句的 token 位置 [3, 18)）、两段子句的登记与运行时检查（两段拼起来等于资料里的表头、分割表头跨度、各自解码回原文，否则拒绝运行）；B、BH、BM、BF 的名单生成不变 |
+| `g2lite_replay_header_split_runs_20261017.tar.gz` | 续二正式 run（`g2lite-*-replay-header-split`：B 重跑、BH 重跑、BG、BA 在 24 份 T1 资料 × 2 档 ρ）与冒烟 run（`-quick-smoke-header-split`）的 data.jsonl、quality.jsonl、summary.json、manifest.json、运行时的 config.json、全部请求的 `positions/*.npz`，以及清理后的日志（正式运行后加入） |
+
+## 核验
+
+`python scripts/check_provenance.py` 新增：填充句重放 run 的 manifest 对 `bench/g2lite_quality.py` 的哈希等于 `g2lite_replay/` 的填充句快照（其余四个源文件仍对提交文件）；表头重放快照 → 填充句快照 → 提交文件各自只差记录的 diff；`reports/g2lite_replay_header_split_manifest_mac_m4max.json` 中每个续二 run 的五个源文件哈希等于提交文件。
+
+## 无 GPU、不加载模型重新生成续二报告
+
+```bash
+mkdir -p /tmp/g2lite_split_check && tar xzf reports/provenance/g2lite_runs_20261017.tar.gz -C /tmp/g2lite_split_check runs/g2lite-20261017T130319Z-pass2-ABCD0
+tar xzf reports/provenance/g2lite_replay_header_split_runs_20261017.tar.gz -C /tmp/g2lite_split_check
+python scripts/g2lite_replay_report.py --runs-dir /tmp/g2lite_split_check/runs \
+  --reference /tmp/g2lite_split_check/runs/g2lite-20261017T130319Z-pass2-ABCD0 \
+  --title "$(head -1 reports/g2lite_replay_header_split_mac_m4max.md)" --card reports/cards/G2lite_replay_header_split_mac_m4max.md \
+  --out /tmp/g2lite_split_check/split.md --json /tmp/g2lite_split_check/summary.json --manifest /tmp/g2lite_split_check/manifest.json
+diff /tmp/g2lite_split_check/split.md reports/g2lite_replay_header_split_mac_m4max.md
+```
+
+同一脚本按 run 里出现的变体决定列；配对集合是目标在每个变体窗口内的请求；窗口不同的变体各自列出窗口与内/外。前两关的六份输出（报告、摘要、manifest）在脚本再次泛化后从归档逐字节重生已核对。

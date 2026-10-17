@@ -3,7 +3,11 @@
 
 Header replay (reports/cards/G2lite_replay_header_mac_m4max.md): BH = recent + header, BM = recent minus |header|.
 Filler replay (reports/cards/G2lite_replay_filler_mac_m4max.md): BF = recent + the same number of filler positions right
-after the header, BH again for the pairing. The variants present in the run decide the columns. Inputs are run dirs:
+after the header, BH again for the pairing.
+Header-split replay (reports/cards/G2lite_replay_header_split_mac_m4max.md): BG = recent + the header's format clause,
+BA = recent + the header's first clause (different pinned counts, hence windows that differ from each other and from
+BH's), B and BH paired again. The variants present in the run decide the columns; the paired in-window set is the set
+of requests whose target lies inside every variant's window. Inputs are run dirs:
   --run        the replay run (quality.jsonl, data.jsonl, summary.json, manifest.json, positions/*.npz)
                default: the latest non-quick runs/g2lite-* whose summary is marked diagnostic_replay
   --reference  the archived pass-2 run with A and the original B rows (default runs/g2lite-20261017T130319Z-pass2-ABCD0;
@@ -24,10 +28,13 @@ sys.path.insert(0, str(ROOT / "src"))
 from attention_lab.g2lite_eval import cell_key, method_key  # noqa: E402
 from attention_lab.selection import FIXED_RECENT  # noqa: E402
 
-LABEL = {"A": "A 完整读取", "B": "B 近期窗口", "BH": "BH 近期窗口+表头", "BM": "BM 近期窗口减名额（对照）", "BF": "BF 近期窗口+填充句"}
+LABEL = {"A": "A 完整读取", "B": "B 近期窗口", "BH": "BH 近期窗口+表头", "BM": "BM 近期窗口减名额（对照）", "BF": "BF 近期窗口+填充句",
+         "BG": "BG 近期窗口+格式句", "BA": "BA 近期窗口+前半句"}
 DESC = {"BH": "BH：F ∪ 表头 ∪ 最近 k0 − {n} 个候选（读取数与 B 相同）", "BM": "BM：F ∪ 最近 k0 − {n} 个候选（BH 的窗口、没有表头，读取数比 B 少 {n}）",
-        "BF": "BF：F ∪ 表头之后的 {n} 个填充句位置 {span} ∪ 最近 k0 − {n} 个候选（读取数与 B 相同，窗口与 BH 相同）"}
-VARIANT_ORDER = ("BH", "BM", "BF")
+        "BF": "BF：F ∪ 表头之后的 {n} 个填充句位置 {span} ∪ 最近 k0 − {n} 个候选（读取数与 B 相同，窗口与 BH 相同）",
+        "BG": "BG：F ∪ 表头格式句 {span} 的 {n} 个位置 ∪ 最近 k0 − {n} 个候选（读取数与 B 相同，窗口比 B 少 {n}）",
+        "BA": "BA：F ∪ 表头前半句 {span} 的 {n} 个候选位置（位置 3 在 F 里）∪ 最近 k0 − {n} 个候选（读取数与 B 相同，窗口比 B 少 {n}）"}
+VARIANT_ORDER = ("BH", "BM", "BF", "BG", "BA")
 BUCKET = {"front": "前段", "middle": "中段", "back_near": "后段·近", "back_far": "后段·远"}
 IN_WINDOW_MISSES = [("T1-2K-08", 0.125), ("T1-2K-10", 0.125), ("T1-8K-09", 0.03125), ("T1-8K-11", 0.03125), ("T1-8K-11", 0.125)]   # pass-2 B: inside the window, wrong
 DEFAULT_TITLE = "# G2-lite 单变量重放 · Mac M4 Max：B 在窗口内仍答错，是否因为「表头不在名单里」\n"
@@ -140,8 +147,9 @@ def main() -> int:
             pairs.append(pair)
     # ---- sets ----
     in_B = [p for p in pairs if p["inside_geometric"]["B"]]
-    in_both = [p for p in in_B if p["inside_geometric"][pinned_ref]]
-    straddle = [p for p in in_B if not p["inside_geometric"][pinned_ref]]
+    in_both = [p for p in in_B if all(p["inside_geometric"][v] for v in variants)]     # inside every variant's window: the paired set
+    straddle = [p for p in in_B if not all(p["inside_geometric"][v] for v in variants)]
+    win_vars = [pinned_ref] + [v for v in variants if v != pinned_ref and any(p["window_doc_tokens"][v] != p["window_doc_tokens"][pinned_ref] for p in pairs)]   # variants whose window differs from the reference variant's
     out_B = [p for p in pairs if not p["inside_geometric"]["B"]]
     misses = [p for p in pairs if p["is_pass2_in_window_miss"]]
 
@@ -162,7 +170,7 @@ def main() -> int:
         return {k: {"n": len(v), "ids": v} for k, v in c.items()}
 
     cols = ["B", *variants]
-    comparisons = [("B", v) for v in variants] + ([(variants[1], variants[0])] if len(variants) >= 2 else [])
+    comparisons = [("B", v) for v in variants] + [(variants[j], variants[i]) for i in range(len(variants)) for j in range(i + 1, len(variants))]   # every later variant against every earlier one
     sets = {"in_window_B": in_B, "in_window_both": in_both, "straddle_BH": straddle, "out_of_window": out_B, "pass2_in_window_misses": misses, "all": pairs}
     summary_sets = {name: {"n": len(ps), **{f"{k}_hits": hits(ps, k) for k in ("B_ref", *cols)}, **{f"{k}_echoes": echoes(ps, k) for k in cols},
                            "ids": [f"{p['doc_id']}@{p['rho']:g}" for p in ps]} for name, ps in sets.items()}
@@ -174,7 +182,7 @@ def main() -> int:
             ps = [p for p in pairs if p["cell"] == c and p["rho"] == rho]
             by_cell[f"{c}@{rho:g}"] = {"n": len(ps), **{f"{k}_hits": hits(ps, k) for k in ("A_ref", "B_ref", *cols)}, **{f"{x}_vs_{y}": two_by_two(ps, x, y) for x, y in comparisons},
                                       "k0_B": sorted({p["k0_B"] for p in ps}), "k0_BM": sorted({p["k0_BM"] for p in ps if p["k0_BM"] is not None}), "window_doc_tokens_B": sorted({p["window_doc_tokens"]["B"] for p in ps}),
-                                      f"window_doc_tokens_{pinned_ref}": sorted({p["window_doc_tokens"][pinned_ref] for p in ps})}
+                                      **{f"window_doc_tokens_{v}": sorted({p["window_doc_tokens"][v] for p in ps}) for v in win_vars}}
     b_identical = sum(1 for p in pairs if p["B_identical_to_ref"])
     cov_ok = all(all(v for v in p.get("coverage_agrees", {}).values()) for p in pairs)
     hc = {k: [p["header_coverage"][k] for p in pairs if p["header_coverage"][k] is not None] for k in cols}
@@ -183,6 +191,7 @@ def main() -> int:
     pc_stats = {v: {"n": len(x), "min": min(x) if x else None, "max": max(x) if x else None, "span": sorted({tuple(p["pinned_span"][v]) for p in pairs if p.get("pinned_span") and p["pinned_span"][v]})} for v, x in pc.items()}
     tm = rep["summary"]["aggregate"]["timing"]
     n_pin = sorted({p["n_pinned_candidates"] for p in pairs})
+    n_by_v = {v: sorted({r["n_pinned_candidates"] for r in rep["rows"] if r["method"] == v and r.get("n_pinned_candidates") is not None}) for v in variants}   # pinned candidates per variant
     cond = {"replay_run": rep["summary"]["run_id"], "reference_run": ref["summary"]["run_id"], "replay_commit": rep["manifest"]["git"].get("commit"), "replay_dirty": rep["manifest"]["git"].get("dirty_files"),
             "reference_commit": ref["manifest"]["git"].get("commit"), "config_sha256": rep["summary"]["config_sha256"], "config_sha256_reference": ref["manifest"]["config_sha256"], "data_sha256": rep["summary"]["data_sha256"],
             "diagnostic_methods": rep["summary"].get("diagnostic_methods"), "rho": rhos, "header_span": sorted({tuple(rep["docs"][d]["header_span"]) for d in docs}), "n_pinned_candidates": n_pin,
@@ -193,15 +202,30 @@ def main() -> int:
             "pairs": pairs, "timing": tm, "device_seconds": rep["summary"]["device_seconds"], "memory_end": rep["summary"].get("memory_end")}
     if extra_pin:
         cond["pinned_coverage_first_gen_step"] = pc_stats
+    if len({tuple(x) for x in n_by_v.values()}) > 1:               # variants that pin different counts (hence different windows)
+        cond["n_pinned_by_variant"] = n_by_v
     a.json.write_text(json.dumps(cond, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     a.manifest.write_text(json.dumps({"runs": [rep["manifest"]], "reference_runs": [{"run_id": ref["manifest"]["run_id"], "git": ref["manifest"]["git"], "config_sha256": ref["manifest"]["config_sha256"], "data_sha256": ref["manifest"]["data_sha256"],
                                                                                    "source_hashes": ref["manifest"]["source_hashes"]}]}, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     # ---- markdown ----
     H, S, M = rep["summary"]["host"], rep["summary"]["software"], rep["manifest"]
-    vj = "/".join(variants)
-    n0 = n_pin[0]
-    descs = "；".join(DESC[v].format(n=n0, span=f"[{pc_stats[v]['span'][0][0]}, {pc_stats[v]['span'][0][1]})" if pc_stats.get(v, {}).get("span") else "") for v in variants)
-    win_row = "；".join(f"{k}: B {v['window_doc_tokens_B']} → {vj} {v[f'window_doc_tokens_{pinned_ref}']}" for k, v in by_cell.items())
+    wv = "/".join(win_vars)
+    ref_label = pinned_ref if len(win_vars) == 1 else wv
+    st_out = [v for v in variants if any(not p["inside_geometric"][v] for p in straddle)] or list(variants)   # variants whose window start cuts the straddling records
+    st_in = [v for v in variants if v not in st_out]
+    descs = "；".join(DESC[v].format(n=n_by_v[v][0], span=f"[{pc_stats[v]['span'][0][0]}, {pc_stats[v]['span'][0][1]})" if pc_stats.get(v, {}).get("span") else "") for v in variants)
+
+    def win_text(v_):   # variants grouped by their window set: "BH/BM [60]" or "BH [60]，BG [74]，BA [79]"
+        groups = []
+        for v in variants:
+            w = v_.get(f"window_doc_tokens_{v}", v_[f"window_doc_tokens_{pinned_ref}"])
+            g = next((g for g in groups if g[1] == w), None)
+            if g is None:
+                groups.append([[v], w])
+            else:
+                g[0].append(v)
+        return "，".join(f"{'/'.join(vs)} {w}" for vs, w in groups)
+    win_row = "；".join(f"{k}: B {v['window_doc_tokens_B']} → {win_text(v)}" for k, v in by_cell.items())
     L = [a.title,
          f"由 `scripts/g2lite_replay_report.py` 从重放 run `{rep['summary']['run_id']}`（commit `{M['git'].get('commit')}`，dirty {M['git'].get('dirty_files')}）与参照 run `{ref['summary']['run_id']}`（G2-lite 第二遍，commit `{ref['manifest']['git'].get('commit')}`）生成。"
          f"**24 份 T1 资料、每份两档 ρ，探索样本，不做区间统计；{' 与 '.join(variants)} 是诊断变体，不是读取方法的提案。** 预测见 `{a.card}`。\n",
@@ -218,14 +242,15 @@ def main() -> int:
              + "，".join(f"{v} {hc_stats[v]['min']:.3f}–{hc_stats[v]['max']:.3f}" for v in variants) + "。"
              + "".join(f" {v} 钉住的位置 {[list(s_) for s_ in pc_stats[v]['span']]} 的覆盖率 {pc_stats[v]['min']:.3f}–{pc_stats[v]['max']:.3f}。" for v in variants if v not in ("BH", "BM")) + "\n")
     L.append("## 3. 配对表（按资料与 ρ；A 与「B 第二遍」来自参照 run，其余来自重放 run）\n")
-    L.append(f"| 资料 | ρ | 目标位置 | 行首距前缀末尾 | k0(B) | 窗口 B→{pinned_ref} | 在窗口内 B / {pinned_ref} | A | B 第二遍 | B 重跑 | " + " | ".join(variants) + " |\n|---|---|---|---:|---:|---|---|---|---|---|" + "---|" * len(variants))
+    L.append(f"| 资料 | ρ | 目标位置 | 行首距前缀末尾 | k0(B) | 窗口 B→{wv} | 在窗口内 B / {wv} | A | B 第二遍 | B 重跑 | " + " | ".join(variants) + " |\n|---|---|---|---:|---:|---|---|---|---|---|" + "---|" * len(variants))
     for p in pairs:
-        L.append(f"| {p['doc_id']} | {p['rho']:g} | {BUCKET.get(p['bucket'], p['bucket'])} | {p['target_dist_start']} | {p['k0_B']} | {p['window_doc_tokens']['B']}→{p['window_doc_tokens'][pinned_ref]} | {'内' if p['inside_geometric']['B'] else '外'} / {'内' if p['inside_geometric'][pinned_ref] else '外'} | "
+        L.append(f"| {p['doc_id']} | {p['rho']:g} | {BUCKET.get(p['bucket'], p['bucket'])} | {p['target_dist_start']} | {p['k0_B']} | {p['window_doc_tokens']['B']}→{'/'.join(str(p['window_doc_tokens'][v]) for v in win_vars)} | {'内' if p['inside_geometric']['B'] else '外'} / {'/'.join('内' if p['inside_geometric'][v] else '外' for v in win_vars)} | "
                  f"{mark({'predicted': p['A_ref']['predicted'], 'exact': p['A_ref']['exact']}) if p['A_ref'] else '—'} | {mark(p['B_ref'])} | {mark(p['B'])}{'' if p['B_identical_to_ref'] else ' ≠'} | " + " | ".join(mark(p[v]) for v in variants) + " |")
     L.append(f"\n「（编号）」= 答成问题里的编号；{' / '.join(variants)} 的「内/外」按各自的窗口几何。\n")
     L.append("## 4. 窗口内命中率与第二遍的五个窗口内错误\n")
     L.append("| 集合 | n | B 第二遍 | B 重跑 | " + " | ".join(variants) + " |\n|---|---:|---:|---:|" + "---:|" * len(variants))
-    for name, zh in (("in_window_B", "目标在 B 窗口内"), ("in_window_both", f"目标在 B 与 {pinned_ref} 窗口内（配对集合）"), ("straddle_BH", f"目标在 B 窗口内、在 {vj} 窗口起点处被切开"), ("out_of_window", "目标在 B 窗口外"), ("all", "全部")):
+    for name, zh in (("in_window_B", "目标在 B 窗口内"), ("in_window_both", f"目标在 B 与 {ref_label} 窗口内（配对集合）"),
+                     ("straddle_BH", f"目标在 B 窗口内、在 {'/'.join(st_out)} 窗口起点处被切开" + (f"（在 {'/'.join(st_in)} 窗口内）" if st_in else "")), ("out_of_window", "目标在 B 窗口外"), ("all", "全部")):
         s_ = summary_sets[name]
         L.append(f"| {zh} | {s_['n']} | {s_['B_ref_hits']} | {s_['B_hits']} | " + " | ".join(str(s_[f'{v}_hits']) for v in variants) + " |")
     L.append("")

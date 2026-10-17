@@ -11,6 +11,8 @@ Header replay (reports/cards/G2lite_replay_header_mac_m4max.md): B+H ("recent_pi
 positions that lie in the candidate domain, and the k − |pinned| most recent unpinned candidates — the same count as B;
 pinned positions inside F or beyond the legal range are dropped; more pins than k is an error; the k0 override that
 builds the BM control shrinks the window by exactly the override. The data generator's header span decodes to the header.
+Header-split replay (reports/cards/G2lite_replay_header_split_mac_m4max.md): the harness's two header clauses concatenate
+to the frozen header, their token spans partition the header span and decode back to the clauses (14 / 19 candidates).
 
 The scorer tests need no torch. The data tests need the pinned tokenizer in the local Hub cache (never downloaded).
 """
@@ -437,6 +439,33 @@ class DataGeneratorTests(unittest.TestCase):
             self.assertFalse(any(ch.isdigit() for ch in text))
             self.assertNotIn("编号", text)
             self.assertLess(he + n, d["record_spans"][0][0])
+
+    def test_header_clause_spans_partition_the_header_and_decode_back(self):
+        """The header-split replay pins one clause of the header (BG: format clause, BA: first clause): the two clauses must
+        concatenate to the frozen header, their token spans must partition the header span and decode back to the clauses,
+        with 14 (first clause; position 3 lies in F) / 19 (format clause) candidate positions; a tampered span is refused."""
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("g2lite_quality_bench", ROOT / "bench/g2lite_quality.py")
+        bench = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(bench)
+        self.assertEqual("".join(bench.HEADER_CLAUSES.values()), CONFIG["data"]["header"])
+        for task, length_tag, i in (("T1", "2K", 0), ("T1", "2K", 9), ("T1", "8K", 11)):
+            d = self.gd.build_document(self.tok, CONFIG, task, length_tag, i)
+            first = bench.pinned_span(d, "header_first_clause", self.tok)
+            fmt = bench.pinned_span(d, "header_format_clause", self.tok)
+            self.assertEqual(first, [3, 18])
+            self.assertEqual(fmt, [18, 37])
+            self.assertEqual([first[0], fmt[1]], d["header_span"])
+            self.assertEqual(first[1], fmt[0], "the two clauses partition the header span")
+            self.assertEqual(self.tok.decode(d["prefix_ids"][first[0]:first[1]]), bench.HEADER_CLAUSES["header_first_clause"])
+            self.assertEqual(self.tok.decode(d["prefix_ids"][fmt[0]:fmt[1]]), bench.HEADER_CLAUSES["header_format_clause"])
+            self.assertEqual(first[1] - max(first[0], FIXED_PREFIX), 14)
+            self.assertEqual(fmt[1] - max(fmt[0], FIXED_PREFIX), 19)
+            self.assertEqual(bench.pinned_span(d, "header", self.tok), d["header_span"])
+            with self.assertRaises(RuntimeError):
+                bench.pinned_span(dict(d, header_span_exact=False), "header_format_clause", self.tok)
+            with self.assertRaises(RuntimeError):
+                bench.pinned_span(dict(d, header_span=[3, 36]), "header_first_clause", self.tok)
 
     def test_buckets_place_targets_where_the_plan_says(self):
         n = CONFIG["data"]["n_records"]

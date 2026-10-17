@@ -160,6 +160,16 @@
       "path": "reports/provenance/g2lite_replay_filler_runs_20261017.tar.gz",
       "bytes": 250696,
       "sha256": "dfbc95e9fcd874fb404fec39b194036a9d30fb513244f5bcc13a9a0badc1036b"
+    },
+    {
+      "path": "reports/provenance/g2lite_replay/g2lite_quality_at_replay_filler_run.py",
+      "bytes": 26476,
+      "sha256": "46f3f04942f44cf7584aafa50b68be7c21e633ddf05f4d958d9a39e76842af3b"
+    },
+    {
+      "path": "reports/provenance/g2lite_replay/g2lite_quality_post_replay_filler_edit.diff",
+      "bytes": 6042,
+      "sha256": "0cc5daadf99b741efbf3f5afae1a755b0e100297d1639dd7d50b8bf8bb17786f"
     }
   ],
   "regenerate": [
