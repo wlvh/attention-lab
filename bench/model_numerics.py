@@ -366,7 +366,8 @@ def main() -> int:
                 "model_revision": model_cfg["revision"], "tokenizer_revision": model_cfg["tokenizer_revision"], "model_id": model_cfg["id"],
                 "weights": weights_file_sha256(model_cfg["id"], model_cfg["revision"]), "data_sha256": None, "seed": a.seed,
                 "device": str(device), "host": runinfo.host_info(), "software": None, "backend": device.type, "dtype": dtypes,
-                "command": "python " + " ".join(runinfo.sanitize(x) for x in sys.argv), "timing_scope": "no timing: numerics only",
+                "command": "python " + " ".join(runinfo.sanitize(x) for x in sys.argv),
+                "hf_hub_offline": os.environ.get("HF_HUB_OFFLINE"),   # loads the pinned snapshot from the local cache without a Hub round-trip "timing_scope": "no timing: numerics only",
                 "memory_units": "bytes", "budget": {"cloud_usd_actual": 0, "cloud_usd_committed": 0, "device_seconds": None},
                 "artifacts": ["results.json", "manifest.json"], "args": {k: (runinfo.sanitize(str(v)) if isinstance(v, Path) else v) for k, v in vars(a).items()},
                 "limitations": ["random token ids and one short prompt; equivalence of computation, not task quality"]}
