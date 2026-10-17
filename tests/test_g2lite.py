@@ -35,7 +35,14 @@ try:
 except ImportError:
     HAVE_TRANSFORMERS = False
 
-from attention_lab.g2lite_eval import cell_rate, extract_numbers, score_answer  # noqa: E402  (pure Python)
+try:
+    from attention_lab.g2lite_eval import cell_rate, extract_numbers, score_answer  # noqa: E402
+except ImportError:  # the package __init__ imports torch; on the torch-less CI image load the pure-Python scorer directly
+    import importlib.util
+    _spec = importlib.util.spec_from_file_location("g2lite_eval_standalone", ROOT / "src/attention_lab/g2lite_eval.py")
+    _mod = importlib.util.module_from_spec(_spec)
+    _spec.loader.exec_module(_mod)
+    cell_rate, extract_numbers, score_answer = _mod.cell_rate, _mod.extract_numbers, _mod.score_answer
 
 if HAVE_TRANSFORMERS:
     from attention_lab.qwen_wrap import LabRunner, LabState, make_cache, make_indexers, make_state, tiny_qwen3, unwrap_model, wrap_model
