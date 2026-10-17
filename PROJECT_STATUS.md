@@ -1,6 +1,6 @@
 # 接力状态
 
-更新日期：2026-10-17。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_DONE（工程完成；性能 `correct_but_not_faster`，收口速度主线）/ NOTEBOOK_02_DONE**，分支 `task/g1b-qwen-mac` 待 PR 评审。
+更新日期：2026-10-17。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_DONE（工程完成；性能 `correct_but_not_faster`，收口速度主线）/ NOTEBOOK_02_DONE / P0_FUSED_SCORE_DONE（停止门通过；P1 待授权）**。分支 `task/g1b-qwen-mac`（PR #2）与其上的 `task/p0-fused-score-kernel` 待评审。
 
 ## 远端与发布
 
@@ -47,14 +47,22 @@ MPS 能力、带宽、提交开销与索引路径原语成本；关键发现是 
 - 教学：`notebooks/02_qwen_integration_and_decode.ipynb` 从全新内核执行并导出 `reports/02_qwen_integration_and_decode.html`："把索引注意力装进真实 Qwen：为什么单层快不等于整模型快"。
 - 消耗：设备活跃时间约 10 分钟，现金 0，下载 1.5 GB。累计 G0 + G1a + G1b 约 55 分钟。
 
+## 本轮完成：P0 预检（用户授权半天，2026-10-17 07:35 到 07:40 UTC，分支 `task/p0-fused-score-kernel`）
+
+- 问题：D 链的打分段（z 列写入 + u 投影 + 候选打分，PyTorch 路径是 3 个 bmm + 1 个 copy_）做成一个 Metal 核能否接近带宽下界。任务书 `docs/tasks/04_FUSED_D_KERNEL.md`，停止门写在开工前。
+- 实现：`src/attention_lab/metal_score.py`（`torch.mps.compile_shader`；v1 每线程一列 2 字节读取，v2 每线程 4 列 8 字节向量读取 + 共享内存归约，两版保留）、`tests/test_metal_score.py`（4 项）、`bench/p0_score_kernel.py`、`scripts/p0_report.py`。
+- 结果（两个独立进程，28 层轮换，bf16）：32K 处 fused v2 一次启动 **69.7 / 70.0 µs/层**（有效 236 GB/s；PyTorch 四算子链 102，只打分的 bmm 62.6），对链比值 0.69 / 0.68；8K 47.9（0.48–0.50），16K 56.4（0.58–0.63）。第一版核 209 µs（79 GB/s）不过门，重设计一次后通过。数值：fused fp32 分数对 float32 参照 ≤ 3.6e-7（PyTorch bf16 路径 6e-3），z 列逐位相同，top-k 集合一致 99.6% 到 99.7%。
+- 判定：**P0 停止门通过**（三条、两进程）。单靠这一段整模型 32K D/A 只能从 0.930 到约 0.89（估算）；要稳定越线需要 P1（取行注意力核）与 P2（选择核）。**P1 未授权，未开始。** 不改模型路径、不改 G1a 核。证据：`reports/p0_score_kernel_mac_m4max.md`、`reports/cards/P0_fused_score_mac_m4max.md`、`runs/p0-formal.log`。
+- 消耗：设备活跃时间 < 1 分钟，现金 0。
+
 ## 尚未完成
 
-性能主线已收口；以下均未启动、需用户决定与授权：融合 D 链的自定义 Metal 核；CUDA 复核轨道（4080 主机）；> 32,768 的上下文；G2 到 G5 的任何质量结论（`docs/tasks/03_G2_TO_G5.md` 仍为 BLOCKED）。本机磁盘在 G1b 运行时只剩约 28 GiB 可用（97%），后续大 run 前需留意。
+速度主线按 G1b 收口，P0 通过后是否进入 P1 由用户决定；以下均未启动、需用户决定与授权：融合 D 链的自定义 Metal 核；CUDA 复核轨道（4080 主机）；> 32,768 的上下文；G2 到 G5 的任何质量结论（`docs/tasks/03_G2_TO_G5.md` 仍为 BLOCKED）。本机磁盘在 G1b 运行时只剩约 28 GiB 可用（97%），后续大 run 前需留意。
 
 ## 下一步
 
 1. 用户评审 G1b 的 PR（分支 `task/g1b-qwen-mac`，不自行合并）。
-2. 用户决定方向：(a) 以教学与边界结论收口；(b) 融合 D 链的自定义 Metal 核——范围说明见 `docs/SCOPING_FUSED_D_KERNEL.md`（估算：32K 比值乐观 0.65、保守 0.73 到 0.84，只在 32K 及以上有望越线；约 4 到 6 工程日，分阶段停止门；`torch.mps.compile_shader` 已核实可用）；(c) CUDA 复核轨道；(d) 更长上下文。任何一项都需要明确授权与新任务书，不自动开始。
+2. 用户决定方向：(a) 以教学与边界结论收口；(b) 融合 D 链的自定义 Metal 核——范围说明 `docs/SCOPING_FUSED_D_KERNEL.md`，**P0 打分核已通过门槛**，下一阶段 P1（取行注意力核，门槛 ≤ 60 µs/层）需单独授权；(c) CUDA 复核轨道；(d) 更长上下文。任何一项都需要明确授权，不自动开始。
 3. 不重跑 G0/G1a，不训练，不租云。
 
 ```bash
