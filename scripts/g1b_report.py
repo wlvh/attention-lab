@@ -59,13 +59,17 @@ def main() -> int:
     numerics = [n for n in numerics if a.include_quick or not n.get("quick")]
     num = numerics[-1] if numerics else None
     run_paths = a.runs or sorted(glob.glob(str(ROOT / "runs/g1b-mac-*/summary.json")))
-    runs = [load_json(p) | {"_path": rel(p)} for p in run_paths]
-    runs = [r for r in runs if a.include_quick or not r.get("quick")]
+    all_runs = [load_json(p) | {"_path": rel(p)} for p in run_paths]
+    all_runs = [r for r in all_runs if a.include_quick or not r.get("quick")]
+    # runs tagged "phasefix" are the minimal 32K re-check after the explicit-phase fix (PR #2 review): appendix only
+    appendix = [r for r in all_runs if (r.get("args") or {}).get("tag") == "phasefix"]
+    runs = [r for r in all_runs if r not in appendix]
     if not num and not runs:
         print("no non-quick G1b runs found")
         return 1
     manifests = {"numerics": [load_json(Path(ROOT / n["_path"]).parent / "manifest.json") for n in ([num] if num else [])],
-                 "benchmarks": [load_json(Path(ROOT / r["_path"]).parent / "manifest.json") for r in runs]}
+                 "benchmarks": [load_json(Path(ROOT / r["_path"]).parent / "manifest.json") for r in runs],
+                 "appendix_benchmarks": [load_json(Path(ROOT / r["_path"]).parent / "manifest.json") for r in appendix]}
 
     # ---- condensed benchmark summary: per N0, mode, path ----
     cond = {"runs": [r["run_id"] for r in runs], "cells": [], "verdicts": []}
@@ -123,7 +127,10 @@ def main() -> int:
     if manifests["benchmarks"]:
         m0 = manifests["benchmarks"][0]
         L.append(f"| 权重文件 | model.safetensors sha256 `{(m0.get('weights') or {}).get('sha256')}`，{(m0.get('weights') or {}).get('bytes')} bytes |")
-        L.append(f"| 代码 | commit {m0['git'].get('commit')}，dirty diff sha256 {m0['git'].get('dirty_diff_sha256')}；源码哈希见 manifest |")
+        L.append(f"| 代码 | 正式测速 commit {m0['git'].get('commit')}，dirty diff sha256 {m0['git'].get('dirty_diff_sha256')}；源码哈希见 manifest；跑分后对 `qwen_wrap.py` 的改动（显式阶段状态）记录在 `reports/provenance/g1b/qwen_wrap_post_run_edit.diff` |")
+        if manifests["numerics"]:
+            mn_ = manifests["numerics"][0]
+            L.append(f"| 数值 run | {mn_['run_id']}，commit {mn_['git'].get('commit')}，dirty diff sha256 {mn_['git'].get('dirty_diff_sha256')}，HF_HUB_OFFLINE={mn_.get('hf_hub_offline')} |")
     if src:
         ar = src["args"]
         L.append(f"| 测速 | dtype {ar['dtype']}，batch 1，N0 {ar['lengths']}，{ar['steps']} 步，ρ {ar['rho']}，r {ar['index_dim']}，容量 N0+{ar['steps']}，Prefill 块 {ar['chunk']}，单步预热 {ar['warmup']} / 循环 {ar['repeats']}（回文顺序），序列 {ar['seq_repeats']} 次；每步前后 `torch.mps.synchronize()`；`logits_to_keep=1` |")
@@ -206,6 +213,28 @@ def main() -> int:
             L.append(f"| {v['run_id']} | {v['N0']} | {v['mode']} | {f(v['ratio_median'])} | {f(v['ratio_min'])}–{f(v['ratio_max'])} | {v['cycles_at_or_below_0.90']}/{v['n_cycles']} | {v['d_full_length_matmul_detected'] is False} | {'**通过**' if v['pass'] else '不通过'} |")
         passing = [v for v in cond["verdicts"] if v["pass"]]
         L.append(f"\n性能判定：{'有' if passing else '没有'}设置在同模型、同设备、同工作量下呈现每个循环都 ≤ 0.90 的整步收益" + (f"：{[(v['N0'], v['mode']) for v in passing]}" if passing else "") + "。工程完成判定见数值一节与卡片。\n")
+    if appendix:
+        L.append("\n## 附录：显式阶段状态修复后的最小对照（不替换正式表）\n")
+        L.append("PR #2 评审指出封装用 `T == 1` 推断解码阶段；修复为显式的 `phase` 后，用减少循环数的一次 eager 运行确认 32K、ρ = 1/32 下封装 A 与 D 的整步耗时与正式运行一致。表中「正式」列来自上面的正式 run（eager、单步中位、n = 100）；附录 run 的单步 n 见表。\n")
+        L.append("| 附录 run | commit | 路径 | 单步中位 ms（附录） | 单步中位 ms（正式） | 偏差 | 128 步每步中位（附录 / 正式） | D/A 配对中位（附录 / 正式） |\n|---|---|---|---:|---:|---:|---|---|")
+        cond["appendix"] = []
+        for r in appendix:
+            for block in r["lengths"]:
+                if "modes" not in block:
+                    continue
+                for path, pr in block["modes"].get("eager", {}).items():
+                    s = pr.get("single"); q = pr.get("sequence")
+                    main = next((c for c in cond["cells"] if c["N0"] == block["N0"] and c["mode"] == "eager" and c["path"] == path), None)
+                    ratio_app = (pr.get("paired_ratio_vs_wrapped_full") or {}).get("median")
+                    ratio_main = (main or {}).get("paired_ratio_vs_wrapped_full") or {}
+                    row = {"run_id": r["run_id"], "commit": r["git"].get("commit"), "N0": block["N0"], "path": path, "single_median_ms": s and s["median_ms"], "single_n": s and s["n"],
+                           "formal_single_median_ms": main and main["single_median_ms"], "seq_step_median_ms": q and q["step_median_ms"], "formal_seq_step_median_ms": main and main["seq_step_median_ms"],
+                           "paired_ratio_median": ratio_app, "formal_paired_ratio_median": ratio_main.get("median")}
+                    cond["appendix"].append(row)
+                    dev = (s["median_ms"] / main["single_median_ms"] - 1) * 100 if (s and main) else None
+                    L.append(f"| {r['run_id']} | {str(r['git'].get('commit'))[:8]} | {PATH_LABEL.get(path, path)} | {f(s and s['median_ms'])}（n={s and s['n']}） | {f(main and main['single_median_ms'])} | {'—' if dev is None else format(dev, '+.1f') + '%'} | "
+                             f"{f(q and q['step_median_ms'])} / {f(main and main['seq_step_median_ms'])} | {f(ratio_app, 3)} / {f(ratio_main.get('median'), 3)} |")
+        L.append("")
     a.out.write_text("\n".join(L) + "\n", encoding="utf-8")
     print(f"wrote {rel(a.out)}, {rel(a.json)}, {rel(a.numerics_json)}, {rel(a.manifest)}")
     return 0

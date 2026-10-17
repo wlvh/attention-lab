@@ -1,6 +1,6 @@
 # G1b 实测报告 · Mac M4 Max：把索引注意力装进 Qwen3-0.6B，整模型一步的 A 与 D
 
-由 `scripts/g1b_report.py` 从 1 个数值 run（g1b-numerics-20261016T204139Z-formal3） 与 1 个测速 run（g1b-mac-20261016T202847Z-formal）生成。**随机 token 只驱动执行；没有任务、没有质量结论；MPS 结果不推 CUDA。** 预测见 `reports/cards/G1b_mac_m4max.md`。
+由 `scripts/g1b_report.py` 从 1 个数值 run（g1b-numerics-20261017T085459Z-formal4） 与 1 个测速 run（g1b-mac-20261016T202847Z-formal）生成。**随机 token 只驱动执行；没有任务、没有质量结论；MPS 结果不推 CUDA。** 预测见 `reports/cards/G1b_mac_m4max.md`。
 
 ## 1. 环境、模型与设置
 
@@ -11,7 +11,8 @@
 | 模型 | Qwen/Qwen3-0.6B @ `c1899de289a04d12100db370d81485cdf75e47ca`（权重与 tokenizer 快照同一 commit：True）；Qwen3ForCausalLM，attn `sdpa` |
 | 形状（从 config 读取并与参数形状核对） | 28 层，16 查询头 / 8 KV 头，head_dim 128，hidden 1024，词表 151936，参数 596.0 M（独立存储 596.0 M） |
 | 权重文件 | model.safetensors sha256 `f47f71177f32bcd101b7573ec9171e6a57f4f4d31148d38e382306f42996874b`，1503300328 bytes |
-| 代码 | commit c95e097866c5cd8f04896d1e5ab5020ee83be29b，dirty diff sha256 None；源码哈希见 manifest |
+| 代码 | 正式测速 commit c95e097866c5cd8f04896d1e5ab5020ee83be29b，dirty diff sha256 None；源码哈希见 manifest；跑分后对 `qwen_wrap.py` 的改动（显式阶段状态）记录在 `reports/provenance/g1b/qwen_wrap_post_run_edit.diff` |
+| 数值 run | g1b-numerics-20261017T085459Z-formal4，commit 44c6622569a1d9c42d205560e12f909ae2f34342，dirty diff sha256 None，HF_HUB_OFFLINE=1 |
 | 测速 | dtype bfloat16，batch 1，N0 [8192, 16384, 32256]，128 步，ρ 0.03125，r 32，容量 N0+128，Prefill 块 2048，单步预热 10 / 循环 50（回文顺序），序列 3 次；每步前后 `torch.mps.synchronize()`；`logits_to_keep=1` |
 
 ## 2. 数值对照（三段 + 索引接入契约）
@@ -261,4 +262,14 @@
 | g1b-mac-20261016T202847Z-formal | 32256 | compile | 0.93 | 0.89–1.14 | 6/50 | True | 不通过 |
 
 性能判定：没有设置在同模型、同设备、同工作量下呈现每个循环都 ≤ 0.90 的整步收益。工程完成判定见数值一节与卡片。
+
+
+## 附录：显式阶段状态修复后的最小对照（不替换正式表）
+
+PR #2 评审指出封装用 `T == 1` 推断解码阶段；修复为显式的 `phase` 后，用减少循环数的一次 eager 运行确认 32K、ρ = 1/32 下封装 A 与 D 的整步耗时与正式运行一致。表中「正式」列来自上面的正式 run（eager、单步中位、n = 100）；附录 run 的单步 n 见表。
+
+| 附录 run | commit | 路径 | 单步中位 ms（附录） | 单步中位 ms（正式） | 偏差 | 128 步每步中位（附录 / 正式） | D/A 配对中位（附录 / 正式） |
+|---|---|---|---:|---:|---:|---|---|
+| g1b-mac-20261017T085522Z-phasefix | 44c66225 | 封装 A（静态 LabCache） | 21.76（n=20） | 21.21 | +2.6% | 21.63 / 20.83 | 1.000 / 1.000 |
+| g1b-mac-20261017T085522Z-phasefix | 44c66225 | D（索引读取，含全部新增成本） | 19.25（n=20） | 19.68 | -2.2% | 19.82 / 19.05 | 0.884 / 0.930 |
 
