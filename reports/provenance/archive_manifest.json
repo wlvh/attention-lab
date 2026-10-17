@@ -30,11 +30,81 @@
       "path": "reports/provenance/microbench_post_run_edit.diff",
       "bytes": 1097,
       "sha256": "f6a60cc631b587b835168d3299d1e5f9ac13768675d8c55e687b933b3b08208e"
+    },
+    {
+      "path": "reports/provenance/g1b_runs_20261017.tar.gz",
+      "bytes": 452244,
+      "sha256": "8f76464965c042a739e8cc820845b07c12706e6a14ac735f56d4066ff566c7b4"
+    },
+    {
+      "path": "reports/provenance/p0p1_runs_20261017.tar.gz",
+      "bytes": 431039,
+      "sha256": "84704250589c49d8079f86b91e341af07c3a857815d094aaaef63f7d539d103a"
+    },
+    {
+      "path": "reports/provenance/g1b/qwen_wrap_at_formal_decode_run.py",
+      "bytes": 29958,
+      "sha256": "fc96c5472b4929289caa3b5c14e2933830e3ce63b4fb9a52c9ec20b0b0240535"
+    },
+    {
+      "path": "reports/provenance/g1b/qwen_wrap_post_run_edit.diff",
+      "bytes": 6671,
+      "sha256": "9fd12beb0f05d93e292cb97f6d9ab310280ef320f950428b185ee2ea39b75f51"
+    },
+    {
+      "path": "reports/provenance/g1b/model_decode_bench_at_formal_decode_run.py",
+      "bytes": 31200,
+      "sha256": "3d84fb163e62f3ae60d93b0dca80e67c85db83c72e323743c143d67ba393a90c"
+    },
+    {
+      "path": "reports/provenance/g1b/model_decode_bench_post_run_edit.diff",
+      "bytes": 1197,
+      "sha256": "0b2b24a61a2bfcc97bd4c0f3839ed4d8bd8e81f220cada03cbf153d68424aa10"
+    },
+    {
+      "path": "reports/provenance/g1b/model_numerics_at_formal_run.py",
+      "bytes": 20794,
+      "sha256": "06c335f3370fa195f54d2ae861ece9299591c01ec8131ca6af436f82fab57bb2"
+    },
+    {
+      "path": "reports/provenance/g1b/model_numerics_at_formal2_run.py",
+      "bytes": 26329,
+      "sha256": "0cf36c61ad83c0537336fb4175c8e9e5bc3481adde2505316eaa77a3bf6f90f8"
+    },
+    {
+      "path": "reports/provenance/g1b/model_numerics_at_formal3_run.py",
+      "bytes": 26925,
+      "sha256": "5809bd27b39730dfc5c5060676c182bf05561184d5f108158c2dbe052beecbfc"
     }
   ],
   "regenerate": [
     "tar xzf reports/provenance/g1a_runs_20261016.tar.gz -C /tmp/g1a_check",
     "python scripts/g1a_report.py --runs /tmp/g1a_check/runs/g1a-mac-*/summary.json --out /tmp/g1a_check/g1a.md --json /tmp/g1a_check/summary.json --manifest /tmp/g1a_check/manifest.json",
     "diff /tmp/g1a_check/g1a.md reports/g1a_mac_m4max.md"
-  ]
+  ],
+  "g1b_archive_contents": [
+    "g1b-fix-runs.log",
+    "g1b-formal.log",
+    "g1b-mac-20261016T202847Z-formal",
+    "g1b-mac-20261017T085522Z-phasefix",
+    "g1b-numerics-20261016T202211Z-formal",
+    "g1b-numerics-20261016T202822Z-formal2",
+    "g1b-numerics-20261016T204139Z-formal3",
+    "g1b-numerics-20261017T085459Z-formal4",
+    "g1b-numerics-formal.log"
+  ],
+  "p0p1_archive_contents": [
+    "p0-formal.log",
+    "p0-score-20261017T073525Z-quick-smoke",
+    "p0-score-20261017T073840Z-quick-smoke2",
+    "p0-score-20261017T073935Z-p1",
+    "p0-score-20261017T073943Z-p2",
+    "p1-attend-20261017T075511Z-quick-smoke",
+    "p1-attend-20261017T075553Z-quick-smoke2",
+    "p1-attend-20261017T075728Z-quick-smoke3",
+    "p1-attend-20261017T075754Z-p1",
+    "p1-attend-20261017T075802Z-p2",
+    "p1-formal.log"
+  ],
+  "g1b_note": "Added 2026-10-17 (PR #2 review): the four G1b numerics runs, the formal decode run, the phase-fix appendix run and their logs (home paths replaced by ~), the as-run source snapshots with the post-run diffs, and the P0/P1 run inputs of PR #3 (integrity only). Extract in a clean directory and regenerate reports/g1b_mac_m4max.md with scripts/g1b_report.py, no GPU, no model."
 }

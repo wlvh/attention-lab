@@ -279,7 +279,7 @@ class WrapperContracts(Checks):
                 chunked = make_state(m, L + 8, "sparse")
                 runc = LabRunner(m, holder, chunked)
                 for a, b in zip([0, 5, 50], [5, 50, 100]):
-                    runc.forward(ids[:, a:b], logits_to_keep=1)
+                    runc.forward(ids[:, a:b], phase="prefill", logits_to_keep=1)
                 self.assertEqual(chunked.cache.valid_length, L)
                 for l in range(one.cache.layers):
                     self.assert_close(chunked.cache.k[l][:, :, :L], one.cache.k[l][:, :, :L], tol, f"layer {l} K chunked vs one-shot")
@@ -401,6 +401,82 @@ class WrapperContracts(Checks):
             with self.assertRaises(RuntimeError):
                 fresh = make_state(m, 160, "sparse")
                 LabRunner(m, holder, fresh).step(ids[:, :1])                   # sparse decode without begin_request
+            unwrap_model(m)
+
+    def test_phase_is_explicit_and_a_one_token_prefill_chunk_never_selects(self):
+        """PR #2 review: the phase used to be inferred from T == 1, so a prompt whose length is not a multiple of the
+        chunk ended with a one-token chunk that was treated as a decode step. The phase is now explicit."""
+        device, dtype = CASES[0]
+        tol = TINY_TOL[dtype]
+        with torch.inference_mode():
+            m = tiny(device, dtype)
+            ids = token_ids(140, seed=21)
+            ref = m(ids).logits
+            holder = wrap_model(m)
+            # (a) one-token prompt, sparse state, no begin_request: must be a prefill, not a failing decode step
+            st = make_state(m, 64, "sparse")
+            run = LabRunner(m, holder, st)
+            out = run.prefill(ids[:, :1], 2048, keep_logits=True)
+            self.assert_close(out, ref[:, :1], tol, "one-token prompt")
+            self.assertIsNone(st.plan)
+            self.assertEqual(st.cache.valid_length, 1)
+            # (b) chunk = 1 over 120 tokens, sparse state: every chunk is a prefill chunk
+            st1 = make_state(m, 160, "sparse")
+            run1 = LabRunner(m, holder, st1)
+            out1 = run1.prefill(ids[:, :120], 1, keep_logits=True)
+            self.assert_close(out1, ref[:, :120], tol, "chunk = 1 prefill")
+            self.assertIsNone(st1.plan)
+            self.assertTrue(all(bool(torch.isfinite(st1.cache.z[l][..., :120]).all()) for l in range(st1.cache.layers)), "index table not filled")
+            # (c) divisible (120 / 40) and non-divisible (120 / 50 -> last chunk 20) chunking agree with the one-shot build
+            one = make_state(m, 160, "sparse")
+            LabRunner(m, holder, one).prefill(ids[:, :120], 120)
+            for chunk in (40, 50):
+                stc = make_state(m, 160, "sparse")
+                LabRunner(m, holder, stc).prefill(ids[:, :120], chunk)
+                for l in range(stc.cache.layers):
+                    self.assert_close(stc.cache.k[l][:, :, :120], one.cache.k[l][:, :, :120], tol, f"chunk {chunk} K")
+                    self.assert_close(stc.cache.z[l][..., :120], one.cache.z[l][..., :120], tol, f"chunk {chunk} z")
+            # (d) begin_request called before a prefill whose last chunk is one token: that chunk must still read everything
+            st2 = make_state(m, 160, "sparse")
+            run2 = LabRunner(m, holder, st2)
+            st2.begin_request(1 / 8)
+            out2 = run2.prefill(ids[:, :101], 50, keep_logits=True)                # chunks 50, 50, 1
+            self.assert_close(out2, ref[:, :101], tol, "prefill ending in a one-token chunk with k0 already set")
+            self.assertIsNone(st2.plan, "the one-token prefill chunk built a selection plan")
+            # (e) the phase is an argument, never inferred: forward() needs it, decode rejects T > 1
+            with self.assertRaises(TypeError):
+                run2.forward(ids[:, 101:102])
+            with self.assertRaises(ValueError):
+                run2.forward(ids[:, 101:103], phase="decode")
+            with self.assertRaises(ValueError):
+                run2.forward(ids[:, 101:102], phase="generate")
+            unwrap_model(m)
+
+    def test_long_prompt_ending_in_a_one_token_chunk(self):
+        """8193 tokens in chunks of 2048 (last chunk = 1 token) vs chunks of 1000, sparse state: the same cache."""
+        device = "mps" if MPS else "cpu"
+        with torch.inference_mode():
+            m = tiny_qwen3(dtype=torch.float32, max_positions=16384).to(device)
+            ids = token_ids(8193, seed=22).to(device)
+            holder = wrap_model(m)
+            caches = {}
+            for chunk in (2048, 1000):
+                st = make_state(m, 8193 + 8, "sparse")
+                st.begin_request(1 / 32)                                          # k0 set early on purpose
+                run = LabRunner(m, holder, st)
+                run.prefill(ids, chunk)
+                self.assertEqual(st.cache.valid_length, 8193)
+                self.assertIsNone(st.plan, f"chunk {chunk}: a prefill chunk selected rows")
+                caches[chunk] = st
+            tol = TINY_TOL["float32"]
+            for l in range(caches[2048].cache.layers):
+                self.assert_close(caches[2048].cache.k[l][:, :, :8193], caches[1000].cache.k[l][:, :, :8193], tol, f"layer {l} K 2048 vs 1000")
+                self.assert_close(caches[2048].cache.v[l][:, :, :8193], caches[1000].cache.v[l][:, :, :8193], tol, f"layer {l} V 2048 vs 1000")
+                self.assert_close(caches[2048].cache.z[l][..., :8193], caches[1000].cache.z[l][..., :8193], tol, f"layer {l} z 2048 vs 1000")
+            step_a = LabRunner(m, holder, caches[2048]).step(ids[:, :1])
+            step_b = LabRunner(m, holder, caches[1000]).step(ids[:, :1])
+            self.assert_close(step_a, step_b, tol, "first decode step after the two prefills")
+            self.assertEqual(caches[2048].plan.k, caches[2048].k0)
             unwrap_model(m)
 
     def test_native_runners_match_and_roll_back(self):

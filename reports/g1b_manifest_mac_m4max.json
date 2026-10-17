@@ -2,35 +2,29 @@
  "numerics": [
   {
    "schema_version": 1,
-   "run_id": "g1b-numerics-20261016T204139Z-formal3",
+   "run_id": "g1b-numerics-20261017T085459Z-formal4",
    "kind": "correctness",
    "status": "done",
-   "created_at_utc": "2026-10-16T20:41:39+00:00",
+   "created_at_utc": "2026-10-17T08:54:59+00:00",
    "git": {
-    "commit": "bed0aaa7e86e9cba839e2c80b12120fcda26ab08",
+    "commit": "44c6622569a1d9c42d205560e12f909ae2f34342",
     "branch": "task/g1b-qwen-mac",
-    "dirty_files": [
-     "cripts/g1b_report.py",
-     "reports/g1b_mac_m4max.md",
-     "reports/g1b_manifest_mac_m4max.json",
-     "reports/g1b_numerics_mac_m4max.json",
-     "reports/g1b_summary_mac_m4max.json"
-    ],
-    "dirty_diff_sha256": "2f89cec0d490ab432c69c3663852bcc6eab2ac276a9c174b2286f7ef9bbb972c"
+    "dirty_files": [],
+    "dirty_diff_sha256": null
    },
    "source_hashes": {
     "src/attention_lab/__init__.py": "93aed44764996663f0c2d8b2db5c345ab064d38581a10a4c26afee8ac0a4410d",
     "src/attention_lab/decode.py": "f0dde0182b1c9df8b4417a31b1994d86215e0e38ae4e5fd5eb4ed1606cc514ee",
     "src/attention_lab/full.py": "b3b0f6c8cce5f5abecc55dd07a0aaa14afdc305da5df7a6d2502168ef479d23a",
     "src/attention_lab/indexer.py": "911db9e5af2b6ddf81fe1424369a55baf60fc878ec849c92b6bfdc860b2dcf85",
-    "src/attention_lab/qwen_wrap.py": "fc96c5472b4929289caa3b5c14e2933830e3ce63b4fb9a52c9ec20b0b0240535",
+    "src/attention_lab/qwen_wrap.py": "5d6082bf37aeb0ec38fc56e717fe06ccdf4de70f2f2109e4863385540eac091a",
     "src/attention_lab/reference.py": "bdd13df4ed5ced09a7e56d9227a480837b63049ebb4b68145d07f6eb5683c2ec",
     "src/attention_lab/runinfo.py": "9d38b853cf6b30557e31d0ea9d7624aa8c227fa3938a9454327c4bd406f83b41",
     "src/attention_lab/selection.py": "a0dbe7aa0f0b586c358d633b276c0ed9baf3bbaed18d88d57fbfe9434cea9cfd",
     "src/attention_lab/sparse.py": "bbe8805b45a4f95ff2aed9c31cdb906fce66ecf4e7e6b31632584abd569aeb55",
     "bench/microbench.py": "69216b81d7054b74d7b98559d4d81a823c130030d2e75e4a659972fb2778b4e9",
-    "bench/model_decode_bench.py": "3d84fb163e62f3ae60d93b0dca80e67c85db83c72e323743c143d67ba393a90c",
-    "bench/model_numerics.py": "5809bd27b39730dfc5c5060676c182bf05561184d5f108158c2dbe052beecbfc",
+    "bench/model_decode_bench.py": "c49612d6e2abf4f00ca58413a1fb1a96cdfe45691500134fb11ef7d35e5005a4",
+    "bench/model_numerics.py": "f6316183eb759d4927862826d9fd13ed93381628cdeaf531e87c686aebdc6878",
     "bench/supplement_g1a.py": "52ff18bb0faf959d97f16abbc3aea11408796a2a5b1b5be94deec9ef1c2aaf85"
    },
    "config_sha256": "fddb5f31c2b1c8e415b6a5643a38e74b83292975098cc0e0bde4a36976db8429",
@@ -76,13 +70,13 @@
     "float32",
     "bfloat16"
    ],
-   "command": "python bench/model_numerics.py --tag formal3",
-   "timing_scope": "no timing: numerics only",
+   "command": "python bench/model_numerics.py --tag formal4",
+   "hf_hub_offline": "1",
    "memory_units": "bytes",
    "budget": {
     "cloud_usd_actual": 0,
     "cloud_usd_committed": 0,
-    "device_seconds": 22.335425084049348
+    "device_seconds": 19.151320333010517
    },
    "artifacts": [
     "results.json",
@@ -100,13 +94,13 @@
     "smoke_tokens": 32,
     "skip_smoke": false,
     "runs_dir": "~/Projects/attention-lab/runs",
-    "tag": "formal3",
+    "tag": "formal4",
     "quick": false
    },
    "limitations": [
     "random token ids and one short prompt; equivalence of computation, not task quality"
    ],
-   "finished_at_utc": "2026-10-16T20:42:02+00:00"
+   "finished_at_utc": "2026-10-17T08:55:19+00:00"
   }
  ],
  "benchmarks": [
@@ -227,6 +221,121 @@
     "random token ids drive execution only; no task, no quality statement; MPS only; batch 1"
    ],
    "finished_at_utc": "2026-10-16T20:35:03+00:00"
+  }
+ ],
+ "appendix_benchmarks": [
+  {
+   "schema_version": 1,
+   "run_id": "g1b-mac-20261017T085522Z-phasefix",
+   "kind": "benchmark",
+   "status": "done",
+   "created_at_utc": "2026-10-17T08:55:22+00:00",
+   "git": {
+    "commit": "44c6622569a1d9c42d205560e12f909ae2f34342",
+    "branch": "task/g1b-qwen-mac",
+    "dirty_files": [],
+    "dirty_diff_sha256": null
+   },
+   "source_hashes": {
+    "src/attention_lab/__init__.py": "93aed44764996663f0c2d8b2db5c345ab064d38581a10a4c26afee8ac0a4410d",
+    "src/attention_lab/decode.py": "f0dde0182b1c9df8b4417a31b1994d86215e0e38ae4e5fd5eb4ed1606cc514ee",
+    "src/attention_lab/full.py": "b3b0f6c8cce5f5abecc55dd07a0aaa14afdc305da5df7a6d2502168ef479d23a",
+    "src/attention_lab/indexer.py": "911db9e5af2b6ddf81fe1424369a55baf60fc878ec849c92b6bfdc860b2dcf85",
+    "src/attention_lab/qwen_wrap.py": "5d6082bf37aeb0ec38fc56e717fe06ccdf4de70f2f2109e4863385540eac091a",
+    "src/attention_lab/reference.py": "bdd13df4ed5ced09a7e56d9227a480837b63049ebb4b68145d07f6eb5683c2ec",
+    "src/attention_lab/runinfo.py": "9d38b853cf6b30557e31d0ea9d7624aa8c227fa3938a9454327c4bd406f83b41",
+    "src/attention_lab/selection.py": "a0dbe7aa0f0b586c358d633b276c0ed9baf3bbaed18d88d57fbfe9434cea9cfd",
+    "src/attention_lab/sparse.py": "bbe8805b45a4f95ff2aed9c31cdb906fce66ecf4e7e6b31632584abd569aeb55",
+    "bench/microbench.py": "69216b81d7054b74d7b98559d4d81a823c130030d2e75e4a659972fb2778b4e9",
+    "bench/model_decode_bench.py": "c49612d6e2abf4f00ca58413a1fb1a96cdfe45691500134fb11ef7d35e5005a4",
+    "bench/model_numerics.py": "f6316183eb759d4927862826d9fd13ed93381628cdeaf531e87c686aebdc6878",
+    "bench/supplement_g1a.py": "52ff18bb0faf959d97f16abbc3aea11408796a2a5b1b5be94deec9ef1c2aaf85"
+   },
+   "config_sha256": "fddb5f31c2b1c8e415b6a5643a38e74b83292975098cc0e0bde4a36976db8429",
+   "model_id": "Qwen/Qwen3-0.6B",
+   "model_revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+   "tokenizer_revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+   "weights": {
+    "file": "model.safetensors",
+    "sha256": "f47f71177f32bcd101b7573ec9171e6a57f4f4d31148d38e382306f42996874b",
+    "bytes": 1503300328
+   },
+   "data_sha256": {
+    "32256": "ed20e6f05e950af829779b615f0eacf4ab4f29ec3adfd905a18a6b51b104763a"
+   },
+   "seed": 0,
+   "device": "mps",
+   "host": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "macos": "27.0.1",
+    "python": "3.12.10",
+    "chip": "Apple M4 Max",
+    "gpu_cores": 40,
+    "physical_memory_bytes": 137438953472
+   },
+   "software": {
+    "torch": "2.14.1",
+    "python_executable": "~/Projects/attention-lab/.venv/bin/python",
+    "mps_built": true,
+    "mps_available": true,
+    "env": {
+     "PYTORCH_ENABLE_MPS_FALLBACK": null,
+     "PYTORCH_MPS_HIGH_WATERMARK_RATIO": null,
+     "PYTORCH_MPS_LOW_WATERMARK_RATIO": null,
+     "PYTORCH_MPS_FAST_MATH": null,
+     "TORCH_COMPILE_DEBUG": null
+    },
+    "recommended_max_memory": 115448725504,
+    "current_allocated_memory": 0,
+    "driver_allocated_memory": 475136,
+    "transformers": "5.20.0"
+   },
+   "backend": "mps",
+   "dtype": "bfloat16",
+   "command": "python bench/model_decode_bench.py --lengths 32256 --paths wrapped_full sparse --warmup 5 --repeats 10 --seq-repeats 1 --skip-profile --tag phasefix",
+   "hf_hub_offline": "1",
+   "timing_scope": "one full forward step (token id -> next-token logits via logits_to_keep=1), torch.mps.synchronize() before and after; prefill timed separately",
+   "memory_units": "bytes",
+   "budget": {
+    "cloud_usd_actual": 0,
+    "cloud_usd_committed": 0,
+    "device_seconds": 40.44964787497884
+   },
+   "artifacts": [
+    "steps.jsonl",
+    "summary.json",
+    "manifest.json",
+    "profiles.txt"
+   ],
+   "args": {
+    "config": "~/Projects/attention-lab/configs/mac_gate1b.json",
+    "lengths": [
+     32256
+    ],
+    "steps": 128,
+    "rho": 0.03125,
+    "index_dim": 32,
+    "dtype": "bfloat16",
+    "chunk": 2048,
+    "warmup": 5,
+    "repeats": 10,
+    "seq_repeats": 1,
+    "paths": [
+     "wrapped_full",
+     "sparse"
+    ],
+    "compile_blocks": false,
+    "skip_profile": true,
+    "seed": 0,
+    "runs_dir": "~/Projects/attention-lab/runs",
+    "tag": "phasefix",
+    "quick": false
+   },
+   "limitations": [
+    "random token ids drive execution only; no task, no quality statement; MPS only; batch 1"
+   ],
+   "finished_at_utc": "2026-10-17T08:56:03+00:00"
   }
  ]
 }

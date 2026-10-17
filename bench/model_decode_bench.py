@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import math
 import resource
 import statistics
@@ -262,6 +263,7 @@ def main() -> int:
                 "weights": weights_file_sha256(mcfg["id"], mcfg["revision"]), "data_sha256": {}, "seed": a.seed, "device": "mps",
                 "host": runinfo.host_info(), "software": {**runinfo.torch_env(torch), "transformers": transformers.__version__}, "backend": "mps",
                 "dtype": a.dtype, "command": "python " + " ".join(runinfo.sanitize(x) for x in sys.argv),
+                "hf_hub_offline": os.environ.get("HF_HUB_OFFLINE"),   # loads the pinned snapshot from the local cache without a Hub round-trip
                 "timing_scope": "one full forward step (token id -> next-token logits via logits_to_keep=1), torch.mps.synchronize() before and after; prefill timed separately",
                 "memory_units": "bytes", "budget": {"cloud_usd_actual": 0, "cloud_usd_committed": 0, "device_seconds": None},
                 "artifacts": ["steps.jsonl", "summary.json", "manifest.json", "profiles.txt"], "args": args_rec,
