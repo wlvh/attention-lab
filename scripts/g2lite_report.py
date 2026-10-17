@@ -29,7 +29,7 @@ BUCKET_LABEL = {"front": "前段", "middle": "中段", "back_near": "后段·窗
 def load_run(d: Path) -> dict:
     d = d if d.is_dir() else d.parent
     rows = [json.loads(l) for l in (d / "quality.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
-    docs = [json.loads(l) for l in (d / "data.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+    docs = [json.loads(l) for l in (d / "data.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()] if (d / "data.jsonl").exists() else []   # smoke / calibration archives carry no data.jsonl
     return {"dir": d, "rows": rows, "docs": {x["doc_id"]: x for x in docs}, "summary": json.loads((d / "summary.json").read_text(encoding="utf-8")),
             "manifest": json.loads((d / "manifest.json").read_text(encoding="utf-8")), "config": json.loads((d / "config.json").read_text(encoding="utf-8")) if (d / "config.json").exists() else None}
 
@@ -115,6 +115,23 @@ def pick_cases(comp, usable, rhos):
         for cat, lst in cats.items():
             for item in lst:
                 cases.append({"cell": c, "category": cat, **item})
+        # added after the results were seen (not pre-registered; stated in the report): the two contrasts the first run showed
+        post = {"B_right_C_and_D0_wrong": [], "B_wrong_target_in_window": []}
+        for d in docs:
+            m = by[d]
+            if "A" not in m or not m["A"]["exact_match"]:
+                continue
+            for rho in rhos:
+                b, cc, dd = m.get(method_key("B", rho)), m.get(method_key("C", rho)), m.get(method_key("D0", rho))
+                if not (b and cc and dd):
+                    continue
+                if b["exact_match"] and not cc["exact_match"] and not dd["exact_match"] and len(post["B_right_C_and_D0_wrong"]) < 2 and all(x["doc_id"] != d for x in post["B_right_C_and_D0_wrong"]):
+                    post["B_right_C_and_D0_wrong"].append({"doc_id": d, "rho": rho})
+                if not b["exact_match"] and b["coverage"].get("first_gen_step_mean", 0) >= 0.999 and len(post["B_wrong_target_in_window"]) < 2 and all(x["doc_id"] != d for x in post["B_wrong_target_in_window"]):
+                    post["B_wrong_target_in_window"].append({"doc_id": d, "rho": rho})
+        for cat, lst in post.items():
+            for item in lst:
+                cases.append({"cell": c, "category": cat, "post_hoc": True, **item})
     return cases
 
 
@@ -205,7 +222,10 @@ def main() -> int:
     L.append(f"| torch / transformers / Python | {S.get('torch')} / {S.get('transformers')} / {H.get('python')}；MPS；fallback 与内存保护环境变量未设置 |")
     L.append(f"| 模型 | {info.get('model_id')} @ `{info.get('resolved_model_commit')}`（权重与 tokenizer 快照同一 commit：{info.get('resolved_weights_commit') == info.get('resolved_model_commit') == info.get('resolved_tokenizer_commit')}），{m0['dtype']}，attn `{info.get('attn_implementation')}`；权重 sha256 `{(m0.get('weights') or {}).get('sha256')}` |")
     L.append(f"| 代码 | 基线 run commit `{m0['git'].get('commit')}`，dirty diff sha256 {m0['git'].get('dirty_diff_sha256')}；对照 run commit `{comp['manifest']['git'].get('commit') if comp else '—'}`；配置 v{cfg['config_version']} sha256 `{m0['config_sha256'][:16]}…`；chat template sha256 `{m0['chat_template_sha256'][:16]}…`；HF_HUB_OFFLINE={m0.get('hf_hub_offline')} |")
-    L.append(f"| 数据 | 生成器 v{cfg['data']['generator_version']}，种子 {cfg['data']['seed']}，digest `{m0['data_sha256'][:16]}…`；记录表每行 12 token；2K 169 条 / 前缀 2049 token，8K 681 条 / 前缀 8193 token；T1 问题+模板尾 27 token，T2 48 token |")
+    bd = [d for d in base["docs"].values() if d["variant"] == "base"]
+    geo = "；".join(f"{lt} 前缀 {min(d['prefix_token_count'] for d in bd if d['length_tag'] == lt)}–{max(d['prefix_token_count'] for d in bd if d['length_tag'] == lt)} token" for lt in sorted({d["length_tag"] for d in bd}))
+    suf = "；".join(f"{t} 问题+模板尾 {min(d['suffix_token_count'] for d in bd if d['task'] == t)}–{max(d['suffix_token_count'] for d in bd if d['task'] == t)} token" for t in sorted({d["task"] for d in bd}))
+    L.append(f"| 数据 | 生成器 v{cfg['data']['generator_version']}，种子 {cfg['data']['seed']}，digest `{m0['data_sha256'][:16]}…`；每份 {bd[0]['n_records']} 条记录穿插在无数字填充句之间，记录行 {bd[0].get('tokens_per_record', 12)} token；{geo}；{suf}；尾部两条记录距前缀末尾 {cfg['data']['layout']['back_near_tokens_from_end']} / {cfg['data']['layout']['back_far_tokens_from_end']} token |")
     L.append(f"| 协议 | `{cfg['protocol']['name']}`：前缀完整读取一次并建索引表，问题不进前缀；每个请求克隆前缀缓存，从问题第一个 token 起逐 token 用自己的读取方式；贪心，≤ {cfg['generation']['max_new_tokens']} 新 token，EOS 停止；解析：{cfg['parsing']['T1']}；{cfg['parsing']['T2']} |")
     L.append(f"| 名额 | ρ ∈ {cfg['rho']}；k0 = round(ρ·N0)，N0 = 前缀 + 1；B、C、D0 同 F（首 4 ∪ 近 64）同名额 68 + k0 |")
     L.append("")
@@ -253,14 +273,20 @@ def main() -> int:
                 fmax = statistics.mean(r["coverage"]["first_gen_step_max_layer"] for r in rs)
                 L.append(f"| {lt} | {METHOD_LABEL[mk.split('@')[0]]} ρ={mk.split('@')[1]} | {k0}/{M} = {pct(k0 / M)} | {pct(cq)} | {pct(cg)} | {pct(fm)} / {pct(fmin)} / {pct(fmax)} |")
         L.append("\nB 的覆盖率只取 0 或 1（目标在窗口内外），对 T2 可为 0.5（两条记录一内一外）。\n")
+        b_rows = [r for r in comp["rows"] if r["method"] == "B" and r.get("variant", "base") == "base"]
+        inside = [r for r in b_rows if r["coverage"].get("first_gen_step_mean", 0) >= 0.999]
+        outside = [r for r in b_rows if r["coverage"].get("first_gen_step_mean", 0) < 0.001]
+        L.append(f"**B 的窗口内命中率。** 目标在窗口内的请求 {len(inside)} 个，答对 {sum(r['exact_match'] for r in inside)} 个" +
+                 (f"（答错的：{', '.join(f'{r[chr(100)+chr(111)+chr(99)+chr(95)+chr(105)+chr(100)]} ρ={r[chr(114)+chr(104)+chr(111)]:g} 答 {r[chr(116)+chr(101)+chr(120)+chr(116)][:12]!r}' for r in inside if not r['exact_match'])}）" if any(not r["exact_match"] for r in inside) else "") +
+                 f"；目标在窗口外的请求 {len(outside)} 个，答对 {sum(r['exact_match'] for r in outside)} 个，其中答成编号 {sum(1 for r in outside if r.get('answered_with_ids'))} 个。\n")
         # cases
-        L.append("## 4. 代表案例（预登记规则：每个可用格子每类最多两份，按资料序号从小到大）\n")
+        L.append("## 4. 代表案例（预登记规则：每个可用格子每类最多两份，按资料序号从小到大；标 † 的两类是看到结果后追加的对比，不在预登记内）\n")
         if not cases:
             L.append("没有可用格子，或没有满足类别条件的案例。\n")
         for cs in cases:
             d = details[cs["doc_id"]]
             doc = d["doc"]
-            L.append(f"**{cs['category']} · {cs['doc_id']}**（{cs['cell']}，目标位置 {'/'.join(BUCKET_LABEL.get(x, x) for x in doc['buckets'])}，倒数第 {doc['target_records_from_end']} 条，距前缀末尾 {doc['target_distance_from_prefix_end']} token）。问题：{doc['question']}；目标值 {doc['targets']}。")
+            L.append(f"**{cs['category']}{' †' if cs.get('post_hoc') else ''} · {cs['doc_id']}**（{cs['cell']}，ρ={cs['rho']:g} 处入选，目标位置 {'/'.join(BUCKET_LABEL.get(x, x) for x in doc['buckets'])}，倒数第 {doc['target_records_from_end']} 条，距前缀末尾 {doc['target_distance_from_prefix_end']} token）。问题：{doc['question']}；目标值 {doc['targets']}。")
             L.append("")
             L.append("| 方法 | 读取数 | 回答 | 判定 | 目标片段覆盖（第一个生成 token 那一步：均值 / 层组全覆盖比例） |\n|---|---:|---|---|---|")
             for mk, an in d["answers"].items():
