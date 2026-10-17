@@ -1,0 +1,310 @@
+#!/usr/bin/env python3
+"""Aggregate the G2-lite runs into reports/: baseline usability, four-method quality tables, paired 2x2 against A,
+coverage, representative cases with their real row lists, counterfactual rewrites and recorded costs.
+
+Inputs are run directories (quality.jsonl, data.jsonl, summary.json, manifest.json, positions/*.npz when present):
+  --baseline    the first pass (A on every cell)                     default: earliest non-quick run whose rows are all A
+  --comparison  the second pass (A + B/C/D0 on the usable cells)     default: latest non-quick run with B/C/D0 base rows
+  --rewrites    third-pass runs (value / irrelevant / move variants)  default: every non-quick run with non-base rows
+Outputs: reports/g2lite_mac_m4max.md, reports/g2lite_summary_mac_m4max.json (tables + cases), reports/g2lite_answers_mac_m4max.json
+(every answer with its parse result) and reports/g2lite_manifest_mac_m4max.json. Numbers come only from the runs; no torch.
+"""
+from __future__ import annotations
+
+import argparse
+import glob
+import json
+import statistics
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from attention_lab.g2lite_eval import aggregate, cell_key, method_key, paired_table  # noqa: E402
+
+METHOD_LABEL = {"A": "A 完整读取", "B": "B 近期窗口", "C": "C 均匀随机", "D0": "D0 未训练索引"}
+BUCKET_LABEL = {"front": "前段", "middle": "中段", "back_near": "后段·窗口内", "back_far": "后段·远窗口"}
+
+
+def load_run(d: Path) -> dict:
+    d = d if d.is_dir() else d.parent
+    rows = [json.loads(l) for l in (d / "quality.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+    docs = [json.loads(l) for l in (d / "data.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+    return {"dir": d, "rows": rows, "docs": {x["doc_id"]: x for x in docs}, "summary": json.loads((d / "summary.json").read_text(encoding="utf-8")),
+            "manifest": json.loads((d / "manifest.json").read_text(encoding="utf-8")), "config": json.loads((d / "config.json").read_text(encoding="utf-8")) if (d / "config.json").exists() else None}
+
+
+def rel(p: Path) -> str:
+    p = Path(p).resolve()
+    return str(p.relative_to(ROOT)) if p.is_relative_to(ROOT) else str(p)
+
+
+def f(x, nd=2):
+    return "—" if x is None else f"{x:.{nd}f}"
+
+
+def pct(x):
+    return "—" if x is None else f"{100 * x:.0f}%"
+
+
+def runs_of_kind(all_runs):
+    base = [r for r in all_runs if r["rows"] and all(x["method"] == "A" and x.get("variant", "base") == "base" for x in r["rows"])]
+    comp = [r for r in all_runs if any(x["method"] != "A" and x.get("variant", "base") == "base" for x in r["rows"])]
+    rew = [r for r in all_runs if any(x.get("variant", "base") != "base" for x in r["rows"])]
+    return base, comp, rew
+
+
+def runs_of_positions(run, doc_id, mk):
+    p = run["dir"] / "positions" / f"{doc_id}__{mk.replace('@', '_rho')}.npz"
+    if not p.exists():
+        return None
+    import numpy as np
+    z = np.load(p)
+    bits, cap = z["bits"], int(z["capacity"])
+    sel = np.unpackbits(bits, axis=-1)[..., :cap].astype(bool)          # [L, G, C]
+    spans = z["target_spans"].tolist()
+    L, G, _ = sel.shape
+    tgt = np.zeros(cap, dtype=bool)
+    for s, e in spans:
+        tgt[s:e] = True
+    cover = sel[:, :, tgt].mean(-1)                                       # [L, G] fraction of target positions read
+    full = (sel[:, :, tgt].all(-1)).mean()
+    out = {"layers": L, "groups": G, "capacity": cap, "prefix_len": int(z["prefix_len"]), "legal_first_gen_step": int(z["legal_first_gen_step"]),
+           "target_spans": spans, "coverage_first_gen_step_layer_group": cover.round(3).tolist(), "fraction_layer_groups_full_coverage": float(full),
+           "example_rows": {}}
+    for l in sorted({0, L // 2, L - 1}):
+        pos = np.flatnonzero(sel[l, 0])
+        runs = []
+        if pos.size:
+            start = prev = int(pos[0])
+            for p_ in pos[1:]:
+                p_ = int(p_)
+                if p_ != prev + 1:
+                    runs.append([start, prev + 1])
+                    start = p_
+                prev = p_
+            runs.append([start, prev + 1])
+        out["example_rows"][f"layer{l}_group0"] = {"n_rows": int(pos.size), "ranges": runs[:80], "n_ranges": len(runs)}
+    return out
+
+
+def pick_cases(comp, usable, rhos):
+    """Pre-registered: per usable cell, up to two lowest-index documents per category (docs/tasks/05_G2_LITE.md)."""
+    rows = [r for r in comp["rows"] if r.get("variant", "base") == "base"]
+    cases = []
+    for c in sorted(usable):
+        in_cell = [r for r in rows if cell_key(r["task"], r["length_tag"]) == c]
+        by = {}
+        for r in in_cell:
+            by.setdefault(r["doc_id"], {})[method_key(r["method"], r["rho"])] = r
+        docs = sorted(by, key=lambda d: by[d]["A"]["doc_index"] if "A" in by[d] else 99)
+        cats = {"A_right_B_wrong": [], "A_right_C_or_D0_wrong": [], "all_four_right": []}
+        for d in docs:
+            m = by[d]
+            if "A" not in m or not m["A"]["exact_match"]:
+                continue
+            for rho in rhos:
+                b, cc, dd = m.get(method_key("B", rho)), m.get(method_key("C", rho)), m.get(method_key("D0", rho))
+                if b and cc and dd:
+                    if not b["exact_match"] and len(cats["A_right_B_wrong"]) < 2 and all(x["doc_id"] != d for x in cats["A_right_B_wrong"]):
+                        cats["A_right_B_wrong"].append({"doc_id": d, "rho": rho})
+                    if (not cc["exact_match"] or not dd["exact_match"]) and len(cats["A_right_C_or_D0_wrong"]) < 2 and all(x["doc_id"] != d for x in cats["A_right_C_or_D0_wrong"]):
+                        cats["A_right_C_or_D0_wrong"].append({"doc_id": d, "rho": rho})
+                    if b["exact_match"] and cc["exact_match"] and dd["exact_match"] and len(cats["all_four_right"]) < 2 and all(x["doc_id"] != d for x in cats["all_four_right"]):
+                        cats["all_four_right"].append({"doc_id": d, "rho": rho})
+        for cat, lst in cats.items():
+            for item in lst:
+                cases.append({"cell": c, "category": cat, **item})
+    return cases
+
+
+def case_detail(comp, rew_runs, doc_id, rhos):
+    doc = comp["docs"][doc_id]
+    rows = [r for r in comp["rows"] if r["doc_id"] == doc_id]
+    answers = {}
+    for r in sorted(rows, key=lambda r: (r["method"] != "A", r["method"], r["rho"] or 0)):
+        mk = method_key(r["method"], r["rho"])
+        answers[mk] = {"predicted": r["predicted"], "text": r["text"], "exact": r["exact_match"], "answered_with_ids": r.get("answered_with_ids"), "k0": r["k0"], "selected_count": r["selected_count"],
+                       "coverage": r["coverage"], "positions": runs_of_positions(comp, doc_id, mk) if r["method"] != "A" else None}
+    rewrites = []
+    for rr in rew_runs:
+        for r in rr["rows"]:
+            if r.get("parent_doc_id") == doc_id:
+                rewrites.append({"variant": r["variant"], "method": r["method"], "rho": r["rho"], "predicted": r["predicted"], "exact": r["exact_match"], "targets": r["targets"], "note": r.get("note"),
+                                 "doc_id": r["doc_id"], "run_id": rr["summary"]["run_id"]})
+    return {"doc": {k: doc.get(k) for k in ("doc_id", "task", "length_tag", "buckets", "n_records", "prefix_token_count", "suffix_token_count", "question", "targets", "target_ids", "target_indices",
+                                           "target_records_from_end", "target_distance_from_prefix_end", "target_spans")},
+            "records_around_targets": {str(i): [doc["ids"][j], doc["values"][j]] for i in doc["target_indices"] for j in range(max(0, i - 2), min(doc["n_records"], i + 3))},
+            "last_records": [[doc["ids"][j], doc["values"][j]] for j in range(max(0, doc["n_records"] - 6), doc["n_records"])],
+            "answers": answers, "rewrites": rewrites}
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--runs-dir", type=Path, default=ROOT / "runs")
+    ap.add_argument("--baseline", type=Path, default=None)
+    ap.add_argument("--comparison", type=Path, default=None)
+    ap.add_argument("--rewrites", type=Path, nargs="*", default=None)
+    ap.add_argument("--out", type=Path, default=ROOT / "reports/g2lite_mac_m4max.md")
+    ap.add_argument("--json", type=Path, default=ROOT / "reports/g2lite_summary_mac_m4max.json")
+    ap.add_argument("--answers", type=Path, default=ROOT / "reports/g2lite_answers_mac_m4max.json")
+    ap.add_argument("--manifest", type=Path, default=ROOT / "reports/g2lite_manifest_mac_m4max.json")
+    ap.add_argument("--card", default="reports/cards/G2lite_mac_m4max.md")
+    ap.add_argument("--include-quick", action="store_true")
+    a = ap.parse_args()
+    all_runs = [load_run(Path(p)) for p in sorted(glob.glob(str(a.runs_dir / "g2lite-*/summary.json")))]
+    all_runs = [r for r in all_runs if (a.include_quick or not r["summary"].get("quick")) and not r["summary"].get("calibration")]
+    base_runs, comp_runs, rew_runs = runs_of_kind(all_runs)
+    base = load_run(a.baseline) if a.baseline else (base_runs[0] if base_runs else None)
+    comp = load_run(a.comparison) if a.comparison else (comp_runs[-1] if comp_runs else None)
+    rews = [load_run(p) for p in a.rewrites] if a.rewrites is not None else rew_runs
+    if base is None:
+        print("no baseline run found")
+        return 1
+    cfg = base["config"] or comp["config"]
+    rhos = sorted({r["rho"] for r in (comp["rows"] if comp else []) if r["rho"] is not None}) or cfg["rho"]
+    gate = base["summary"]["aggregate"]["gate"]
+    usable = sorted(c for c, g in gate.items() if g["usable"])
+    agg_comp = comp["summary"]["aggregate"] if comp else None
+    cases = pick_cases(comp, usable, rhos) if comp else []
+    details = {c["doc_id"]: case_detail(comp, rews, c["doc_id"], rhos) for c in cases} if comp else {}
+    rew_rows = [r for rr in rews for r in rr["rows"]]
+    comp_rows = comp["rows"] if comp else []
+    from attention_lab.g2lite_eval import rewrite_table
+    rew_table = rewrite_table(comp_rows + rew_rows) if rews else []
+    # ---- condensed JSON ----
+    cond = {"baseline_run": base["summary"]["run_id"], "comparison_run": comp["summary"]["run_id"] if comp else None, "rewrite_runs": [r["summary"]["run_id"] for r in rews],
+            "config_version": cfg["config_version"], "rho": rhos, "gate": gate, "usable_cells": usable,
+            "baseline_methods": base["summary"]["aggregate"]["methods"], "comparison_methods": agg_comp["methods"] if agg_comp else None,
+            "paired": agg_comp["paired"] if agg_comp else None, "a_consistency_vs_baseline": agg_comp.get("a_consistency_vs_prev") if agg_comp else None,
+            "rewrites": rew_table, "move_cases": [r["summary"].get("move_cases") for r in rews], "cases": cases, "case_details": details,
+            "timing": {"baseline": base["summary"]["aggregate"]["timing"], "comparison": agg_comp["timing"] if agg_comp else None, "rewrites": [r["summary"]["aggregate"]["timing"] for r in rews]},
+            "device_seconds": {"baseline": base["summary"]["device_seconds"], "comparison": comp["summary"]["device_seconds"] if comp else None, "rewrites": [r["summary"]["device_seconds"] for r in rews],
+                               "total": base["summary"]["device_seconds"] + (comp["summary"]["device_seconds"] if comp else 0) + sum(r["summary"]["device_seconds"] for r in rews)},
+            "docs": {d["doc_id"]: {k: d.get(k) for k in ("task", "length_tag", "variant", "parent_doc_id", "buckets", "n_records", "prefix_token_count", "suffix_token_count", "targets", "target_ids",
+                                                            "target_records_from_end", "target_distance_from_prefix_end", "question", "changed_record_index", "note")}
+                     for run in [base] + ([comp] if comp else []) + rews for d in run["docs"].values()}}
+    a.json.write_text(json.dumps(cond, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    skip = {"coverage"}
+    answers = [{**{k: v for k, v in r.items() if k not in skip}, "coverage_first_gen_step_mean": r["coverage"].get("first_gen_step_mean"), "coverage_question_steps": r["coverage"].get("mean_fraction_question_steps"),
+                "coverage_generation_steps": r["coverage"].get("mean_fraction_generation_steps"), "coverage_first_gen_step_per_layer": r["coverage"].get("first_gen_step_per_layer")}
+               for run in [base] + ([comp] if comp else []) + rews for r in run["rows"]]
+    a.answers.write_text(json.dumps(answers, ensure_ascii=False, indent=0) + "\n", encoding="utf-8")
+    a.manifest.write_text(json.dumps({"runs": [r["manifest"] for r in [base] + ([comp] if comp else []) + rews]}, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+
+    # ---- markdown ----
+    L = []
+    m0, s0 = base["manifest"], base["summary"]
+    H, S, info = s0["host"], s0["software"], s0["model_info"]
+    L.append("# G2-lite 实测报告 · Mac M4 Max：少看历史会丢掉什么——四种读取方式在 T1 / T2 上的质量对照\n")
+    L.append(f"由 `scripts/g2lite_report.py` 从基线 run `{s0['run_id']}`、对照 run `{comp['summary']['run_id'] if comp else '无'}` 与 {len(rews)} 个改写 run（{', '.join(r['summary']['run_id'] for r in rews) or '无'}）生成。"
+             f"**48 份探索资料，不做区间统计；D0 是未训练的随机索引器；B 由窗口几何决定；MPS 结果不推 CUDA。** 预测见 `{a.card}`。\n")
+    L.append("## 1. 环境、模型、数据与协议\n")
+    L.append("| 项 | 值 |\n|---|---|")
+    L.append(f"| 机器 | {H.get('chip')}，{H.get('gpu_cores')} 核 GPU，{(H.get('physical_memory_bytes') or 0)/2**30:.0f} GiB，macOS {H.get('macos')} |")
+    L.append(f"| torch / transformers / Python | {S.get('torch')} / {S.get('transformers')} / {H.get('python')}；MPS；fallback 与内存保护环境变量未设置 |")
+    L.append(f"| 模型 | {info.get('model_id')} @ `{info.get('resolved_model_commit')}`（权重与 tokenizer 快照同一 commit：{info.get('resolved_weights_commit') == info.get('resolved_model_commit') == info.get('resolved_tokenizer_commit')}），{m0['dtype']}，attn `{info.get('attn_implementation')}`；权重 sha256 `{(m0.get('weights') or {}).get('sha256')}` |")
+    L.append(f"| 代码 | 基线 run commit `{m0['git'].get('commit')}`，dirty diff sha256 {m0['git'].get('dirty_diff_sha256')}；对照 run commit `{comp['manifest']['git'].get('commit') if comp else '—'}`；配置 v{cfg['config_version']} sha256 `{m0['config_sha256'][:16]}…`；chat template sha256 `{m0['chat_template_sha256'][:16]}…`；HF_HUB_OFFLINE={m0.get('hf_hub_offline')} |")
+    L.append(f"| 数据 | 生成器 v{cfg['data']['generator_version']}，种子 {cfg['data']['seed']}，digest `{m0['data_sha256'][:16]}…`；记录表每行 12 token；2K 169 条 / 前缀 2049 token，8K 681 条 / 前缀 8193 token；T1 问题+模板尾 27 token，T2 48 token |")
+    L.append(f"| 协议 | `{cfg['protocol']['name']}`：前缀完整读取一次并建索引表，问题不进前缀；每个请求克隆前缀缓存，从问题第一个 token 起逐 token 用自己的读取方式；贪心，≤ {cfg['generation']['max_new_tokens']} 新 token，EOS 停止；解析：{cfg['parsing']['T1']}；{cfg['parsing']['T2']} |")
+    L.append(f"| 名额 | ρ ∈ {cfg['rho']}；k0 = round(ρ·N0)，N0 = 前缀 + 1；B、C、D0 同 F（首 4 ∪ 近 64）同名额 68 + k0 |")
+    L.append("")
+    # ---- baseline ----
+    L.append("## 2. 基线可用性（第一遍：A 在全部格子）\n")
+    L.append(f"门槛（预设）：每格完整匹配率 ≥ {pct(cfg['gate']['baseline_usable_min_exact'])}，小样本可用性检查，不是质量结论。\n")
+    L.append("| 格子 | n | 完整匹配 | 率 | 答成编号 | 任意顺序含全部目标 | 格式错误 | 截断 | 按目标位置（前/中/后近/后远 或 成对） | 可用 |\n|---|---:|---:|---:|---:|---:|---:|---:|---|---|")
+    for c, tbl in s0["aggregate"]["methods"].items():
+        t = tbl["A"]
+        rows_c = [r for r in base["rows"] if cell_key(r["task"], r["length_tag"]) == c]
+        ids = sum(1 for r in rows_c if r.get("answered_with_ids"))
+        bb = "；".join(f"{'/'.join(BUCKET_LABEL.get(x, x) for x in b.split('/'))} {pct(v)}" for b, v in t["by_bucket"].items())
+        L.append(f"| {c} | {t['n']} | {t['hits']} | {pct(t['rate'])} | {ids} | {pct(t['any_order'])} | {t['format_errors']} | {t['truncated']} | {bb} | {'✓' if gate[c]['usable'] else '✗'} |")
+    L.append("")
+    # ---- comparison ----
+    if comp:
+        s1 = comp["summary"]
+        L.append(f"## 3. 四方法质量对照（第二遍，只在可用格子：{', '.join(usable) or '无'}）\n")
+        ac = s1["aggregate"].get("a_consistency_vs_prev") or {}
+        L.append(f"A 在第二遍重跑：{ac.get('n_compared')} 份中 {ac.get('n_identical_generated_ids')} 份生成的 token 序列与第一遍逐位相同" + (f"（不同：{ac.get('differing_doc_ids')}）" if ac.get("differing_doc_ids") else "") + "。\n")
+        L.append("| 格子 | 方法 | k0 | 读取数 | n | 完整匹配 | 率 | 答成编号 | 任意顺序 | 格式错误 | 按目标位置 | 对 A：同对 / A 对它错 / A 错它对 / 同错 |\n|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|---|")
+        for c, tbl in s1["aggregate"]["methods"].items():
+            for mk, t in tbl.items():
+                rows_c = [r for r in comp["rows"] if cell_key(r["task"], r["length_tag"]) == c and method_key(r["method"], r["rho"]) == mk and r.get("variant", "base") == "base"]
+                ids = sum(1 for r in rows_c if r.get("answered_with_ids"))
+                pr = (s1["aggregate"]["paired"].get(c) or {}).get(mk)
+                p2 = f"{pr['counts']['both_right']} / {pr['counts']['A_right_other_wrong']} / {pr['counts']['A_wrong_other_right']} / {pr['counts']['both_wrong']}" if pr else "—"
+                bb = "；".join(f"{'/'.join(BUCKET_LABEL.get(x, x) for x in b.split('/'))} {pct(v)}" for b, v in t["by_bucket"].items())
+                L.append(f"| {c} | {METHOD_LABEL[mk.split('@')[0]]}{' ρ=' + mk.split('@')[1] if '@' in mk else ''} | {t['k0'][0] if t['k0'] else '—'} | {t['selected'][0] if t['selected'] else '全部'} | {t['n']} | {t['hits']} | {pct(t['rate'])} | {ids} | {pct(t['any_order'])} | {t['format_errors']} | {bb} | {p2} |")
+        L.append("")
+        # coverage
+        L.append("### 3.1 目标片段覆盖率（每步每层每组读到的被查询记录 token 占比；结构性数字，不是学习结果）\n")
+        L.append("| 长度 | 方法 | k / M（期望） | 问题阶段均值 | 生成阶段均值 | 第一个生成 token 那一步：均值 / 最低层 / 最高层 |\n|---|---|---:|---:|---:|---|")
+        for lt in sorted({r["length_tag"] for r in comp["rows"]}):
+            for mk in sorted({method_key(r["method"], r["rho"]) for r in comp["rows"] if r["method"] != "A"}):
+                rs = [r for r in comp["rows"] if r["length_tag"] == lt and method_key(r["method"], r["rho"]) == mk and r.get("variant", "base") == "base"]
+                if not rs:
+                    continue
+                k0 = rs[0]["k0"]
+                M = rs[0]["legal_start"] - 68
+                cq = statistics.mean(r["coverage"]["mean_fraction_question_steps"] for r in rs)
+                cg = statistics.mean(r["coverage"]["mean_fraction_generation_steps"] for r in rs if r["coverage"].get("mean_fraction_generation_steps") is not None)
+                fm = statistics.mean(r["coverage"]["first_gen_step_mean"] for r in rs)
+                fmin = statistics.mean(r["coverage"]["first_gen_step_min_layer"] for r in rs)
+                fmax = statistics.mean(r["coverage"]["first_gen_step_max_layer"] for r in rs)
+                L.append(f"| {lt} | {METHOD_LABEL[mk.split('@')[0]]} ρ={mk.split('@')[1]} | {k0}/{M} = {pct(k0 / M)} | {pct(cq)} | {pct(cg)} | {pct(fm)} / {pct(fmin)} / {pct(fmax)} |")
+        L.append("\nB 的覆盖率只取 0 或 1（目标在窗口内外），对 T2 可为 0.5（两条记录一内一外）。\n")
+        # cases
+        L.append("## 4. 代表案例（预登记规则：每个可用格子每类最多两份，按资料序号从小到大）\n")
+        if not cases:
+            L.append("没有可用格子，或没有满足类别条件的案例。\n")
+        for cs in cases:
+            d = details[cs["doc_id"]]
+            doc = d["doc"]
+            L.append(f"**{cs['category']} · {cs['doc_id']}**（{cs['cell']}，目标位置 {'/'.join(BUCKET_LABEL.get(x, x) for x in doc['buckets'])}，倒数第 {doc['target_records_from_end']} 条，距前缀末尾 {doc['target_distance_from_prefix_end']} token）。问题：{doc['question']}；目标值 {doc['targets']}。")
+            L.append("")
+            L.append("| 方法 | 读取数 | 回答 | 判定 | 目标片段覆盖（第一个生成 token 那一步：均值 / 层组全覆盖比例） |\n|---|---:|---|---|---|")
+            for mk, an in d["answers"].items():
+                cov = an["coverage"]
+                covs = "全部" if mk == "A" else f"{pct(cov.get('first_gen_step_mean'))} / {pct(cov.get('fraction_of_layer_groups_with_full_coverage_first_gen_step'))}"
+                L.append(f"| {METHOD_LABEL[mk.split('@')[0]]}{' ρ=' + mk.split('@')[1] if '@' in mk else ''} | {an['selected_count'] or '全部'} | `{an['text'][:60]}` | {'✓' if an['exact'] else '✗'}{'（答成编号）' if an.get('answered_with_ids') else ''} | {covs} |")
+            if d["rewrites"]:
+                L.append("")
+                L.append("改写：" + "；".join(f"{r['variant']} → {METHOD_LABEL[r['method']]}{' ρ=' + format(r['rho'], 'g') if r['rho'] is not None else ''} 答 {r['predicted']}（目标 {r['targets']}，{'✓' if r['exact'] else '✗'}）" for r in d["rewrites"]))
+            L.append("")
+    # ---- rewrites ----
+    if rew_table:
+        L.append("## 5. 反事实改写（重建前缀，不复用 KV）\n")
+        L.append("| 改写 | 资料 | 方法 | 原答 | 原判定 | 改后答 | 改后目标 | 改后判定 | 检查 |\n|---|---|---|---|---|---|---|---|---|")
+        for r in rew_table:
+            chk = {"value": f"跟着改：{r.get('answer_followed_change')}；黏在旧值：{r.get('answer_stuck_to_old_value')}", "irrelevant": f"不变：{r.get('answer_unchanged')}", "move": f"移近后变对：{r.get('became_right')}"}[r["variant"]]
+            L.append(f"| {r['variant']} | {r['parent_doc_id']} | {METHOD_LABEL[r['method']]}{' ρ=' + format(r['rho'], 'g') if r['rho'] is not None else ''} | {r['base_predicted']} | {'✓' if r['base_exact'] else '✗'} | {r['rewrite_predicted']} | {r['rewrite_targets']} | {'✓' if r['rewrite_exact'] else '✗'} | {chk} |")
+        L.append("")
+        # summary counts
+        for v in ("value", "irrelevant", "move"):
+            rs = [r for r in rew_table if r["variant"] == v]
+            if not rs:
+                continue
+            per = {}
+            for r in rs:
+                mk = method_key(r["method"], r["rho"])
+                key = {"value": "answer_followed_change", "irrelevant": "answer_unchanged", "move": "became_right"}[v]
+                per.setdefault(mk, [0, 0])
+                per[mk][0] += int(bool(r.get(key)))
+                per[mk][1] += 1
+            L.append(f"- {v}：" + "；".join(f"{METHOD_LABEL[mk.split('@')[0]]}{' ρ=' + mk.split('@')[1] if '@' in mk else ''} {x}/{n}" for mk, (x, n) in per.items()))
+        L.append("")
+    # ---- cost ----
+    L.append("## 6. 实际运行成本\n")
+    L.append("| run | 设备时间 s | Prefill 中位 ms（2K / 8K） | 每步 ms 中位（按长度 / 方法） |\n|---|---:|---|---|")
+    for run in [base] + ([comp] if comp else []) + rews:
+        tm = run["summary"]["aggregate"]["timing"]
+        pf = tm["prefill_ms_median_by_length"]
+        L.append(f"| {run['summary']['run_id']} | {run['summary']['device_seconds']:.0f} | {f(pf.get('2K'), 0)} / {f(pf.get('8K'), 0)} | " + "；".join(f"{k} {v:.1f}" for k, v in tm["ms_per_step_median"].items()) + " |")
+    L.append(f"\n合计设备时间 {cond['device_seconds']['total']:.0f} s（含模型加载），现金 0。每步耗时含覆盖率记账与逐步同步，不是速度基准。\n")
+    a.out.write_text("\n".join(L) + "\n", encoding="utf-8")
+    print(f"wrote {rel(a.out)}, {rel(a.json)}, {rel(a.answers)}, {rel(a.manifest)}; usable cells {usable}; cases {len(cases)}; rewrites {len(rew_table)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

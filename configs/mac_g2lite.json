@@ -1,9 +1,15 @@
 {
   "schema_version": 1,
-  "gate": "G2-lite",
+  "gate": {
+    "baseline_usable_min_exact": 0.8,
+    "meaning": "small-sample usability check of the full read per (task, length) cell; not a quality claim; B/C/D0 are compared only in usable cells",
+    "one_prompt_revision_allowed": true,
+    "study_at_2K_if_8K_unusable": true,
+    "stop_if_both_lengths_unusable": true
+  },
   "track": "mac_mps",
-  "status": "frozen before any comparison run: data seeds, prompt, parse and stop rules below are not changed after the first formal run; a baseline prompt revision, if ever used, is recorded as a new config version",
-  "config_version": 1,
+  "status": "v2 frozen 2026-10-17 before the first formal run, after calibration on seed-777 documents; parse and stop rules unchanged from v1; the one recorded prompt revision allowed by docs/tasks/05_G2_LITE.md is still unused",
+  "config_version": 2,
   "model": {
     "id": "Qwen/Qwen3-0.6B",
     "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
@@ -11,17 +17,50 @@
     "dtype": "bfloat16",
     "device": "mps",
     "frozen": true,
-    "expected_from_config_json": {"num_hidden_layers": 28, "num_attention_heads": 16, "num_key_value_heads": 8, "head_dim": 128, "hidden_size": 1024, "vocab_size": 151936}
+    "expected_from_config_json": {
+      "num_hidden_layers": 28,
+      "num_attention_heads": 16,
+      "num_key_value_heads": 8,
+      "head_dim": 128,
+      "hidden_size": 1024,
+      "vocab_size": 151936
+    }
   },
-  "index": {"r": 32, "fixed_prefix": 4, "fixed_recent": 64, "position_variant": "P0", "trained": false, "indexer_seed": 0,
-            "note": "the same untrained GroupedIndexer as G1b (seed * 1000 + layer per layer); D0 = its top-k, never called 'random selection'"},
+  "index": {
+    "r": 32,
+    "fixed_prefix": 4,
+    "fixed_recent": 64,
+    "position_variant": "P0",
+    "trained": false,
+    "indexer_seed": 0,
+    "note": "the same untrained GroupedIndexer as G1b (seed * 1000 + layer per layer); D0 = its top-k, never called 'random selection'"
+  },
   "methods": {
-    "A": {"mode": "full", "selector": null, "label": "完整读取"},
-    "B": {"mode": "sparse", "selector": "recent", "label": "近期窗口：F ∪ 最近 k 个候选位置"},
-    "C": {"mode": "sparse", "selector": "uniform", "label": "均匀随机：F ∪ 候选域内均匀抽取 k 个位置（固定种子，每层每组独立）"},
-    "D0": {"mode": "sparse", "selector": "index", "label": "未训练索引：F ∪ 随机初始化 GroupedIndexer 打分 top-k"}
+    "A": {
+      "mode": "full",
+      "selector": null,
+      "label": "完整读取"
+    },
+    "B": {
+      "mode": "sparse",
+      "selector": "recent",
+      "label": "近期窗口：F ∪ 最近 k 个候选位置"
+    },
+    "C": {
+      "mode": "sparse",
+      "selector": "uniform",
+      "label": "均匀随机：F ∪ 候选域内均匀抽取 k 个位置（固定种子，每层每组独立）"
+    },
+    "D0": {
+      "mode": "sparse",
+      "selector": "index",
+      "label": "未训练索引：F ∪ 随机初始化 GroupedIndexer 打分 top-k"
+    }
   },
-  "rho": [0.03125, 0.125],
+  "rho": [
+    0.03125,
+    0.125
+  ],
   "budget_rule": "k0 = min(round(rho * N0), candidates at N0) with N0 = prefix tokens + 1 (the first decode step); fixed within a request; k = min(k0, candidates now)",
   "protocol": {
     "name": "document_dense_then_sparse",
@@ -29,52 +68,302 @@
     "per_method": "an independent clone of the prefix cache; from the first question token on, every token (question, template suffix, generated) is one decode step read by the method's own selector",
     "rewrites": "rebuild the prefix from scratch; no KV reuse across variants"
   },
-  "seeds": {"uniform_base": 7, "uniform_rule": "uniform_seed = uniform_base + (sha256(doc_id) mod 2^20); per decode step one numpy default_rng seeded by SeedSequence([uniform_seed, request_counter, step_index]), consumed by the layers in order (a replayed step draws the same rows)"},
+  "seeds": {
+    "uniform_base": 7,
+    "uniform_rule": "uniform_seed = uniform_base + (sha256(doc_id) mod 2^20); per decode step one numpy default_rng seeded by SeedSequence([uniform_seed, request_counter, step_index]), consumed by the layers in order (a replayed step draws the same rows)"
+  },
   "data": {
-    "generator_version": 1,
+    "generator_version": 2,
     "seed": 20261017,
-    "tasks": ["T1", "T2"],
-    "lengths": {"2K": 2048, "8K": 8192},
+    "tasks": [
+      "T1",
+      "T2"
+    ],
+    "lengths": {
+      "2K": 2048,
+      "8K": 8192
+    },
     "docs_per_cell": 12,
-    "id_range": [1000, 9999],
-    "value_range": [1000, 9999],
-    "header": "下面是一份记录表。每行一条记录，给出编号和对应的四位数值。\n\n",
-    "record_format": "编号 {id}：{value}\n",
-    "table_end": "\n",
+    "id_range": [
+      1000,
+      9999
+    ],
+    "value_range": [
+      1000,
+      9999
+    ],
+    "header": "下面是一份工作记录，其中穿插着若干条编号记录，格式为「编号 X：Y」，Y 是编号 X 对应的四位数值。\n\n",
+    "record_format": "编号 {id}：{value}\n\n",
+    "table_end": "",
     "question": {
-      "T1": "问题：编号 {id} 的值是多少？只回答这个四位数。",
-      "T2": "问题：依次给出编号 {id1} 和编号 {id2} 的值，按这个顺序回答，两个四位数之间用逗号隔开，不要其他文字。"
+      "T1": "问题：编号 {id} 对应的数值是多少？只输出该编号对应的四位数值，不要输出编号。",
+      "T2": "问题：编号 {id1} 对应的数值和编号 {id2} 对应的数值分别是多少？按这个顺序只输出这两个四位数值，用逗号隔开，不要输出编号。"
     },
     "buckets": {
-      "front": {"fraction": [0.02, 0.10]},
-      "middle": {"fraction": [0.45, 0.55]},
-      "back_near": {"from_end": [3, 5]},
-      "back_far": {"from_end": [13, 20]}
+      "front": {
+        "fraction": [
+          0.0,
+          0.2
+        ],
+        "note": "first fifth of the body records"
+      },
+      "middle": {
+        "fraction": [
+          0.4,
+          0.6
+        ]
+      },
+      "back_near": {
+        "from_end": 0,
+        "note": "the last record, line end 30-70 tokens before the prefix end"
+      },
+      "back_far": {
+        "from_end": 1,
+        "note": "the second-to-last record, 150-250 tokens before the prefix end"
+      }
     },
     "bucket_plan": {
-      "T1": ["front", "front", "front", "front", "middle", "middle", "middle", "middle", "back_near", "back_near", "back_far", "back_far"],
-      "T2": [["front", "back_near"], ["front", "back_near"], ["front", "back_far"], ["front", "back_far"], ["front", "middle"], ["front", "middle"], ["front", "middle"], ["front", "middle"], ["middle", "back_near"], ["middle", "back_near"], ["middle", "back_far"], ["middle", "back_far"]]
+      "T1": [
+        "front",
+        "front",
+        "front",
+        "front",
+        "middle",
+        "middle",
+        "middle",
+        "middle",
+        "back_near",
+        "back_near",
+        "back_far",
+        "back_far"
+      ],
+      "T2": [
+        [
+          "front",
+          "back_near"
+        ],
+        [
+          "front",
+          "back_near"
+        ],
+        [
+          "front",
+          "back_far"
+        ],
+        [
+          "front",
+          "back_far"
+        ],
+        [
+          "front",
+          "middle"
+        ],
+        [
+          "front",
+          "middle"
+        ],
+        [
+          "front",
+          "middle"
+        ],
+        [
+          "front",
+          "middle"
+        ],
+        [
+          "middle",
+          "back_near"
+        ],
+        [
+          "middle",
+          "back_near"
+        ],
+        [
+          "middle",
+          "back_far"
+        ],
+        [
+          "middle",
+          "back_far"
+        ]
+      ]
     },
     "t2_order_rule": "even doc index: ascending position; odd doc index: descending position",
-    "irrelevant_min_distance_records": 10,
-    "move_to_records_from_end": 3,
+    "irrelevant_min_distance_records": 3,
     "rewrite_docs_per_cell": 2,
-    "rewrite_doc_indices": [0, 4],
-    "rewrite_variants_preregistered": ["value", "irrelevant"],
-    "move_case_rule": {"max_per_cell": 2, "condition": "A exact_match and B not exact_match at rho 1/32, else at rho 1/8; lowest doc indices first; T2 moves the queried record that is farther from the end", "variant": "move"}
+    "rewrite_doc_indices": [
+      0,
+      4
+    ],
+    "rewrite_variants_preregistered": [
+      "value",
+      "irrelevant"
+    ],
+    "move_case_rule": {
+      "max_per_cell": 2,
+      "condition": "A exact_match and B not exact_match at rho 1/32, else at rho 1/8; lowest doc indices first; T2 moves the queried record that is farther from the end; skipped when the queried record already is the back_near record",
+      "variant": "move"
+    },
+    "n_records": 16,
+    "question_marker": "问题：",
+    "filler_pool": [
+      "今天的会议安排在下午，请大家提前到场。",
+      "窗外的雨下了一整天，街道上的行人很少。",
+      "图书馆新到了一批书，放在二楼靠窗的书架上。",
+      "他把旧报纸整理好，放进了门口的回收箱。",
+      "食堂这周换了新的菜单，午饭多了几样素菜。",
+      "山上的空气很清新，早晨能看到远处的雾。",
+      "车站的广播提醒旅客注意脚下的台阶。",
+      "办公室的打印机昨天修好了，现在可以正常使用。",
+      "周末的集市上有很多卖手工艺品的摊位。",
+      "孩子们在公园的草地上放风筝，笑声传得很远。",
+      "这家小店的面包每天早上现烤，很受欢迎。",
+      "她把窗台上的花搬到了阳台，让它们多晒太阳。",
+      "新的公交线路从下周开始运行，站点有所调整。",
+      "海边的风很大，傍晚时分浪也高了起来。",
+      "老师在黑板上画了一幅地图，讲解河流的走向。",
+      "厨房里飘出饭菜的香味，大家都饿了。",
+      "工地旁边的小路暂时封闭，请从另一侧绕行。",
+      "他每天傍晚沿着河边散步，呼吸新鲜空气。",
+      "博物馆的新展览以古代陶器为主题。",
+      "超市门口排起了队，大家在等促销开始。",
+      "天气转凉了，街上的人们换上了外套。",
+      "小猫趴在沙发上睡觉，一动也不动。",
+      "电梯正在检修，请使用楼梯上下楼。",
+      "果园里的苹果熟了，农户们开始采摘。",
+      "音乐会的门票已经售完，主办方考虑加场。",
+      "他在笔记本上写下了明天要做的事情。",
+      "湖面平静得像一面镜子，映出岸边的树。",
+      "社区组织了一次清洁活动，很多居民参加了。",
+      "新来的同事很快就熟悉了工作流程。",
+      "雪后的早晨，屋顶和树枝都白了。",
+      "火车准点到站，站台上的人们开始上车。",
+      "她喜欢在安静的午后读一本厚厚的小说。",
+      "体育馆的灯光设备升级后更加明亮。",
+      "村口的大树下常有老人在下棋聊天。",
+      "快递员把包裹放在了门卫室，请记得去取。",
+      "春天的田野里开满了黄色的油菜花。",
+      "会议室的投影仪需要提前预约才能使用。",
+      "夜晚的城市灯火通明，街道比白天热闹。",
+      "他修好了那辆旧自行车，又能骑着去上班了。",
+      "咖啡馆的角落里坐着几位安静看书的客人。"
+    ],
+    "filler_joiner": "",
+    "layout": {
+      "back_near_tokens_from_end": [
+        32,
+        60
+      ],
+      "back_far_tokens_from_end": [
+        150,
+        250
+      ],
+      "length_tolerance_tokens": 12,
+      "max_adjust_iterations": 30,
+      "note": "the last two records are tail records at controlled distances (back_near 32-60 so the line lies inside B's window at every (length, rho) and outside F's recent 64; back_far 150-250 so it is inside B's window only when 64 + k0 - Q >= ~262); the other n-2 are spread evenly; filler is digit-free prose from filler_pool"
+    },
+    "move_rule": "swap the queried record with the back_near tail record (same layout)"
   },
-  "prompt": {"chat_template": "the tokenizer's own template at the pinned revision", "enable_thinking": false, "system_message": null,
-             "prefix_boundary": "the rendered text before the question marker '问题：'; checked to be an exact token prefix of the full prompt"},
-  "generation": {"greedy": true, "max_new_tokens": 64, "eos_token_ids": [151645, 151643],
-                 "stop_rule": "stop when the argmax token is an EOS id or when 64 tokens have been generated; the EOS token counts toward the 64 but is not part of the text; truncated = no EOS within 64"},
-  "parsing": {"regex": "(?<!\\d)\\d{4}(?!\\d)",
-              "T1": "the first standalone four-digit number in the generated text must equal the target",
-              "T2": "the first two standalone four-digit numbers must equal the two targets in the asked order",
-              "also_recorded": ["item_correct", "targets_present_any_order", "order_swapped", "format_error (fewer numbers than required)", "truncated"]},
-  "gate": {"baseline_usable_min_exact": 0.80,
-           "meaning": "small-sample usability check of the full read per (task, length) cell; not a quality claim; B/C/D0 are compared only in usable cells",
-           "one_prompt_revision_allowed": true, "study_at_2K_if_8K_unusable": true, "stop_if_both_lengths_unusable": true},
-  "run": {"prefill_chunk": 2048, "capacity_margin": 8, "record_selection_positions_at": "the step that produces the first generated token (per layer, per group, bitset over positions)",
-          "coverage": "per decode step and layer, how many of the queried records' token positions each group read (counts only; no attention weights)"},
-  "budget": {"device_hours_max": 2, "cloud_usd": 0, "cash_usd": 0}
+  "prompt": {
+    "chat_template": "the tokenizer's own template at the pinned revision",
+    "enable_thinking": false,
+    "system_message": null,
+    "prefix_boundary": "the rendered text before the question marker '问题：'; checked to be an exact token prefix of the full prompt"
+  },
+  "generation": {
+    "greedy": true,
+    "max_new_tokens": 64,
+    "eos_token_ids": [
+      151645,
+      151643
+    ],
+    "stop_rule": "stop when the argmax token is an EOS id or when 64 tokens have been generated; the EOS token counts toward the 64 but is not part of the text; truncated = no EOS within 64"
+  },
+  "parsing": {
+    "regex": "(?<!\\d)\\d{4}(?!\\d)",
+    "T1": "the first standalone four-digit number in the generated text must equal the target",
+    "T2": "the first two standalone four-digit numbers must equal the two targets in the asked order",
+    "also_recorded": [
+      "item_correct",
+      "targets_present_any_order",
+      "order_swapped",
+      "format_error (fewer numbers than required)",
+      "truncated"
+    ]
+  },
+  "run": {
+    "prefill_chunk": 2048,
+    "capacity_margin": 8,
+    "record_selection_positions_at": "the step that produces the first generated token (per layer, per group, bitset over positions)",
+    "coverage": "per decode step and layer, how many of the queried records' token positions each group read (counts only; no attention weights)"
+  },
+  "budget": {
+    "device_hours_max": 2,
+    "cloud_usd": 0,
+    "cash_usd": 0
+  },
+  "revision_history": [
+    {
+      "version": 1,
+      "date": "2026-10-17",
+      "what": "dense record table (169 / 681 records, no filler); question '只回答这个四位数'"
+    },
+    {
+      "version": 2,
+      "date": "2026-10-17",
+      "what": "16 records embedded in digit-free Chinese filler prose; tail records at controlled distances; clarified question wording; parse / stop rules untouched",
+      "why_calibration_seed_777_full_read_A_exact_of_12": {
+        "v1 dense table, 2K": {
+          "clarified wording": {
+            "T1": 2,
+            "T2": 1
+          },
+          "with worked example": {
+            "T1": 0,
+            "T2": 1
+          },
+          "English": {
+            "T1": 3,
+            "T2": 4
+          }
+        },
+        "v2 filler layout, 2K": {
+          "zh 24 records": {
+            "T1": 8,
+            "T2": 2
+          },
+          "en 24": {
+            "T1": 5,
+            "T2": 0
+          },
+          "zh 16": {
+            "T1": 11,
+            "T2": 6
+          },
+          "en 16": {
+            "T1": 5,
+            "T2": 2
+          },
+          "zh 12": {
+            "T1": 11,
+            "T2": 5
+          },
+          "zh 8": {
+            "T1": 10,
+            "T2": 5
+          }
+        },
+        "v2 zh 16, 8K": {
+          "T1": 10,
+          "T2": 1
+        },
+        "v2 zh 16, 2K, other T2 wordings": {
+          "先给出…再给出": 0,
+          "请从记录中找出…": 4
+        },
+        "pipeline smoke on v1 (formal docs T1-2K-00 / T2-2K-00, quick)": "A echoed the queried id(s); on the value rewrite of T1-2K-00 A answered the new value",
+        "decision": "freeze zh 16; T2's weakness does not depend on record count or wording tried, so the formal T2 baseline is expected to fail the gate and the single prompt revision will not be spent on it"
+      }
+    }
+  ]
 }

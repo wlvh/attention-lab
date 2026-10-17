@@ -24,6 +24,7 @@ import hashlib
 import json
 import os
 import resource
+import shutil
 import statistics
 import sys
 import time
@@ -57,6 +58,7 @@ def parse_args():
     ap.add_argument("--runs-dir", type=Path, default=ROOT / "runs")
     ap.add_argument("--tag", default="")
     ap.add_argument("--quick", action="store_true", help="pipeline smoke: T1 and T2 at 2K, one document per cell, run_id marked quick")
+    ap.add_argument("--calibration", action="store_true", help="calibration run (non-formal data seed / prompt candidates): run_id marked calib, excluded from reports by default")
     a = ap.parse_args()
     a.cfg = json.loads(a.config.read_text(encoding="utf-8"))
     a.rhos = a.rhos or a.cfg["rho"]
@@ -125,7 +127,7 @@ def main() -> int:
     cfg, mcfg = a.cfg, a.cfg["model"]
     dev = torch.device("mps")
     sync = torch.mps.synchronize
-    run_id = "g2lite-" + runinfo.utc_compact() + ("-quick" if a.quick else "") + (f"-{a.tag}" if a.tag else "")
+    run_id = "g2lite-" + runinfo.utc_compact() + ("-quick" if a.quick else "") + ("-calib" if a.calibration else "") + (f"-{a.tag}" if a.tag else "")
     out_dir = a.runs_dir / run_id
     (out_dir / "positions").mkdir(parents=True, exist_ok=True)
     args_rec = {k: (runinfo.sanitize(str(v)) if isinstance(v, Path) else v) for k, v in vars(a).items() if k != "cfg"}
@@ -158,7 +160,7 @@ def main() -> int:
         for d in docs:
             f.write(json.dumps(d, ensure_ascii=False) + "\n")
     chat_template_sha = hashlib.sha256((tok.chat_template or "").encode("utf-8")).hexdigest()
-    manifest = {"schema_version": 1, "run_id": run_id, "kind": "quality", "status": "running", "created_at_utc": runinfo.utc_now(),
+    manifest = {"schema_version": 1, "run_id": run_id, "kind": "quality", "calibration": a.calibration, "status": "running", "created_at_utc": runinfo.utc_now(),
                 "git": runinfo.git_info(ROOT), "source_hashes": runinfo.source_hashes(ROOT), "config_sha256": runinfo.sha256_file(a.config), "config_version": cfg["config_version"],
                 "model_id": mcfg["id"], "model_revision": mcfg["revision"], "tokenizer_revision": mcfg["tokenizer_revision"], "weights": weights_file_sha256(mcfg["id"], mcfg["revision"]),
                 "chat_template_sha256": chat_template_sha, "data_sha256": data_digest, "data_seed": cfg["data"]["seed"], "generator_version": cfg["data"]["generator_version"],
@@ -172,6 +174,7 @@ def main() -> int:
                 "usable_from": usable_src, "move_cases": move_cases, "n_docs": len(docs),
                 "limitations": ["48 exploratory documents at most; T1/T2 record lookup only; Qwen3-0.6B bf16 on MPS; untrained indexer; no training; no statistical interval claims"]}
     (out_dir / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    shutil.copy(a.config, out_dir / "config.json")                  # the exact config this run used (prompt wording, parse and stop rules)
     holder = wrap_model(model)
     indexers = make_indexers(model, r=r, seed=int(cfg["index"]["indexer_seed"]))
     rec_max = manifest["software"].get("recommended_max_memory") or 0
@@ -259,7 +262,8 @@ def main() -> int:
                        "legal_start": P + 1, "legal_end": cache.valid_length, "capacity": cap, "prefix_tokens": P, "suffix_tokens": Q, "generated_tokens": len(gen),
                        "generated_ids": gen, "targets": doc["targets"], "target_ids": doc["target_ids"], "target_records_from_end": doc["target_records_from_end"],
                        "target_distance_from_prefix_end": doc["target_distance_from_prefix_end"], "changed_record_index": doc.get("changed_record_index"), "note": doc.get("note"),
-                       **{k: v for k, v in sc.items()}, "question_ms": q_ms, "generation_ms": g_ms, "steps": steps, "ms_per_step": (q_ms + g_ms) / max(steps, 1),
+                       **{k: v for k, v in sc.items()}, "answered_with_ids": bool(sc["predicted"]) and all(p in doc["target_ids"] for p in sc["predicted"]),
+                       "question_ms": q_ms, "generation_ms": g_ms, "steps": steps, "ms_per_step": (q_ms + g_ms) / max(steps, 1),
                        "uniform_seed": useed if method == "C" else None, "uniform_request_counter": st.request_counter if method == "C" else None,
                        "coverage": {"target_tokens": n_target}}
                 if cov is not None:
@@ -293,7 +297,7 @@ def main() -> int:
     qf.close()
     device_s = time.perf_counter() - t_start
     agg = aggregate(rows, docs, cfg, prefill_ms_by_doc, prev_rows=prev_rows)
-    summary = {"run_id": run_id, "quick": a.quick, "utc_start": manifest["created_at_utc"], "utc_end": runinfo.utc_now(), "device_seconds": device_s, "model_load_seconds": load_s,
+    summary = {"run_id": run_id, "quick": a.quick, "calibration": a.calibration, "utc_start": manifest["created_at_utc"], "utc_end": runinfo.utc_now(), "device_seconds": device_s, "model_load_seconds": load_s,
                "args": args_rec, "config_version": cfg["config_version"], "config_sha256": manifest["config_sha256"], "data_sha256": data_digest, "model_info": {**info, "mismatch_vs_config_json": mism},
                "host": manifest["host"], "software": manifest["software"], "git": manifest["git"], "source_hashes": manifest["source_hashes"], "usable_from": usable_src, "move_cases": move_cases,
                "n_docs": len(docs), "n_rows": len(rows), "prefill_ms_by_doc": prefill_ms_by_doc, "aggregate": agg, "memory_end": mem(torch), "_quality_path": runinfo.sanitize(str((out_dir / "quality.jsonl").relative_to(ROOT)))}

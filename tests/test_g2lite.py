@@ -312,33 +312,39 @@ class DataGeneratorTests(unittest.TestCase):
         self.assertNotEqual(d1["ids"], d3["ids"], "each document binds its own ids and values")
 
     def test_prefix_is_token_closed_and_near_the_target_length(self):
-        for task, length_tag, i in (("T1", "2K", 0), ("T2", "2K", 1), ("T1", "8K", 11)):
+        lay = CONFIG["data"]["layout"]
+        for task, length_tag, i in (("T1", "2K", 0), ("T2", "2K", 1), ("T1", "8K", 11), ("T2", "8K", 10)):
             d = self.gd.build_document(self.tok, CONFIG, task, length_tag, i)
             self.assertTrue(d["prefix_closed"])
-            self.assertEqual(d["prefix_ids"], d["prefix_ids"][:d["prefix_token_count"]])
-            self.assertLessEqual(abs(d["prefix_token_count"] - d["target_tokens"]), 8, f"{d['doc_id']}: {d['prefix_token_count']} tokens")
+            self.assertEqual(d["n_records"], CONFIG["data"]["n_records"])
+            self.assertLessEqual(abs(d["prefix_token_count"] - d["target_tokens"]), lay["length_tolerance_tokens"], f"{d['doc_id']}: {d['prefix_token_count']} tokens")
             self.assertEqual(d["tokens_per_record"], 12)
             self.assertNotIn(self.gd.QUESTION_MARKER, d["prefix_text"])
             self.assertTrue(d["prompt_text"].endswith("<think>\n\n</think>\n\n"), "thinking must be closed by the template")
             self.assertEqual(len(set(d["ids"])), d["n_records"], "ids are distinct")
-            # the target span decodes to the queried record line
-            for t, span in zip(d["target_indices"], d["target_spans"]):
+            self.assertFalse(any(ch.isdigit() for ch in "".join(CONFIG["data"]["filler_pool"])), "filler must be digit-free")
+            for t, span in zip(d["target_indices"], d["target_spans"]):          # the target span decodes to the queried record line
                 text = self.tok.decode(d["prefix_ids"][span[0]:span[1]])
                 self.assertIn(d["ids"][t], text)
                 self.assertIn(d["values"][t], text)
                 self.assertTrue(span[1] <= d["prefix_token_count"])
+            # the two tail records sit at the configured distances from the end, in every document
+            dist = d["record_distance_from_prefix_end"]
+            self.assertTrue(lay["back_near_tokens_from_end"][0] <= dist[-1] <= lay["back_near_tokens_from_end"][1], f"{d['doc_id']}: near tail at {dist[-1]}")
+            self.assertTrue(lay["back_far_tokens_from_end"][0] <= dist[-2] <= lay["back_far_tokens_from_end"][1], f"{d['doc_id']}: far tail at {dist[-2]}")
+            self.assertTrue(all(a > b for a, b in zip(dist, dist[1:])), "records are in document order")
 
     def test_buckets_place_targets_where_the_plan_says(self):
+        n = CONFIG["data"]["n_records"]
+        body = n - 2
         for i, bucket in enumerate(CONFIG["data"]["bucket_plan"]["T1"]):
             d = self.gd.build_document(self.tok, CONFIG, "T1", "2K", i)
-            n, t = d["n_records"], d["target_indices"][0]
+            t = d["target_indices"][0]
             spec = CONFIG["data"]["buckets"][bucket]
             if "fraction" in spec:
-                self.assertTrue(spec["fraction"][0] * n <= t < spec["fraction"][1] * n, f"{d['doc_id']} {bucket}: index {t} of {n}")
+                self.assertTrue(int(spec["fraction"][0] * body) <= t < max(int(spec["fraction"][0] * body) + 1, int(spec["fraction"][1] * body)), f"{d['doc_id']} {bucket}: index {t}")
             else:
-                self.assertTrue(spec["from_end"][0] <= n - 1 - t <= spec["from_end"][1], f"{d['doc_id']} {bucket}: {n - 1 - t} from end")
-                dist = d["target_distance_from_prefix_end"][0]
-                self.assertTrue(12 * spec["from_end"][0] <= dist <= 12 * (spec["from_end"][1] + 1) + 2, f"{d['doc_id']}: {dist} tokens from the end")
+                self.assertEqual(n - 1 - t, spec["from_end"], f"{d['doc_id']} {bucket}")
         for i in (0, 1):
             d = self.gd.build_document(self.tok, CONFIG, "T2", "2K", i)
             a, b = d["target_indices"]
@@ -349,25 +355,34 @@ class DataGeneratorTests(unittest.TestCase):
 
     def test_rewrites_change_exactly_what_they_claim(self):
         base = self.gd.build_document(self.tok, CONFIG, "T1", "2K", 2)
-        val = self.gd.rewrite_document(self.tok, CONFIG, base, "value")
         t = base["target_indices"][0]
+        val = self.gd.rewrite_document(self.tok, CONFIG, base, "value")
         self.assertEqual(val["ids"], base["ids"])
         self.assertNotEqual(val["values"][t], base["values"][t])
         self.assertEqual([v for i, v in enumerate(val["values"]) if i != t], [v for i, v in enumerate(base["values"]) if i != t])
         self.assertEqual(val["targets"], [val["values"][t]])
         self.assertEqual(val["prefix_token_count"], base["prefix_token_count"])
         self.assertEqual(val["question"], base["question"])
+        fmt = CONFIG["data"]["record_format"]
+        self.assertEqual(val["prefix_text"].replace(fmt.format(id=base["ids"][t], value=val["values"][t]), fmt.format(id=base["ids"][t], value=base["values"][t]), 1),
+                         base["prefix_text"], "only the queried record line differs")
         irr = self.gd.rewrite_document(self.tok, CONFIG, base, "irrelevant")
         j = irr["changed_record_index"]
         self.assertGreaterEqual(abs(j - t), CONFIG["data"]["irrelevant_min_distance_records"])
         self.assertEqual(irr["targets"], base["targets"])
         self.assertEqual(sum(1 for a, b in zip(irr["values"], base["values"]) if a != b), 1)
+        self.assertEqual(irr["target_spans"], base["target_spans"], "the queried record keeps its position")
         mv = self.gd.rewrite_document(self.tok, CONFIG, base, "move")
         self.assertEqual(mv["targets"], base["targets"])
-        self.assertEqual(mv["target_records_from_end"], [CONFIG["data"]["move_to_records_from_end"]])
+        self.assertEqual(mv["target_records_from_end"], [0])
+        self.assertTrue(CONFIG["data"]["layout"]["back_near_tokens_from_end"][0] <= mv["target_distance_from_prefix_end"][0] <= CONFIG["data"]["layout"]["back_near_tokens_from_end"][1])
         self.assertEqual(sorted(mv["ids"]), sorted(base["ids"]))
-        self.assertEqual([i for i in base["ids"] if i != base["target_ids"][0]], [i for i in mv["ids"] if i != base["target_ids"][0]], "other records keep their order")
+        self.assertEqual(mv["ids"][t], base["ids"][-1], "the former tail record takes the queried record's old slot")
         self.assertEqual(mv["parent_doc_id"], base["doc_id"])
+        self.assertEqual(mv["prefix_token_count"], base["prefix_token_count"])
+        tail = self.gd.build_document(self.tok, CONFIG, "T1", "2K", 8)             # back_near target: nothing to move
+        with self.assertRaises(ValueError):
+            self.gd.rewrite_document(self.tok, CONFIG, tail, "move")
         with self.assertRaises(ValueError):
             self.gd.rewrite_document(self.tok, CONFIG, base, "base")
 
