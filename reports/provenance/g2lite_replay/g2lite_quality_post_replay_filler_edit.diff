@@ -1,0 +1,69 @@
+--- reports/provenance/g2lite_replay/g2lite_quality_at_replay_filler_run.py
++++ bench/g2lite_quality.py
+@@ -25,6 +25,12 @@
+        BF  recent + filler: F + the |header| filler positions right after the header (content-neutral, digit-free prose,
+                             checked at run time) + the k - |header| most recent candidates (BH's window and read count;
+                             separates the header's content from its early position, reports/cards/G2lite_replay_filler_mac_m4max.md)
++       BG  recent + format clause: F + the token positions of the header's format clause 「格式为「编号 X：Y」，Y 是编号 X
++                            对应的四位数值。\n\n」 ([18, 37) in the formal data, 19 candidates) + the k - 19 most recent candidates
++       BA  recent + first clause:  F + the token positions of the header's first clause 「下面是一份工作记录，其中穿插着若干条
++                            编号记录，」 ([3, 18); position 3 lies in F, 14 candidates) + the k - 14 most recent candidates
++                            (both B's read count; the two windows differ from B's by the pinned counts; they split the header
++                            text, reports/cards/G2lite_replay_header_split_mac_m4max.md)
+ A run that uses them is marked `diagnostic_replay` in its summary and is excluded from scripts/g2lite_report.py.
+ """
+ from __future__ import annotations
+@@ -53,13 +59,21 @@
+     "BH": {"mode": "sparse", "selector": "recent_pinned", "pin": "header", "label": "近期窗口+表头：F ∪ 表头全部 token 的位置 ∪ 最近 k − |表头| 个候选（名额总数与 B 相同）"},
+     "BM": {"mode": "sparse", "selector": "recent", "pin": "header", "k0_minus_pinned": True, "label": "近期窗口减名额（对照）：F ∪ 最近 k − |表头| 个候选，不含表头（读取数比 B 少 |表头|）"},
+     "BF": {"mode": "sparse", "selector": "recent_pinned", "pin": "filler_after_header", "label": "近期窗口+填充句：F ∪ 表头之后同样多的填充句位置 ∪ 最近 k − |表头| 个候选（名额总数与 B 相同，窗口与 BH 相同）"},
++    "BG": {"mode": "sparse", "selector": "recent_pinned", "pin": "header_format_clause", "label": "近期窗口+格式句：F ∪ 表头格式句的 token 位置 ∪ 最近 k − |格式句| 个候选（名额总数与 B 相同）"},
++    "BA": {"mode": "sparse", "selector": "recent_pinned", "pin": "header_first_clause", "label": "近期窗口+前半句：F ∪ 表头前半句的 token 位置 ∪ 最近 k − |前半句| 个候选（名额总数与 B 相同）"},
++}
++HEADER_CLAUSES = {   # the two clauses of the frozen header (configs/mac_g2lite.json data.header), pinned separately by BA / BG
++    "header_first_clause": "下面是一份工作记录，其中穿插着若干条编号记录，",
++    "header_format_clause": "格式为「编号 X：Y」，Y 是编号 X 对应的四位数值。\n\n",
+ }
+ 
+ 
+ def pinned_span(doc: dict, kind: str, tok) -> list:
+     """[start, end) prefix positions pinned by a diagnostic method. "header": the header's token span (positions 3..36 in
+     the formal data; position 3 lies in F, so 33 of them are candidates). "filler_after_header": the same number of
+-    positions immediately after the header, which must be digit-free filler before the first record (checked here)."""
++    positions immediately after the header, which must be digit-free filler before the first record (checked here).
++    "header_first_clause" / "header_format_clause": one of the two clauses of the header (`HEADER_CLAUSES`), located with
++    the tokenizer's offset mapping and checked to decode back to the clause (header-split replay)."""
+     hs, he = doc["header_span"]
+     if kind == "header":
+         if not doc.get("header_span_exact"):
+@@ -72,7 +86,30 @@
+         if any(s < fe for s, _ in doc["record_spans"]) or any(ch.isdigit() for ch in text) or "编号" in text:
+             raise RuntimeError(f"{doc['doc_id']}: positions [{fs}, {fe}) are not pure filler; refusing to pin them")
+         return [fs, fe]
++    if kind in HEADER_CLAUSES:
++        return header_clause_span(doc, kind, tok)
+     raise ValueError(f"unknown pin kind {kind!r}")
++
++
++def header_clause_span(doc: dict, kind: str, tok) -> list:
++    """[start, end) prefix positions of one header clause, from the fast tokenizer's offset mapping over the prefix text
++    (the same sweep that places the record spans). Checked here: the registered clauses concatenate to the header the
++    document carries, the two clause spans partition the header span, and each span decodes back to its clause; any
++    mismatch (a changed config, a tokenizer that merges across the clause boundary) refuses to pin instead of pinning
++    the wrong tokens."""
++    first_text, fmt_text = HEADER_CLAUSES["header_first_clause"], HEADER_CLAUSES["header_format_clause"]
++    header, text = first_text + fmt_text, doc["prefix_text"]
++    hs, he = doc["header_span"]
++    if not doc.get("header_span_exact") or text.count(header) != 1 or tok.decode(doc["prefix_ids"][hs:he]) != header:
++        raise RuntimeError(f"{doc['doc_id']}: the header text or its token span differs from the registered clauses; refusing to pin a clause")
++    h0 = text.index(header)
++    first, fmt = gd._token_spans(tok, text, [(h0, h0 + len(first_text)), (h0 + len(first_text), h0 + len(header))])
++    if first[0] != hs or first[1] != fmt[0] or fmt[1] != he:
++        raise RuntimeError(f"{doc['doc_id']}: the clause spans {first} / {fmt} do not partition the header span [{hs}, {he})")
++    for span, clause in ((first, first_text), (fmt, fmt_text)):
++        if tok.decode(doc["prefix_ids"][span[0]:span[1]]) != clause:
++            raise RuntimeError(f"{doc['doc_id']}: positions {span} do not decode to the registered clause; refusing to pin them")
++    return first if kind == "header_first_clause" else fmt
+ VARIANTS = ("base", "value", "irrelevant", "move")
+ WARN_BYTES, STOP_BYTES = 80_000_000_000, 100_000_000_000
+ 

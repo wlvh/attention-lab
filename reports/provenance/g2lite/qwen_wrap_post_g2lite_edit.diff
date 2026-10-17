@@ -1,0 +1,95 @@
+--- reports/provenance/g2lite/qwen_wrap_at_g2lite_runs.py
++++ src/attention_lab/qwen_wrap.py
+@@ -20,6 +20,11 @@
+ gathered read are shared; only the row list differs. `record_selection` keeps each layer's row list of the step in
+ flight for diagnostics (no attention matrices are stored).
+ 
++The header replay (reports/cards/G2lite_replay_header_mac_m4max.md) adds the selector "recent_pinned" (B+H): a list of
++pinned positions — the document header — takes slots of the candidate domain first and the k − |pinned| remaining slots
++go to the most recent unpinned candidates; F, k and the read count are B's. Pinned positions that lie in F or outside the
++candidate domain of a step are dropped for that step.
++
+ Nothing here trains anything, modifies the installed library, or re-initialises body weights.
+ """
+ from __future__ import annotations
+@@ -31,7 +36,7 @@
+ import torch
+ from torch import nn
+ 
+-from .decode import gathered_decode_step_kernel, select_rows_recent, select_rows_uniform, sparse_decode_step_kernel
++from .decode import gathered_decode_step_kernel, select_rows_recent, select_rows_recent_pinned, select_rows_uniform, sparse_decode_step_kernel
+ from .full import full_attention
+ from .indexer import GroupedIndexer, project_keys
+ from .selection import FIXED_PREFIX, FIXED_RECENT, fixed_budget, selection_layout
+@@ -153,7 +158,7 @@
+     fixed_rows: torch.Tensor   # [B,G,F] row ids in the flattened cache
+     off_lo: torch.Tensor       # [B,G,1] offsets + lo
+     step_index: int = 0        # 0 for the first decode step of the request
+-    shared_rows: torch.Tensor | None = None   # B: the row list is the same for every layer, built once per step
++    shared_rows: torch.Tensor | None = None   # B / B+H: the row list is the same for every layer, built once per step
+     uniform_rng: object | None = None         # C: numpy Generator of this step, seeded from (uniform_seed, request, step)
+ 
+     @property
+@@ -183,15 +188,16 @@
+ # ----------------------------------------------------------------------------------------------------------------------
+ # state shared by the wrapped layers and the wrapper module itself
+ # ----------------------------------------------------------------------------------------------------------------------
+-SELECTORS = ("index", "recent", "uniform")   # D0 / B / C
++SELECTORS = ("index", "recent", "uniform", "recent_pinned")   # D0 / B / C / B+H (header replay)
+ 
+ 
+ class LabState:
+     """One read configuration: a cache, optional indexers, the mode (full | sparse), the selector of a sparse read
+-    (index = D0, recent = B, uniform = C) and the plan of the step in flight."""
++    (index = D0, recent = B, uniform = C, recent_pinned = B+H with `pinned_positions`) and the plan of the step in flight."""
+ 
+     def __init__(self, cache: LabCache, indexers=None, *, mode: str = "full", selector: str = "index",
+-                 decode_backend: str = "sdpa_fold", prefill_backend: str = "sdpa_fold", uniform_seed: int = 0):
++                 decode_backend: str = "sdpa_fold", prefill_backend: str = "sdpa_fold", uniform_seed: int = 0,
++                 pinned_positions=None):
+         if mode not in ("full", "sparse"):
+             raise ValueError("mode must be 'full' or 'sparse'")
+         if selector not in SELECTORS:
+@@ -200,6 +206,11 @@
+             raise ValueError("the index selector (D0) needs indexers and a cache with an index table")
+         if indexers is not None and len(indexers) != cache.layers:
+             raise ValueError("one indexer per layer")
++        self.pinned_positions = None if pinned_positions is None else sorted({int(p) for p in pinned_positions})
++        if selector == "recent_pinned" and not self.pinned_positions:
++            raise ValueError("the recent_pinned selector (B+H) needs a non-empty list of pinned absolute positions")
++        if self.pinned_positions and self.pinned_positions[0] < 0:
++            raise ValueError("pinned positions must be non-negative absolute positions")
+         self.cache, self.indexers, self.mode, self.selector = cache, indexers, mode, selector
+         self.decode_backend, self.prefill_backend = decode_backend, prefill_backend
+         self.uniform_seed = int(uniform_seed)
+@@ -294,9 +305,9 @@
+                                                           idx.wq_t_scaled, idx.wk, plan.fixed_rows, plan.off_lo, plan.lo,
+                                                           plan.hi, plan.k, plan.selected_count, k_pre_new=k_pre,
+                                                           write_col=plan.write_col, scale=self.scaling, return_rows=True)
+-                else:                                         # B / C: same F, same count, no scoring, no index table
++                else:                                         # B / B+H / C: same F, same count, no scoring, no index table
+                     cache.append(l, k_main, v)
+-                    if st.selector == "recent":
++                    if st.selector in ("recent", "recent_pinned"):
+                         rows = plan.shared_rows               # built once per step by LabRunner.forward
+                     else:
+                         rows = select_rows_uniform(plan.fixed_rows, plan.off_lo, plan.lo, plan.hi, plan.k, rng=plan.uniform_rng)
+@@ -373,7 +384,7 @@
+ def make_state(model, capacity: int, mode: str, *, selector: str = "index", r: int = 32, seed: int = 0, batch: int = 1,
+                **kw) -> LabState:
+     """A: mode "full". D0: mode "sparse" (selector "index", cache with index table + indexers). B / C: mode "sparse" with
+-    selector "recent" / "uniform" (no index table, no indexers)."""
++    selector "recent" / "uniform" (no index table, no indexers). B+H: selector "recent_pinned" with `pinned_positions`."""
+     with_index = mode == "sparse" and selector == "index"
+     cache = make_cache(model, capacity, with_index=with_index, index_dim=r, batch=batch)
+     idx = make_indexers(model, r=r, seed=seed) if with_index else None
+@@ -442,6 +453,9 @@
+                 st.plan.step_index = start + 1 - st.request_start_length
+                 if st.selector == "recent":
+                     st.plan.shared_rows = select_rows_recent(st.plan.fixed_rows, st.plan.off_lo, st.plan.lo, st.plan.hi, st.plan.k)
++                elif st.selector == "recent_pinned":          # B+H: pinned positions inside this step's candidate domain, the rest recent
++                    rel = [p - st.plan.lo for p in st.pinned_positions if st.plan.lo <= p < st.plan.hi]
++                    st.plan.shared_rows = select_rows_recent_pinned(st.plan.fixed_rows, st.plan.off_lo, st.plan.lo, st.plan.hi, st.plan.k, rel)
+                 elif st.selector == "uniform":
+                     st.plan.uniform_rng = st.uniform_rng(st.plan.step_index)
+         self.holder.state = st
