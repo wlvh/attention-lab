@@ -188,6 +188,7 @@ class LabState:
         self.cache, self.indexers, self.mode = cache, indexers, mode
         self.decode_backend, self.prefill_backend = decode_backend, prefill_backend
         self.plan: StepPlan | None = None
+        self.phase: str | None = None      # "prefill" | "decode", set by LabRunner before every forward; never inferred from T
         self.rho = None
         self.k0 = None
         self.request_start_length = None
@@ -249,21 +250,30 @@ class LabAttention(nn.Module):
         L0 = cache.valid_length
         G, h, d = self.num_groups, self.heads_per_group, self.head_dim
         q5 = q_main.view(B, G, h, T, d)                                                 # query head g*h+i reads group g
-        if T == 1 and st.mode == "sparse":
-            plan = st.plan
-            if plan is None or plan.legal_length != L0 + 1:
-                raise RuntimeError("sparse decode needs a StepPlan built for this step's legal length")
-            idx = st.indexers[l]
-            cache.append(l, k_main, v)                        # K/V once; z of the new key is written by the kernel below
-            out = sparse_decode_step_kernel(q5, q_pre.view(B, G, h, 1, d), cache.k[l], cache.v[l], cache.z[l],
-                                            idx.wq_t_scaled, idx.wk, plan.fixed_rows, plan.off_lo, plan.lo, plan.hi,
-                                            plan.k, plan.selected_count, k_pre_new=k_pre, write_col=plan.write_col,
-                                            scale=self.scaling)
-        else:
-            z = project_keys(k_pre, st.indexers[l].wk) if cache.has_index else None     # index keys from pre-RoPE K
+        if st.phase not in ("prefill", "decode"):
+            raise RuntimeError("LabState.phase must be 'prefill' or 'decode' (set by LabRunner.prefill / LabRunner.step); "
+                               "the phase is never inferred from the input length")
+        if st.phase == "decode":
+            if T != 1:
+                raise RuntimeError("a decode step takes exactly one new token")
+            if st.mode == "sparse":
+                plan = st.plan
+                if plan is None or plan.legal_length != L0 + 1:
+                    raise RuntimeError("sparse decode needs a StepPlan built for this step's legal length")
+                idx = st.indexers[l]
+                cache.append(l, k_main, v)                    # K/V once; z of the new key is written by the kernel below
+                out = sparse_decode_step_kernel(q5, q_pre.view(B, G, h, 1, d), cache.k[l], cache.v[l], cache.z[l],
+                                                idx.wq_t_scaled, idx.wk, plan.fixed_rows, plan.off_lo, plan.lo, plan.hi,
+                                                plan.k, plan.selected_count, k_pre_new=k_pre, write_col=plan.write_col,
+                                                scale=self.scaling)
+            else:
+                cache.append(l, k_main, v)
+                out = full_attention(q5, cache.k[l], cache.v[l], valid_length=L0 + 1, backend=st.decode_backend, scale=self.scaling)
+        else:   # prefill: the full read over every legal position whatever the chunk size (a one-token chunk included);
+                # the index table is filled from the pre-RoPE K when the cache has one; nothing is selected
+            z = project_keys(k_pre, st.indexers[l].wk) if cache.has_index else None
             cache.append(l, k_main, v, z)
-            backend = st.decode_backend if T == 1 else st.prefill_backend
-            out = full_attention(q5, cache.k[l], cache.v[l], valid_length=L0 + T, backend=backend, scale=self.scaling)
+            out = full_attention(q5, cache.k[l], cache.v[l], valid_length=L0 + T, backend=st.prefill_backend, scale=self.scaling)
         attn = out.view(B, self.num_heads, T, d).transpose(1, 2).reshape(B, T, self.num_heads * d)
         return inner.o_proj(attn), None
 
@@ -370,16 +380,25 @@ class LabRunner:
     def cache(self) -> LabCache:
         return self.state.cache
 
-    def forward(self, input_ids: torch.Tensor, *, logits_to_keep: int = 1) -> torch.Tensor:
+    def forward(self, input_ids: torch.Tensor, *, phase: str, logits_to_keep: int = 1) -> torch.Tensor:
+        """One model forward over `input_ids`. `phase` is explicit: "prefill" reads every legal position and fills the
+        index table (any chunk size, a single token included); "decode" is one new token read by the state's mode."""
+        if phase not in ("prefill", "decode"):
+            raise ValueError("phase must be 'prefill' or 'decode'")
         st, cache = self.state, self.state.cache
         B, T = input_ids.shape
         if B != cache.batch:
             raise ValueError("batch size differs from the cache")
         start = cache.valid_length
-        if T == 1 and st.mode == "sparse":
-            if st.k0 is None:
-                raise RuntimeError("call state.begin_request(rho) before the first sparse decode step")
-            st.plan = build_step_plan(cache, start + 1, st.k0)
+        st.phase = phase
+        st.plan = None
+        if phase == "decode":
+            if T != 1:
+                raise ValueError("a decode step takes exactly one token per sequence")
+            if st.mode == "sparse":
+                if st.k0 is None:
+                    raise RuntimeError("call state.begin_request(rho) before the first sparse decode step")
+                st.plan = build_step_plan(cache, start + 1, st.k0)
         self.holder.state = st
         out = self.model(input_ids=input_ids, position_ids=self.positions[start:start + T].unsqueeze(0),
                          attention_mask=MASK_BYPASS, use_cache=False, logits_to_keep=logits_to_keep)
@@ -394,7 +413,7 @@ class LabRunner:
         outs = []
         logits = None
         for a in range(0, T, chunk):
-            logits = self.forward(input_ids[:, a:a + chunk], logits_to_keep=0 if keep_logits else 1)
+            logits = self.forward(input_ids[:, a:a + chunk], phase="prefill", logits_to_keep=0 if keep_logits else 1)
             if keep_logits:
                 outs.append(logits)
         return torch.cat(outs, dim=1) if keep_logits else logits
@@ -403,7 +422,7 @@ class LabRunner:
         """One decode step: token ids [B,1] -> vocabulary scores [B,1,V] of the next token."""
         if token_ids.shape[1] != 1:
             raise ValueError("a decode step takes one token per sequence")
-        return self.forward(token_ids, logits_to_keep=1)
+        return self.forward(token_ids, phase="decode", logits_to_keep=1)
 
     def rollback(self, length: int) -> None:
         self.state.cache.rollback(length)
