@@ -1,6 +1,6 @@
 # 接力状态
 
-更新日期：2026-10-17。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_DONE（工程完成；性能 `correct_but_not_faster`，收口速度主线）/ NOTEBOOK_02_DONE**，分支 `task/g1b-qwen-mac` 待 PR 评审。
+更新日期：2026-10-17。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_DONE（工程完成；性能 `correct_but_not_faster`，收口速度主线）/ NOTEBOOK_02_DONE / P0_FUSED_SCORE_DONE（停止门通过）/ P1_FUSED_ATTEND_DONE（停止门未通过：比值 0.82 / 0.83 > 0.80）/ FUSED_KERNEL_LINE_STOPPED（用户决定，2026-10-17）/ PR2_MERGED（`e682e9b`）**。`task/p0-fused-score-kernel`（PR #3）是已停止的独立实验原型，目标分支改为 main，待归档评审；可合并的记录不等于内核完成生产验收。
 
 ## 远端与发布
 
@@ -48,14 +48,30 @@ MPS 能力、带宽、提交开销与索引路径原语成本；关键发现是 
 - 消耗：设备活跃时间约 10 分钟，现金 0，下载 1.5 GB。累计 G0 + G1a + G1b 约 55 分钟。
 - **PR #2 评审收尾补丁（2026-10-17）**：显式阶段状态（`LabState.phase`，`forward()` 必须给出阶段；tiny 模型测试含单 token 资料、chunk = 1、8193 按 2048 分块）；数值比较两侧 `torch.isfinite` 先于聚合（反例测试注入 NaN）；manifest 记录 `HF_HUB_OFFLINE`；数值重跑 run 4 `g1b-numerics-20261017T085459Z-formal4`（98 项与 run 3 逐项相同）；32K 最小对照 run `g1b-mac-20261017T085522Z-phasefix`（A 21.76 / D 19.25 ms，D/A 0.884，判定不变，报告附录）；报告输入与跑分时源码快照归档在 `reports/provenance/`（`check_provenance.py` 覆盖，干净目录可重生报告）；卡片、状态、范围说明的措辞与算术更正（fp32 缓存余量 1.56 倍、剖析归因未分离、DynamicCache 载荷增长与分配器快照、判据修订时间、`correct_but_not_faster` 含义、bf16 三层表述）。判定不变。
 
+## 本轮完成：P0 预检（用户授权半天，2026-10-17 07:35 到 07:40 UTC，分支 `task/p0-fused-score-kernel`）
+
+- 问题：D 链的打分段（z 列写入 + u 投影 + 候选打分，PyTorch 路径是 3 个 bmm + 1 个 copy_）做成一个 Metal 核能否接近带宽下界。任务书 `docs/tasks/04_FUSED_D_KERNEL.md`，停止门写在开工前。
+- 实现：`src/attention_lab/metal_score.py`（`torch.mps.compile_shader`；v1 每线程一列 2 字节读取，v2 每线程 4 列 8 字节向量读取 + 共享内存归约，两版保留）、`tests/test_metal_score.py`（4 项）、`bench/p0_score_kernel.py`、`scripts/p0_report.py`。
+- 结果（两个独立进程，28 层轮换，bf16）：32K 处 fused v2 一次启动 **69.7 / 70.0 µs/层**（有效 236 GB/s；PyTorch 四算子链 102，只打分的 bmm 62.6），对链比值 0.69 / 0.68；8K 47.9（0.48–0.50），16K 56.4（0.58–0.63）。第一版核 209 µs（79 GB/s）不过门，重设计一次后通过。数值：fused fp32 分数对 float32 参照 ≤ 3.6e-7（PyTorch bf16 路径 6e-3），z 列逐位相同，top-k 集合一致 99.6% 到 99.7%。
+- 判定：**P0 停止门通过**（三条、两进程）。单靠这一段整模型 32K D/A 只能从 0.930 到约 0.89（估算）；要稳定越线需要 P1（取行注意力核）与 P2（选择核）。**P1 未授权，未开始。** 不改模型路径、不改 G1a 核。证据：`reports/p0_score_kernel_mac_m4max.md`、`reports/cards/P0_fused_score_mac_m4max.md`、`runs/p0-formal.log`。
+- 消耗：设备活跃时间 < 1 分钟，现金 0。
+
+## 本轮完成：P1（用户授权，2026-10-17 07:55 到 07:58 UTC，分支 `task/p0-fused-score-kernel`）
+
+- 问题：D 链的取行注意力段（两次拉平 `index_select` + 子集 SDPA）做成按行表直接读缓存的 Metal 核，S = 1076 时能否 ≤ 60 µs/层且比值 ≤ 0.80。
+- 实现：`src/attention_lab/metal_attend.py`（每 simdgroup 一行、32 lane × 4 维、两个查询头共用读取、在线 softmax、分区合并核；交错布局与排序行表作诊断）、`tests/test_metal_attend.py`（6 项，对 `dense_mask_reference`）、`bench/p1_attend_kernel.py`、`scripts/p1_report.py`。
+- 结果（两个独立进程）：S = 1076 处最优 P8 **38.5 / 39.8 µs**（113 GB/s 有效），PyTorch 路径 47.0 / 48.1 µs（93 GB/s），比值 **0.82 / 0.83**；S = 324 处 27.9 µs（0.85–0.86）；S = 580 处 36.0 µs（0.96–0.99）。数值：对 float32 参照 ≤ 2.4e-7，bf16 输出 100% 逐位等于 RNE。交错布局、排序行表均在 ±2% 内无影响。
+- 判定：**时间与数值通过，比值门未通过 → 按预登记规则停止**。取行段受随机访存效率限制而非核数量限制，PyTorch 的 index_select 已接近同一下界；用局部节省推出的三段全融合整模型 32K D/A 约 0.84 到 0.88 是情景推算，不是实测也不是严格上限（G1a 到 G1b 已显示局部节省不会原样进入整模型；范围说明的"乐观 0.65"前提不成立）。P0 在 fp32 中算分数，旧路径含 bf16 中间结果，top-k 集合一致率 99.6% 到 99.7%，不是逐位等价替换。G1b 的收口结论维持；不建议 P2。
+- 消耗：设备活跃时间不到 1 分钟，现金 0。累计 G0 + G1a + G1b + P0 + P1 约 57 分钟。
+
 ## 尚未完成
 
-性能主线已收口；以下均未启动、需用户决定与授权：融合 D 链的自定义 Metal 核；CUDA 复核轨道（4080 主机）；> 32,768 的上下文；G2 到 G5 的任何质量结论（`docs/tasks/03_G2_TO_G5.md` 仍为 BLOCKED）。本机磁盘在 G1b 运行时只剩约 28 GiB 可用（97%），后续大 run 前需留意。
+速度主线按 G1b 收口，融合核路线在 P1 后由用户决定停止（原型与记录在 PR #3，不接入模型路径）；以下均未启动、需用户决定与授权：CUDA 复核轨道（4080 主机）；> 32,768 的上下文；G2 到 G5 的任何质量结论（`docs/tasks/03_G2_TO_G5.md` 仍为 BLOCKED）。本机磁盘在 G1b 运行时只剩约 28 GiB 可用（97%），后续大 run 前需留意。
 
 ## 下一步
 
-1. 用户评审 G1b 的 PR（分支 `task/g1b-qwen-mac`，不自行合并）。
-2. 用户决定方向：(a) 以教学与边界结论收口；(b) 融合 D 链的自定义 Metal 核——范围说明见 `docs/SCOPING_FUSED_D_KERNEL.md`（估算：32K 比值乐观 0.65、保守 0.73 到 0.84，只在 32K 及以上有望越线；约 4 到 6 工程日，分阶段停止门；`torch.mps.compile_shader` 已核实可用）；(c) CUDA 复核轨道；(d) 更长上下文。任何一项都需要明确授权与新任务书，不自动开始。
+1. PR #2 已合并（`e682e9b`）。PR #3（`task/p0-fused-score-kernel`，已停止的独立实验原型）目标分支已改为 main，待用户评审归档；不自行合并。
+2. 融合核路线已由用户决定停止（2026-10-17）：P0 通过、P1 比值门未过，整模型比值的情景推算约 0.84 到 0.88（不是实测）；P2 到 P4 不做。剩余方向由用户另行决定：(a) 以教学与边界结论收口；(b) CUDA 复核轨道；(c) 更长上下文。任何一项都需要明确授权，不自动开始。
 3. 不重跑 G0/G1a，不训练，不租云。
 
 ```bash
