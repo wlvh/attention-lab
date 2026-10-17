@@ -23,6 +23,10 @@ T2 asks for two far-apart records in a stated order (ascending position for even
 Rewrites (counterfactuals) rebuild the whole document: "value" changes only the queried record's value; "irrelevant"
 changes only one non-target record at least `irrelevant_min_distance_records` records away; "move" swaps the queried
 record into the back_near tail slot. Nothing here loads the model.
+
+Every document also records `header_span`, the [start, end) token span of the header inside the prefix (positions 3..36
+in the formal data: the chat-template head takes positions 0..2), and `header_span_exact`, whether that span decodes back
+to the header text. The header replay (reports/cards/G2lite_replay_header_mac_m4max.md) pins exactly these positions.
 """
 from __future__ import annotations
 
@@ -133,13 +137,14 @@ def _measure(tok, cfg: dict, segments: list, question: str) -> tuple[list[int], 
     data = cfg["data"]
     content = data["header"] + "".join(t for _, t in segments) + data["table_end"]
     full_text, prefix_text = render_prompt(tok, content, question, enable_thinking=bool(cfg["prompt"]["enable_thinking"]), marker=data.get("question_marker", QUESTION_MARKER))
-    head = full_text.index(data["header"]) + len(data["header"])
+    h0 = full_text.index(data["header"])
+    head = h0 + len(data["header"])
     spans, pos = [], head
     for kind, t in segments:
         if kind == "record":
             spans.append((pos, pos + len(t.rstrip("\n"))))
         pos += len(t)
-    return encode(tok, prefix_text), encode(tok, full_text), full_text, prefix_text, spans
+    return encode(tok, prefix_text), encode(tok, full_text), full_text, prefix_text, spans, (h0, head)
 
 
 def layout_document(tok, cfg: dict, rng: random.Random, ids: list[str], values: list[str], question: str) -> tuple[list, dict]:
@@ -169,7 +174,7 @@ def layout_document(tok, cfg: dict, rng: random.Random, ids: list[str], values: 
         segments.append(("filler", streams[n - 1].block(tails[0])))
         segments.append(("record", lines[n - 1]))                 # back_near record
         segments.append(("filler", streams[n].block(tails[1])))   # trailing filler: sets the near record's distance from the end
-        prefix_ids, full_ids, full_text, prefix_text, char_spans = _measure(tok, cfg, segments, question)
+        prefix_ids, full_ids, full_text, prefix_text, char_spans, header_chars = _measure(tok, cfg, segments, question)
         tspans = _token_spans(tok, prefix_text, char_spans)
         P = len(prefix_ids)
         dist = [P - e for _, e in tspans]
@@ -180,7 +185,8 @@ def layout_document(tok, cfg: dict, rng: random.Random, ids: list[str], values: 
         ok_far = lay["back_far_tokens_from_end"][0] <= dist[n - 2] <= lay["back_far_tokens_from_end"][1]
         if ok_len and ok_near and ok_far:
             return segments, {"prefix_ids": prefix_ids, "full_ids": full_ids, "full_text": full_text, "prefix_text": prefix_text, "token_spans": tspans,
-                              "tokens_per_record": per, "layout_attempts": attempt + 1, "d_near_planned": d_near, "d_far_planned": d_far}
+                              "tokens_per_record": per, "layout_attempts": attempt + 1, "d_near_planned": d_near, "d_far_planned": d_far,
+                              "header_span": _token_spans(tok, prefix_text, [header_chars])[0]}
         if not ok_near:
             tails[1] = max(1, tails[1] + err_near)
         if not ok_far:
@@ -207,6 +213,7 @@ def assemble(tok, cfg: dict, *, task: str, length_tag: str, doc_index: int, vari
     targets = [values[i] for i in target_indices]
     target_spans = [spans[i] for i in target_indices]
     prefix_len = len(prefix_ids)
+    hs, he = m["header_span"]
     doc = {
         "doc_id": doc_identifier(task, length_tag, doc_index, variant), "task": task, "length_tag": length_tag,
         "target_tokens": int(data["lengths"][length_tag]), "doc_index": doc_index, "variant": variant, "parent_doc_id": parent_doc_id,
@@ -220,6 +227,7 @@ def assemble(tok, cfg: dict, *, task: str, length_tag: str, doc_index: int, vari
         "record_spans": spans, "record_distance_from_prefix_end": [prefix_len - s_[1] for s_ in spans], "prefix_sha256": sha256_text(m["prefix_text"]),
         "prompt_sha256": sha256_text(m["full_text"]), "generator_version": data["generator_version"], "tokens_per_record": m["tokens_per_record"],
         "layout": {"attempts": m["layout_attempts"], "d_near_planned": m["d_near_planned"], "d_far_planned": m["d_far_planned"]}, "note": note,
+        "header_span": [hs, he], "header_token_count": he - hs, "header_span_exact": tok.decode(prefix_ids[hs:he]) == data["header"],
     }
     return doc
 

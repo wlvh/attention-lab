@@ -100,6 +100,46 @@
       "path": "reports/provenance/g1b/qwen_wrap_post_g1b_edit.diff",
       "bytes": 10772,
       "sha256": "db3b75b789cc387aed10abd6eeefc500d7ea13360b2d208c42666ced490a2156"
+    },
+    {
+      "path": "reports/provenance/g2lite/decode_at_g2lite_runs.py",
+      "bytes": 10072,
+      "sha256": "273e3abe809312ab824707a0de63df54967d73fb13e63c73b5d6c2b409e9a183"
+    },
+    {
+      "path": "reports/provenance/g2lite/decode_post_g2lite_edit.diff",
+      "bytes": 3012,
+      "sha256": "1ddd1d2a62262d18123b72df69cda5de8c11500712bfb934b443cf873e24246d"
+    },
+    {
+      "path": "reports/provenance/g2lite/qwen_wrap_at_g2lite_runs.py",
+      "bytes": 35144,
+      "sha256": "a4ae836a3ae63aa3d8de47d92f0aaa8ccf90a62f5d29524863e80ac6d13d14ca"
+    },
+    {
+      "path": "reports/provenance/g2lite/qwen_wrap_post_g2lite_edit.diff",
+      "bytes": 6817,
+      "sha256": "c63d11a784ae9d7fa7aa23cc47a24e25a424aea64cf680104271e177e7ec74aa"
+    },
+    {
+      "path": "reports/provenance/g2lite/g2lite_data_at_g2lite_runs.py",
+      "bytes": 18883,
+      "sha256": "7a82de22754a838768607e3e2b1789e9ce4a82d7e284e614be5897ab84a7ceff"
+    },
+    {
+      "path": "reports/provenance/g2lite/g2lite_data_post_g2lite_edit.diff",
+      "bytes": 4324,
+      "sha256": "794e2e40885aafdbf7115d2a86d0c77aa1ac22c68ba708f8e0fb01dfff804665"
+    },
+    {
+      "path": "reports/provenance/g2lite/g2lite_quality_at_g2lite_runs.py",
+      "bytes": 21872,
+      "sha256": "d397c5013adac63f9413f388956091b483dd9e5aa48229e49d7f8aa500ab804a"
+    },
+    {
+      "path": "reports/provenance/g2lite/g2lite_quality_post_g2lite_edit.diff",
+      "bytes": 9099,
+      "sha256": "4048e9e3ddef87b15269221b959064234c41a421eaf430dc38ce0a75643a1d4a"
     }
   ],
   "regenerate": [

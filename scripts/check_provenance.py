@@ -20,8 +20,14 @@ G1b (PR #2 review, finding 3):
 6. The three earlier numerics runs inside g1b_runs_20261017.tar.gz ran on the three archived script versions.
 
 G2-lite (PR #5), only once reports/g2lite_manifest_mac_m4max.json exists:
-8. Every formal G2-lite run manifest names the committed selector, data, scorer, wrapper and harness sources (the runs
-   were made on committed code; any later edit must come with a snapshot and a recorded diff like the ones above).
+8. Every formal G2-lite run manifest names the as-run selector, data, wrapper and harness sources archived under
+   reports/provenance/g2lite/ (the runs were made on committed code at af62df4; the header replay edited these four files
+   afterwards, so the committed files may differ from the snapshots only by the recorded g2lite/*_post_g2lite_edit.diff),
+   and the committed scorer src/attention_lab/g2lite_eval.py (unchanged since).
+
+Header replay (reports/g2lite_replay_header_manifest_mac_m4max.json), only once it exists:
+9. Every formal replay run manifest names the committed selector, data, scorer, wrapper and harness sources (the replay
+   runs were made on committed code).
 
 P0 / P1 (PR #3, stopped prototype), only where the kernel sources exist:
 7. The four formal P0/P1 run manifests inside p0p1_runs_20261017.tar.gz name the committed metal_score.py /
@@ -91,15 +97,21 @@ def main() -> int:
     for run in manifest["runs"] + g1b["benchmarks"] + g1b.get("appendix_benchmarks", []) + g1b.get("numerics", []):
         if run.get("source_hashes", {}).get("src/attention_lab/decode.py") != snap_decode:
             errors.append(f"{run.get('run_id')}: decode.py hash != archived G1a/G1b snapshot")
-    for snap, diff_file, current in (("qwen_wrap_at_formal_decode_run.py", "qwen_wrap_post_run_edit.diff", "qwen_wrap_at_g1b_numerics4_and_phasefix_runs.py"),
-                                     ("model_decode_bench_at_formal_decode_run.py", "model_decode_bench_post_run_edit.diff", "bench/model_decode_bench.py"),
-                                     ("qwen_wrap_at_g1b_numerics4_and_phasefix_runs.py", "qwen_wrap_post_g1b_edit.diff", "src/attention_lab/qwen_wrap.py"),
-                                     ("decode_at_g1a_g1b_runs.py", "decode_post_g1b_edit.diff", "src/attention_lab/decode.py")):
-        target = (pg / current) if not current.startswith(("src/", "bench/")) else (ROOT / current)
-        stored_ = changed_lines((pg / diff_file).read_text(encoding="utf-8"))
-        current_ = changed_lines("".join(difflib.unified_diff((pg / snap).read_text(encoding="utf-8").splitlines(True), target.read_text(encoding="utf-8").splitlines(True))))
+    # snapshot chains: each as-run snapshot differs from the next snapshot (or the committed file) only by the recorded diff
+    chains = (("g1b/qwen_wrap_at_formal_decode_run.py", "g1b/qwen_wrap_post_run_edit.diff", "g1b/qwen_wrap_at_g1b_numerics4_and_phasefix_runs.py"),
+              ("g1b/model_decode_bench_at_formal_decode_run.py", "g1b/model_decode_bench_post_run_edit.diff", "bench/model_decode_bench.py"),
+              ("g1b/qwen_wrap_at_g1b_numerics4_and_phasefix_runs.py", "g1b/qwen_wrap_post_g1b_edit.diff", "g2lite/qwen_wrap_at_g2lite_runs.py"),
+              ("g1b/decode_at_g1a_g1b_runs.py", "g1b/decode_post_g1b_edit.diff", "g2lite/decode_at_g2lite_runs.py"),
+              ("g2lite/qwen_wrap_at_g2lite_runs.py", "g2lite/qwen_wrap_post_g2lite_edit.diff", "src/attention_lab/qwen_wrap.py"),
+              ("g2lite/decode_at_g2lite_runs.py", "g2lite/decode_post_g2lite_edit.diff", "src/attention_lab/decode.py"),
+              ("g2lite/g2lite_data_at_g2lite_runs.py", "g2lite/g2lite_data_post_g2lite_edit.diff", "src/attention_lab/g2lite_data.py"),
+              ("g2lite/g2lite_quality_at_g2lite_runs.py", "g2lite/g2lite_quality_post_g2lite_edit.diff", "bench/g2lite_quality.py"))
+    for snap, diff_file, current in chains:
+        target = (ROOT / current) if current.startswith(("src/", "bench/")) else (PROV / current)
+        stored_ = changed_lines((PROV / diff_file).read_text(encoding="utf-8"))
+        current_ = changed_lines("".join(difflib.unified_diff((PROV / snap).read_text(encoding="utf-8").splitlines(True), target.read_text(encoding="utf-8").splitlines(True))))
         if stored_ != current_:
-            errors.append(f"{current} differs from its as-run snapshot by lines not recorded in {diff_file}")
+            errors.append(f"{current} differs from its as-run snapshot {snap} by lines not recorded in {diff_file}")
     # the three earlier numerics runs inside the archive ran on three recorded versions of bench/model_numerics.py
     expected_numerics = {"g1b-numerics-20261016T202211Z-formal": "model_numerics_at_formal_run.py", "g1b-numerics-20261016T202822Z-formal2": "model_numerics_at_formal2_run.py",
                          "g1b-numerics-20261016T204139Z-formal3": "model_numerics_at_formal3_run.py"}
@@ -133,18 +145,31 @@ def main() -> int:
                     p0p1_checked += 1
         if p0p1_checked != 4:
             errors.append(f"expected 4 formal P0/P1 run manifests in the archive, found {p0p1_checked}")
-    # ---- G2-lite (PR #5): formal quality runs on committed code ----
+    # ---- G2-lite (PR #5): formal quality runs on the code committed at af62df4, archived as g2lite/* snapshots ----
     g2_path = ROOT / "reports/g2lite_manifest_mac_m4max.json"
     g2_checked = 0
+    g2_files = ["src/attention_lab/decode.py", "src/attention_lab/qwen_wrap.py", "src/attention_lab/g2lite_data.py", "src/attention_lab/g2lite_eval.py", "bench/g2lite_quality.py"]
     if g2_path.is_file():
         g2 = json.loads(g2_path.read_text(encoding="utf-8"))
-        g2_files = ["src/attention_lab/decode.py", "src/attention_lab/qwen_wrap.py", "src/attention_lab/g2lite_data.py", "src/attention_lab/g2lite_eval.py", "bench/g2lite_quality.py"]
-        g2_committed = {f_: sha256(ROOT / f_) for f_ in g2_files}
+        g2_snapshots = {"src/attention_lab/decode.py": sha256(PROV / "g2lite/decode_at_g2lite_runs.py"), "src/attention_lab/qwen_wrap.py": sha256(PROV / "g2lite/qwen_wrap_at_g2lite_runs.py"),
+                        "src/attention_lab/g2lite_data.py": sha256(PROV / "g2lite/g2lite_data_at_g2lite_runs.py"), "bench/g2lite_quality.py": sha256(PROV / "g2lite/g2lite_quality_at_g2lite_runs.py"),
+                        "src/attention_lab/g2lite_eval.py": sha256(ROOT / "src/attention_lab/g2lite_eval.py")}
         for run in g2.get("runs", []):
-            for f_, h in g2_committed.items():
+            for f_, h in g2_snapshots.items():
                 if run.get("source_hashes", {}).get(f_) != h:
-                    errors.append(f"{run.get('run_id')}: {f_} hash != committed file (G2-lite runs must be on committed code)")
+                    errors.append(f"{run.get('run_id')}: {f_} hash != {'as-run snapshot' if 'eval' not in f_ else 'committed file'} (G2-lite runs were made on committed code at af62df4)")
             g2_checked += 1
+    # ---- header replay: formal replay runs on committed code ----
+    rp_path = ROOT / "reports/g2lite_replay_header_manifest_mac_m4max.json"
+    rp_checked = 0
+    if rp_path.is_file():
+        rp = json.loads(rp_path.read_text(encoding="utf-8"))
+        rp_committed = {f_: sha256(ROOT / f_) for f_ in g2_files}
+        for run in rp.get("runs", []):
+            for f_, h in rp_committed.items():
+                if run.get("source_hashes", {}).get(f_) != h:
+                    errors.append(f"{run.get('run_id')}: {f_} hash != committed file (header-replay runs must be on committed code)")
+            rp_checked += 1
     if errors:
         print("\n".join(errors))
         return 1
@@ -152,7 +177,8 @@ def main() -> int:
           f"{len(g1b['benchmarks'])} manifest(s), {len(g1b.get('appendix_benchmarks', []))} appendix + {len(g1b.get('numerics', []))} numerics run(s) on committed code, "
           f"{len(seen)} archived numerics runs on their snapshots; {len(am['files'])} archived files verified; post-run edits limited to the recorded diffs"
           + (f"; {p0p1_checked} archived P0/P1 manifests name the committed kernels" if p0p1_checked else "")
-          + (f"; {g2_checked} G2-lite run manifest(s) on committed code." if g2_checked else "."))
+          + (f"; {g2_checked} G2-lite run manifest(s) on the af62df4 snapshots" if g2_checked else "")
+          + (f"; {rp_checked} header-replay run manifest(s) on committed code." if rp_checked else "."))
     return 0
 
 

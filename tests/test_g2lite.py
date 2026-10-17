@@ -7,6 +7,11 @@ draw is fixed by its seed, and with k0 = capacity all three degenerate to the fu
 did not list leaves its output bitwise unchanged while the full read breaks, which proves each method reads only its
 list. B and C never score (no index projections) and nothing uses torch.gather.
 
+Header replay (reports/cards/G2lite_replay_header_mac_m4max.md): B+H ("recent_pinned") reads exactly F, the pinned
+positions that lie in the candidate domain, and the k − |pinned| most recent unpinned candidates — the same count as B;
+pinned positions inside F or beyond the legal range are dropped; more pins than k is an error; the k0 override that
+builds the BM control shrinks the window by exactly the override. The data generator's header span decodes to the header.
+
 The scorer tests need no torch. The data tests need the pinned tokenizer in the local Hub cache (never downloaded).
 """
 from __future__ import annotations
@@ -41,7 +46,8 @@ TOL = {"float64": {"atol": 1e-10, "rel_norm": 1e-12}, "float32": {"atol": 1e-4, 
 MPS = torch is not None and torch.backends.mps.is_available()
 CASES = [("cpu", "float64")] + ([("mps", "float32"), ("mps", "bfloat16")] if MPS else [])
 SKIP_NO_TF = "transformers not installed (or torch not installed)"
-SELECTOR_OF = {"B": "recent", "C": "uniform", "D0": "index"}
+SELECTOR_OF = {"B": "recent", "C": "uniform", "D0": "index", "BH": "recent_pinned"}
+PINS = (2, 5, 6, 7, 20, 21, 200)   # B+H test pins: 2 lies in F (dropped), 200 is beyond the legal range of the test (dropped), five are candidates
 
 
 def tokenizer_present() -> bool:
@@ -110,12 +116,12 @@ def close(a, b, tol):
 class SelectorContracts(unittest.TestCase):
     L, PRE = 130, 100     # prompt of 100 tokens, then decode steps
 
-    def states(self, m, holder, ids, selectors, *, k0_override=None, rho=1 / 8, uniform_seed=3):
+    def states(self, m, holder, ids, selectors, *, k0_override=None, rho=1 / 8, uniform_seed=3, pins=PINS):
         """One state per selector, each prefilled with the same tokens; the index path owns the index table."""
         out = {}
         for name in selectors:
             sel = SELECTOR_OF[name]
-            st = make_state(m, self.L + 32, "sparse", selector=sel, uniform_seed=uniform_seed)
+            st = make_state(m, self.L + 32, "sparse", selector=sel, uniform_seed=uniform_seed, pinned_positions=pins if sel == "recent_pinned" else None)
             run = LabRunner(m, holder, st)
             run.prefill(ids[:, :self.PRE], 37)
             st.begin_request(None if k0_override is not None else rho, k0=k0_override)
@@ -129,7 +135,7 @@ class SelectorContracts(unittest.TestCase):
                 m = tiny(device, dtype)
                 ids = token_ids(self.L, seed=31).to(device)
                 holder = wrap_model(m)
-                S = self.states(m, holder, ids, ("B", "C", "D0"))
+                S = self.states(m, holder, ids, ("B", "C", "D0", "BH"))
                 k0 = fixed_budget(self.PRE + 1, 1 / 8)
                 self.assertEqual(k0, 13)
                 for step in range(3):
@@ -155,6 +161,11 @@ class SelectorContracts(unittest.TestCase):
                                 self.assertTrue(all(lo <= p < hi for p in extra), f"{name}: a row outside the candidate domain")
                                 if name == "B":
                                     self.assertEqual(extra, list(range(hi - 13, hi)), "B must take exactly the k most recent candidates")
+                                if name == "BH":   # pins inside the candidate domain first, then the most recent unpinned candidates
+                                    pins_in = [p for p in PINS if lo <= p < hi]
+                                    want = sorted(pins_in + [p for p in range(hi - 1, lo - 1, -1) if p not in pins_in][:13 - len(pins_in)])
+                                    self.assertEqual(extra, want, "B+H must read the pinned candidates plus the k - |pins| most recent unpinned ones")
+                                    self.assertEqual(len(pins_in), 5)
                     # C's rows differ from B's and from D0's (13 of 33 candidates: identical sets are astronomically unlikely)
                     pc, _ = positions_of(S["C"][0], 0)
                     pb, _ = positions_of(S["B"][0], 0)
@@ -200,7 +211,7 @@ class SelectorContracts(unittest.TestCase):
                 stA = make_state(m, self.L + 32, "full")
                 runA = LabRunner(m, holder, stA)
                 runA.prefill(ids[:, :self.PRE], 37)
-                S = self.states(m, holder, ids, ("B", "C", "D0"), k0_override=self.L + 32)
+                S = self.states(m, holder, ids, ("B", "C", "D0", "BH"), k0_override=self.L + 32)
                 for step in range(4):
                     tok = ids[:, self.PRE + step:self.PRE + step + 1]
                     outA = runA.step(tok)
@@ -216,7 +227,7 @@ class SelectorContracts(unittest.TestCase):
                 m = tiny(device, dtype)
                 ids = token_ids(self.L, seed=34).to(device)
                 holder = wrap_model(m)
-                for name in ("B", "C"):
+                for name in ("B", "C", "BH"):
                     st, run = self.states(m, holder, ids, (name,))[name]
                     stA = make_state(m, self.L + 32, "full")
                     runA = LabRunner(m, holder, stA)
@@ -249,7 +260,7 @@ class SelectorContracts(unittest.TestCase):
             m = tiny(device, dtype)
             ids = token_ids(self.L, seed=35)
             holder = wrap_model(m)
-            S = self.states(m, holder, ids, ("B", "C"))
+            S = self.states(m, holder, ids, ("B", "C", "BH"))
             with patch("attention_lab.decode.candidate_scores", side_effect=AssertionError("B/C must not score candidates")), \
                     patch("attention_lab.decode.project_queries", side_effect=AssertionError("B/C must not project queries")), \
                     patch("torch.gather", side_effect=AssertionError("torch.gather must not be used")), \
@@ -269,6 +280,8 @@ class SelectorContracts(unittest.TestCase):
                 LabState(make_cache(m, 64, with_index=False), None, mode="sparse", selector="index")   # D0 needs an index table
             with self.assertRaises(ValueError):
                 LabState(make_cache(m, 64, with_index=False), None, mode="sparse", selector="window")  # unknown selector
+            with self.assertRaises(ValueError):
+                LabState(make_cache(m, 64, with_index=False), None, mode="sparse", selector="recent_pinned")   # B+H needs pinned positions
             self.assertIsNone(make_state(m, 64, "sparse", selector="recent").cache.z)
             self.assertIsNotNone(make_state(m, 64, "sparse", selector="index").cache.z)
             # the G2-lite protocol: one dense prefix with the index table, then an independent clone per method
@@ -287,6 +300,64 @@ class SelectorContracts(unittest.TestCase):
                 outs[name] = run.step(ids[:, self.PRE:self.PRE + 1])
                 self.assertEqual(cache0.valid_length, self.PRE, "the prefix cache itself must not advance")
             self.assertTrue(all(torch.isfinite(o).all() for o in outs.values()))
+            unwrap_model(m)
+
+
+@unittest.skipUnless(HAVE_TRANSFORMERS, SKIP_NO_TF)
+class HeaderReplayContracts(unittest.TestCase):
+    """B+H row lists and the BM (k0 override) control, on the selector functions and on the wrapped tiny model."""
+
+    def test_recent_pinned_rows_and_errors(self):
+        from attention_lab.decode import select_rows_recent, select_rows_recent_pinned
+        from attention_lab.sparse import row_offsets
+        B, G, C = 1, 2, 200
+        off = row_offsets(B, G, C, "cpu")
+        lo, hi, k = 4, 136, 20
+        fixed = torch.cat([torch.arange(4).view(1, 1, 4), torch.arange(136, 200).view(1, 1, 64)], dim=-1).expand(B, G, 68) + off
+        off_lo = off + lo
+        pins = [0, 1, 2, 30, 31]                                   # candidate-relative: positions 4, 5, 6, 34, 35
+        rows = select_rows_recent_pinned(fixed, off_lo, lo, hi, k, pins).view(B, G, -1)
+        self.assertEqual(rows.shape[-1], 68 + k)
+        for g in range(G):
+            pos = sorted((rows[0, g] - off[0, g]).tolist())
+            self.assertEqual(len(set(pos)), len(pos))
+            extra = sorted(set(pos) - set(range(4)) - set(range(136, 200)))
+            self.assertEqual(extra, [4, 5, 6, 34, 35] + list(range(hi - 15, hi)))
+        b_rows = select_rows_recent(fixed, off_lo, lo, hi, k)
+        self.assertEqual(b_rows.numel(), rows.numel(), "same read count as B")
+        # pins overlapping the recent window are not read twice: the window extends further back instead
+        pins2 = [hi - lo - 1, hi - lo - 2]
+        rows2 = select_rows_recent_pinned(fixed, off_lo, lo, hi, k, pins2).view(B, G, -1)
+        extra2 = sorted(set((rows2[0, 0] - off[0, 0]).tolist()) - set(range(4)) - set(range(136, 200)))
+        self.assertEqual(extra2, list(range(hi - k, hi)))
+        self.assertEqual(len(set((rows2[0, 0]).tolist())), 68 + k)
+        with self.assertRaises(ValueError):
+            select_rows_recent_pinned(fixed, off_lo, lo, hi, 3, pins)          # more pins than slots
+        with self.assertRaises(ValueError):
+            select_rows_recent_pinned(fixed, off_lo, lo, hi, k, [hi - lo])     # outside the candidate domain
+        self.assertTrue(torch.equal(select_rows_recent_pinned(fixed, off_lo, lo, hi, 0, []), fixed.reshape(-1)))
+
+    def test_k0_override_shrinks_the_window_by_exactly_the_override(self):
+        device, dtype = CASES[0]
+        with torch.inference_mode():
+            m = tiny(device, dtype)
+            ids = token_ids(130, seed=37)
+            holder = wrap_model(m)
+            out = {}
+            for name, k0 in (("B", None), ("BM", 13 - 5)):
+                st = make_state(m, 162, "sparse", selector="recent")
+                run = LabRunner(m, holder, st)
+                run.prefill(ids[:, :100], 37)
+                st.begin_request(1 / 8, k0=k0)
+                st.record_selection = True
+                run.step(ids[:, 100:101])
+                out[name] = st
+            self.assertEqual(out["B"].plan.k, 13)
+            self.assertEqual(out["BM"].plan.k, 8)
+            self.assertEqual(out["BM"].plan.selected_count, out["B"].plan.selected_count - 5)
+            pb, _ = positions_of(out["B"], 0)
+            pm, _ = positions_of(out["BM"], 0)
+            self.assertEqual(sorted(set(pb[0].tolist()) - set(pm[0].tolist())), list(range(37 - 13, 37 - 8)), "BM drops exactly the 5 most distant window positions")
             unwrap_model(m)
 
 
@@ -333,6 +404,19 @@ class DataGeneratorTests(unittest.TestCase):
             self.assertTrue(lay["back_near_tokens_from_end"][0] <= dist[-1] <= lay["back_near_tokens_from_end"][1], f"{d['doc_id']}: near tail at {dist[-1]}")
             self.assertTrue(lay["back_far_tokens_from_end"][0] <= dist[-2] <= lay["back_far_tokens_from_end"][1], f"{d['doc_id']}: far tail at {dist[-2]}")
             self.assertTrue(all(a > b for a, b in zip(dist, dist[1:])), "records are in document order")
+
+    def test_header_span_is_the_header_text(self):
+        header = CONFIG["data"]["header"]
+        for task, length_tag, i in (("T1", "2K", 0), ("T1", "8K", 11), ("T2", "2K", 3)):
+            d = self.gd.build_document(self.tok, CONFIG, task, length_tag, i)
+            s, e = d["header_span"]
+            self.assertEqual(s, 3, "the chat-template head takes positions 0..2; the header starts at 3")
+            self.assertEqual(self.tok.decode(d["prefix_ids"][s:e]), header)
+            self.assertTrue(d["header_span_exact"])
+            self.assertEqual(d["header_token_count"], e - s)
+            self.assertLess(e, d["record_spans"][0][0], "the header ends before the first record")
+            mv = self.gd.rewrite_document(self.tok, CONFIG, d, "value")
+            self.assertEqual(mv["header_span"], d["header_span"], "rewrites keep the header where it is")
 
     def test_buckets_place_targets_where_the_plan_says(self):
         n = CONFIG["data"]["n_records"]

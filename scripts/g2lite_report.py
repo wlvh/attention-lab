@@ -170,7 +170,7 @@ def main() -> int:
     ap.add_argument("--include-quick", action="store_true")
     a = ap.parse_args()
     all_runs = [load_run(Path(p)) for p in sorted(glob.glob(str(a.runs_dir / "g2lite-*/summary.json")))]
-    all_runs = [r for r in all_runs if (a.include_quick or not r["summary"].get("quick")) and not r["summary"].get("calibration")]
+    all_runs = [r for r in all_runs if (a.include_quick or not r["summary"].get("quick")) and not r["summary"].get("calibration") and not r["summary"].get("diagnostic_replay")]   # header-replay runs have their own report
     base_runs, comp_runs, rew_runs = runs_of_kind(all_runs)
     base = load_run(a.baseline) if a.baseline else (base_runs[0] if base_runs else None)
     comp = load_run(a.comparison) if a.comparison else (comp_runs[-1] if comp_runs else None)
