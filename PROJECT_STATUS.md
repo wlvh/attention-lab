@@ -1,6 +1,6 @@
 # 接力状态
 
-更新日期：2026-10-17。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_DONE（工程完成；性能 `correct_but_not_faster`，收口速度主线）/ NOTEBOOK_02_DONE / P0_FUSED_SCORE_DONE（停止门通过；P1 待授权）**。分支 `task/g1b-qwen-mac`（PR #2）与其上的 `task/p0-fused-score-kernel` 待评审。
+更新日期：2026-10-17。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_DONE（工程完成；性能 `correct_but_not_faster`，收口速度主线）/ NOTEBOOK_02_DONE / P0_FUSED_SCORE_DONE（停止门通过）/ P1_FUSED_ATTEND_DONE（停止门未通过：比值 0.82 / 0.83 > 0.80；按规则停止，不建议 P2）**。分支 `task/g1b-qwen-mac`（PR #2）与其上的 `task/p0-fused-score-kernel` 待评审。
 
 ## 远端与发布
 
@@ -55,14 +55,22 @@ MPS 能力、带宽、提交开销与索引路径原语成本；关键发现是 
 - 判定：**P0 停止门通过**（三条、两进程）。单靠这一段整模型 32K D/A 只能从 0.930 到约 0.89（估算）；要稳定越线需要 P1（取行注意力核）与 P2（选择核）。**P1 未授权，未开始。** 不改模型路径、不改 G1a 核。证据：`reports/p0_score_kernel_mac_m4max.md`、`reports/cards/P0_fused_score_mac_m4max.md`、`runs/p0-formal.log`。
 - 消耗：设备活跃时间 < 1 分钟，现金 0。
 
+## 本轮完成：P1（用户授权，2026-10-17 07:55 到 07:58 UTC，分支 `task/p0-fused-score-kernel`）
+
+- 问题：D 链的取行注意力段（两次拉平 `index_select` + 子集 SDPA）做成按行表直接读缓存的 Metal 核，S = 1076 时能否 ≤ 60 µs/层且比值 ≤ 0.80。
+- 实现：`src/attention_lab/metal_attend.py`（每 simdgroup 一行、32 lane × 4 维、两个查询头共用读取、在线 softmax、分区合并核；交错布局与排序行表作诊断）、`tests/test_metal_attend.py`（6 项，对 `dense_mask_reference`）、`bench/p1_attend_kernel.py`、`scripts/p1_report.py`。
+- 结果（两个独立进程）：S = 1076 处最优 P8 **38.5 / 39.8 µs**（113 GB/s 有效），PyTorch 路径 47.0 / 48.1 µs（93 GB/s），比值 **0.82 / 0.83**；S = 324 处 27.9 µs（0.85–0.86）；S = 580 处 36.0 µs（0.96–0.99）。数值：对 float32 参照 ≤ 2.4e-7，bf16 输出 100% 逐位等于 RNE。交错布局、排序行表均在 ±2% 内无影响。
+- 判定：**时间与数值通过，比值门未通过 → 按预登记规则停止**。取行段受随机访存效率限制而非核数量限制，PyTorch 的 index_select 已接近同一下界；三段全融合的整模型 32K D/A 上限修正为约 0.84 到 0.88（范围说明的"乐观 0.65"前提不成立）。G1b 的收口结论维持；不建议 P2。
+- 消耗：设备活跃时间不到 1 分钟，现金 0。累计 G0 + G1a + G1b + P0 + P1 约 57 分钟。
+
 ## 尚未完成
 
-速度主线按 G1b 收口，P0 通过后是否进入 P1 由用户决定；以下均未启动、需用户决定与授权：融合 D 链的自定义 Metal 核；CUDA 复核轨道（4080 主机）；> 32,768 的上下文；G2 到 G5 的任何质量结论（`docs/tasks/03_G2_TO_G5.md` 仍为 BLOCKED）。本机磁盘在 G1b 运行时只剩约 28 GiB 可用（97%），后续大 run 前需留意。
+速度主线按 G1b 收口，融合核路线在 P1 停止；以下均未启动、需用户决定与授权：融合 D 链的自定义 Metal 核；CUDA 复核轨道（4080 主机）；> 32,768 的上下文；G2 到 G5 的任何质量结论（`docs/tasks/03_G2_TO_G5.md` 仍为 BLOCKED）。本机磁盘在 G1b 运行时只剩约 28 GiB 可用（97%），后续大 run 前需留意。
 
 ## 下一步
 
 1. 用户评审 G1b 的 PR（分支 `task/g1b-qwen-mac`，不自行合并）。
-2. 用户决定方向：(a) 以教学与边界结论收口；(b) 融合 D 链的自定义 Metal 核——范围说明 `docs/SCOPING_FUSED_D_KERNEL.md`，**P0 打分核已通过门槛**，下一阶段 P1（取行注意力核，门槛 ≤ 60 µs/层）需单独授权；(c) CUDA 复核轨道；(d) 更长上下文。任何一项都需要明确授权，不自动开始。
+2. 用户决定方向：(a) 以教学与边界结论收口（当前建议）；(b) 融合核路线：P0 通过、P1 比值门未过，整模型上限修正为约 0.84 到 0.88，不建议继续；若仍要 P2 补全记录需单独授权；(c) CUDA 复核轨道；(d) 更长上下文。任何一项都需要明确授权，不自动开始。
 3. 不重跑 G0/G1a，不训练，不租云。
 
 ```bash
