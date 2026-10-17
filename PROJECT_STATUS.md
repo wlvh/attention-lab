@@ -1,10 +1,10 @@
 # 接力状态
 
-更新日期：2026-10-17。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_REVIEW_ROUND2_ADDRESSED / NOTEBOOK_01_DONE**。
+更新日期：2026-10-17。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_DONE（工程完成；性能 `correct_but_not_faster`，收口速度主线）/ NOTEBOOK_02_DONE**，分支 `task/g1b-qwen-mac` 待 PR 评审。
 
 ## 远端与发布
 
-用户创建的公开仓库：`wlvh/attention-lab`，默认分支 `main`。首次入口提交为 `95885aa2c24d692c595c3ea88024a6c836ffdea6`。G0 已在本地分支 `task/g0-g1a-mac` 提交为 `ae1c0a8`；G1a 的源码、测试、基准、报告与卡片在同一分支**尚未提交**，等待用户决定 commit 与 PR。
+用户创建的公开仓库：`wlvh/attention-lab`，默认分支 `main`。首次入口提交为 `95885aa2c24d692c595c3ea88024a6c836ffdea6`。G0 在分支 `task/g0-g1a-mac` 提交为 `ae1c0a8`；G1a 的源码、测试、基准、报告、卡片、补测与 Notebook 01 随同一分支经 PR #1（两轮 GPT 6 Pro 评审）于 2026-10-17 合并进 `main`，合并提交 `0798aa7`。G1b 在分支 `task/g1b-qwen-mac` 上进行。
 
 ## 已准备
 
@@ -37,21 +37,35 @@ MPS 能力、带宽、提交开销与索引路径原语成本；关键发现是 
 
 复审确认第一轮的卡点关闭，指出三处收尾：CI 测试步骤无 `pipefail`，pytest 失败会被 `tee` 掩盖，已加 `set -euo pipefail` 并用故意失败的测试在本地验证退出码；共用的 `runinfo.refuse_unsafe_env` 仍按字符串比较 `"0"`，已改为数值解析并由 `g0_probe.py` 复用，新增 `tests/test_runinfo_env.py`；Notebook 与 G0 卡片把 8K 处 A 实测 110 µs 与 86 µs 情景值的快慢写反，已更正为"A 比情景慢，预测偏差来自 G0 链式成本范围不完整"。补测结论按复审收窄：顺序效应为"结果不依赖固定顺序"，容量为"本次条件下未复现"，32K ρ=1/8 标为临界档，bf16 的 A 跨运行偏离写实际数字。未重跑任何基准，未改旧 manifest。
 
+## 本轮完成：G1b（Mac M4 Max，2026-10-16 20:21 到 20:46 UTC，分支 `task/g1b-qwen-mac`）
+
+- 模型：只下载 Qwen/Qwen3-0.6B 固定 revision `c1899de289a04d12100db370d81485cdf75e47ca`（权重 sha256 `f47f7117…`，596,049,920 参数；28 层、16/8 头、head_dim 128 从 config 读取并与参数形状核对）。主体冻结，索引器未训练（随机，P0，r=32）。
+- 实现（`src/attention_lab/qwen_wrap.py`）：`LabAttention` 封装每层 `self_attn`（复用原 q/k/v/o、q_norm/k_norm、模型 RoPE 与输出路径，不改安装库）；`LabCache` 静态 K/V `[B,G,C,d]` + 索引表 `zT [B,G,r,C]`，每层一次 append、`advance`、`rollback`、`clone`；`StepPlan` 每步在设备上建一次（k0 请求内固定、合法长度每步加一）；稀疏步调用 G1a 的 `sparse_decode_step_kernel`；`LabRunner` / `NativeRunner` 驱动；`tiny_qwen3` 供无下载契约。
+- 正确性：`tests/test_qwen_wrapper.py` 12 项（tiny 随机 Qwen3 CPU float64 + MPS fp32/bf16；真实 checkpoint CPU fp32 三段对照）。正式数值 `bench/model_numerics.py`（run 3 `g1b-numerics-20261016T204139Z-formal3`，98 项门控）：float32 全部按预设通过（max|Δ| ≤ 6.4e-4，容差 1e-2 / 1e-3）；bf16 一次前向与未改模型逐位相同；**封装逐 token 路径与 transformers 自身 DynamicCache 逐 token 路径在 MPS 上逐位相同（fp32 与 bf16、三个长度、词表分数与缓存）**；bf16 对一次前向的 17 项绝对预设未过（相对 2.05e-2 到 2.41e-2 对 2e-2；K 1 到 2 个 ulp 对 0.25），归因为库自身逐 token 舍入，修订判据（≤ 2 × 自身噪声底）在 run 2 前登记并全过；run 1 记录保留。
+- 测速（`bench/model_decode_bench.py`，run `g1b-mac-20261016T202847Z-formal`，commit `c95e097`，375 s）：bf16、batch 1、N0 8192 / 16384 / 32256、ρ=1/32、容量 N0+128、四条路径（原生 DynamicCache / 原生 StaticCache / 封装 A / D）各自缓存。整步中位 ms（eager）：封装 A 13.32 / 16.00 / 21.21，D 16.11 / 16.84 / 19.68，原生静态 14.19 / 16.74 / 22.65，原生动态 24.15 / 37.49 / 74.68（序列口径 16.7 / 23.9 / 39.3）。**D/A 配对中位 1.210 / 1.054 / 0.930（32K 范围 0.872–0.986，7/50 循环 ≤ 0.90）**；块编译（MLP+RMSNorm，四路径共用）后 1.225 / 1.103 / 0.934。128 步序列平坦（斜率 −31 到 +2 µs/步），k 恒等于 k0，分配器快照恒定（DynamicCache 的载荷增长 14.68 MB 不反映在快照中），无重编译。剖析（只记录 CPU 活动）：D 无全长 matmul，非视图 aten 算子比 A 多 422，算子自时间之和 4 到 8 ms 对墙钟 13 到 21 ms，基底归因未分离。
+- 判定：**工程完成；性能 `correct_but_not_faster`**（无设置每循环 ≤ 0.90；32K 临界 7% 收益）。预登记的修正（块编译）不改格局；剖析定位到 D 链核数量，同形状探针显示少两个核只到 0.915（`runs/g1b-dev-probe-kernelcount-20261016T2045Z.txt`，非正式），未跑正式一轮。按规则**收口速度主线**：不以速度为前提进 G2，不训练，不换更大模型。详见 `reports/cards/G1b_mac_m4max.md`（预测写于运行前，含预测对照）与 `reports/g1b_mac_m4max.md`。
+- 教学：`notebooks/02_qwen_integration_and_decode.ipynb` 从全新内核执行并导出 `reports/02_qwen_integration_and_decode.html`："把索引注意力装进真实 Qwen：为什么单层快不等于整模型快"。
+- 消耗：设备活跃时间约 10 分钟，现金 0，下载 1.5 GB。累计 G0 + G1a + G1b 约 55 分钟。
+- **PR #2 评审收尾补丁（2026-10-17）**：显式阶段状态（`LabState.phase`，`forward()` 必须给出阶段；tiny 模型测试含单 token 资料、chunk = 1、8193 按 2048 分块）；数值比较两侧 `torch.isfinite` 先于聚合（反例测试注入 NaN）；manifest 记录 `HF_HUB_OFFLINE`；数值重跑 run 4 `g1b-numerics-20261017T085459Z-formal4`（98 项与 run 3 逐项相同）；32K 最小对照 run `g1b-mac-20261017T085522Z-phasefix`（A 21.76 / D 19.25 ms，D/A 0.884，判定不变，报告附录）；报告输入与跑分时源码快照归档在 `reports/provenance/`（`check_provenance.py` 覆盖，干净目录可重生报告）；卡片、状态、范围说明的措辞与算术更正（fp32 缓存余量 1.56 倍、剖析归因未分离、DynamicCache 载荷增长与分配器快照、判据修订时间、`correct_but_not_faster` 含义、bf16 三层表述）。判定不变。
+
 ## 尚未完成
 
-`notebooks/01_environment_and_attention.ipynb` 与已执行 HTML（G1a 任务书要求的首份实验课）；G1b 起全部（模型封装、静态缓存、连续 128 步、重编译与内存增长）；CUDA 轨道未启动；G2 到 G5 的任何质量结论。
+性能主线已收口；以下均未启动、需用户决定与授权：融合 D 链的自定义 Metal 核；CUDA 复核轨道（4080 主机）；> 32,768 的上下文；G2 到 G5 的任何质量结论（`docs/tasks/03_G2_TO_G5.md` 仍为 BLOCKED）。本机磁盘在 G1b 运行时只剩约 28 GiB 可用（97%），后续大 run 前需留意。
 
 ## 下一步
 
-1. 用户决定是否提交 G1a 改动（`git add` 下列文件后 commit，不 force push）：`src/attention_lab/`、`tests/test_attention_contracts.py`、`bench/microbench.py`、`scripts/g1a_report.py`、`reports/g1a_*.{md,json}`、`reports/cards/G1a_mac_m4max.md`、`PROJECT_STATUS.md`。
-2. 写 `01_environment_and_attention.ipynb`：只读 `reports/g0_probe_mac_m4max.json` 与 `reports/g1a_summary_mac_m4max.json`，小规模 CPU 反例调用 `attention_lab` 同一实现，导出 HTML。
-3. 解锁 G1b：按 `docs/tasks/02_G1B_MODEL.md` 从 Qwen3-0.6B 开始，性能候选 (N=32768, ρ=1/32, bf16)。
+1. 用户评审 G1b 的 PR（分支 `task/g1b-qwen-mac`，不自行合并）。
+2. 用户决定方向：(a) 以教学与边界结论收口；(b) 融合 D 链的自定义 Metal 核——范围说明见 `docs/SCOPING_FUSED_D_KERNEL.md`（估算：32K 比值乐观 0.65、保守 0.73 到 0.84，只在 32K 及以上有望越线；约 4 到 6 工程日，分阶段停止门；`torch.mps.compile_shader` 已核实可用）；(c) CUDA 复核轨道；(d) 更长上下文。任何一项都需要明确授权与新任务书，不自动开始。
+3. 不重跑 G0/G1a，不训练，不租云。
 
 ```bash
 source .venv/bin/activate
-python -m unittest tests.test_attention_contracts -v     # 契约测试，约 1 秒
-python bench/microbench.py --modes eager --tag pN        # 一个独立 eager 进程，约 5 分钟
-python scripts/g1a_report.py                              # 由全部非 quick run 重新生成报告
+python -m pytest -q tests                                  # 全部契约（含 G1b 封装；真实 checkpoint 项只在本地快照存在时跑）
+python bench/model_numerics.py --tag formalN               # G1b 三段数值对照，约 25 秒（需本地快照）
+python bench/model_decode_bench.py --compile-blocks --tag formal   # G1b 整模型测速，约 6.5 分钟
+python scripts/g1b_report.py                               # 由非 quick run 重新生成 G1b 报告
+python bench/microbench.py --modes eager --tag pN          # G1a 单进程微基准，约 5 分钟
+python scripts/g1a_report.py
 ```
 
 ## 接力格式

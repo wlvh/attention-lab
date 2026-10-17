@@ -1,11 +1,13 @@
 """Attention Lab: the formal implementations of the read paths this project compares.
 
-Scope at this version (G1a): single-layer, random-tensor read paths for one decode step.
-No model wrapper, no training, no cache lifecycle yet. Notebooks display and call this code;
-they do not keep a second copy of the algorithms.
+Scope at this version (G1b): the G1a single-layer read paths plus the Qwen3 integration in `qwen_wrap`
+(per-layer self_attn wrapper around the frozen body, static K/V cache, index table, prefill / decode drivers).
+No training. `qwen_wrap` needs transformers and is imported explicitly (`from attention_lab.qwen_wrap import ...`)
+so the random-tensor modules stay importable without it. Notebooks display and call this code; they do not keep a
+second copy of the algorithms.
 """
-__version__ = "0.1.0"
-IMPLEMENTATION_STATUS = "g1a_single_layer_read_paths"
+__version__ = "0.2.0"
+IMPLEMENTATION_STATUS = "g1b_qwen3_wrapper_static_cache_index"
 
 from .selection import (FIXED_PREFIX, FIXED_RECENT, SelectionLayout, fixed_budget,  # noqa: E402
                         legal_length, selection_layout)
