@@ -6,8 +6,10 @@ Filler replay (reports/cards/G2lite_replay_filler_mac_m4max.md): BF = recent + t
 after the header, BH again for the pairing.
 Header-split replay (reports/cards/G2lite_replay_header_split_mac_m4max.md): BG = recent + the header's format clause,
 BA = recent + the header's first clause (different pinned counts, hence windows that differ from each other and from
-BH's), B and BH paired again. The variants present in the run decide the columns; the paired in-window set is the set
-of requests whose target lies inside every variant's window. Inputs are run dirs:
+BH's), B and BH paired again.
+Format-split replay (reports/cards/G2lite_replay_format_split_mac_m4max.md): BG1 = recent + 「格式为「编号 X：Y」，」, BG2 =
+recent + 「Y 是编号 X 对应的四位数值。」, B, BH and BG paired again. The variants present in the run decide the columns; the
+paired in-window set is the set of requests whose target lies inside every variant's window. Inputs are run dirs:
   --run        the replay run (quality.jsonl, data.jsonl, summary.json, manifest.json, positions/*.npz)
                default: the latest non-quick runs/g2lite-* whose summary is marked diagnostic_replay
   --reference  the archived pass-2 run with A and the original B rows (default runs/g2lite-20261017T130319Z-pass2-ABCD0;
@@ -29,12 +31,14 @@ from attention_lab.g2lite_eval import cell_key, method_key  # noqa: E402
 from attention_lab.selection import FIXED_RECENT  # noqa: E402
 
 LABEL = {"A": "A 完整读取", "B": "B 近期窗口", "BH": "BH 近期窗口+表头", "BM": "BM 近期窗口减名额（对照）", "BF": "BF 近期窗口+填充句",
-         "BG": "BG 近期窗口+格式句", "BA": "BA 近期窗口+前半句"}
+         "BG": "BG 近期窗口+格式句", "BA": "BA 近期窗口+前半句", "BG1": "BG1 近期窗口+格式句前段", "BG2": "BG2 近期窗口+格式句后段"}
 DESC = {"BH": "BH：F ∪ 表头 ∪ 最近 k0 − {n} 个候选（读取数与 B 相同）", "BM": "BM：F ∪ 最近 k0 − {n} 个候选（BH 的窗口、没有表头，读取数比 B 少 {n}）",
         "BF": "BF：F ∪ 表头之后的 {n} 个填充句位置 {span} ∪ 最近 k0 − {n} 个候选（读取数与 B 相同，窗口与 BH 相同）",
         "BG": "BG：F ∪ 表头格式句 {span} 的 {n} 个位置 ∪ 最近 k0 − {n} 个候选（读取数与 B 相同，窗口比 B 少 {n}）",
-        "BA": "BA：F ∪ 表头前半句 {span} 的 {n} 个候选位置（位置 3 在 F 里）∪ 最近 k0 − {n} 个候选（读取数与 B 相同，窗口比 B 少 {n}）"}
-VARIANT_ORDER = ("BH", "BM", "BF", "BG", "BA")
+        "BA": "BA：F ∪ 表头前半句 {span} 的 {n} 个候选位置（位置 3 在 F 里）∪ 最近 k0 − {n} 个候选（读取数与 B 相同，窗口比 B 少 {n}）",
+        "BG1": "BG1：F ∪ 格式句前段「格式为「编号 X：Y」，」{span} 的 {n} 个位置 ∪ 最近 k0 − {n} 个候选（读取数与 B 相同，窗口比 B 少 {n}）",
+        "BG2": "BG2：F ∪ 格式句后段「Y 是编号 X 对应的四位数值。」{span} 的 {n} 个位置 ∪ 最近 k0 − {n} 个候选（读取数与 B 相同，窗口比 B 少 {n}）"}
+VARIANT_ORDER = ("BH", "BM", "BF", "BG", "BA", "BG1", "BG2")
 BUCKET = {"front": "前段", "middle": "中段", "back_near": "后段·近", "back_far": "后段·远"}
 IN_WINDOW_MISSES = [("T1-2K-08", 0.125), ("T1-2K-10", 0.125), ("T1-8K-09", 0.03125), ("T1-8K-11", 0.03125), ("T1-8K-11", 0.125)]   # pass-2 B: inside the window, wrong
 DEFAULT_TITLE = "# G2-lite 单变量重放 · Mac M4 Max：B 在窗口内仍答错，是否因为「表头不在名单里」\n"

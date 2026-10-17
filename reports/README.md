@@ -21,10 +21,12 @@
 | `g2lite_replay_filler_summary_mac_m4max.json`、`g2lite_replay_filler_manifest_mac_m4max.json` | 续篇的配对表、集合计数、四格、逐请求回答与钉住块覆盖率；run 的 manifest 与参照 run 的标识 | 实测 |
 | `g2lite_replay_header_split_mac_m4max.md` | 表头重放的续二：只钉表头格式句的 token 位置（BG，19 个）对比只钉前半句的 token 位置（BA，14 个），其余名额给最近的候选，与 B、BH 同 run 配对，分离表头文本里起作用的是哪一半 | 实测（同一 24 份 T1 资料 × 2 档 ρ，诊断变体，无区间统计） |
 | `g2lite_replay_header_split_summary_mac_m4max.json`、`g2lite_replay_header_split_manifest_mac_m4max.json` | 续二的配对表（四个变体各自的窗口与内/外）、集合计数、全部变体两两四格、逐请求回答与钉住块覆盖率；run 的 manifest 与参照 run 的标识 | 实测 |
-| `cards/G0_mac_m4max.md`、`cards/G1a_mac_m4max.md`、`cards/G1b_mac_m4max.md`、`cards/G2lite_mac_m4max.md`、`cards/G2lite_replay_header_mac_m4max.md`、`cards/G2lite_replay_filler_mac_m4max.md`、`cards/G2lite_replay_header_split_mac_m4max.md` | 关卡卡片：运行前预测、运行后观察、解释、决策 | 预测写于运行前 |
+| `g2lite_replay_format_split_mac_m4max.md` | 表头重放的续三：只钉格式句前段「格式为「编号 X：Y」，」的 token 位置（BG1，9 个）对比只钉后段「Y 是编号 X 对应的四位数值。」的 token 位置（BG2，10 个），与 B、BH、BG 同 run 配对，分离格式句里起作用的是哪一段 | 实测（同一 24 份 T1 资料 × 2 档 ρ，诊断变体，无区间统计） |
+| `g2lite_replay_format_split_summary_mac_m4max.json`、`g2lite_replay_format_split_manifest_mac_m4max.json` | 续三的配对表、集合计数、全部变体两两四格、逐请求回答与钉住块覆盖率；run 的 manifest 与参照 run 的标识 | 实测 |
+| `cards/G0_mac_m4max.md`、`cards/G1a_mac_m4max.md`、`cards/G1b_mac_m4max.md`、`cards/G2lite_mac_m4max.md`、`cards/G2lite_replay_header_mac_m4max.md`、`cards/G2lite_replay_filler_mac_m4max.md`、`cards/G2lite_replay_header_split_mac_m4max.md`、`cards/G2lite_replay_format_split_mac_m4max.md` | 关卡卡片：运行前预测、运行后观察、解释、决策 | 预测写于运行前 |
 | `g0_*.json`、`g1a_*.json`、`g1a_supplement_*.json` | 上述报告的精简数据与 manifest | 实测 |
 | `g0_roofline_mac_bw390.{md,json}` | 以实测 390 GB/s 回填的载荷情景 | 预测 |
 | `provenance/` | 跑分时的基准源码快照、跑分后 diff、原始 run 归档与哈希清单 | 证据链，`scripts/check_provenance.py` 校验 |
 | `bootstrap_validation.md`、`public_publication.md` | 启动工具与发布记录 | 不是 GPU 结果 |
 
-重新生成：`python scripts/g0_report.py`、`python scripts/g1a_report.py`、`python scripts/g1a_supplement_report.py`、`python scripts/g1b_report.py`、`python scripts/g2lite_report.py`、`python scripts/g2lite_replay_report.py`（表头重放；续篇与续二用 `--run … --out … --json … --manifest … --title … --card …` 指定自己的 run 与输出；都需要 `runs/` 里有参照 run，见 `provenance/README.md`）。无 GPU 从归档重生 G1a 报告的步骤见 `provenance/README.md`。
+重新生成：`python scripts/g0_report.py`、`python scripts/g1a_report.py`、`python scripts/g1a_supplement_report.py`、`python scripts/g1b_report.py`、`python scripts/g2lite_report.py`、`python scripts/g2lite_replay_report.py`（表头重放；续篇、续二、续三用 `--run … --out … --json … --manifest … --title … --card …` 指定自己的 run 与输出；都需要 `runs/` 里有参照 run，见 `provenance/README.md`）。无 GPU 从归档重生 G1a 报告的步骤见 `provenance/README.md`。

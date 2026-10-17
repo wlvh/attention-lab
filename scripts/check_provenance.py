@@ -36,7 +36,12 @@ Filler replay (reports/g2lite_replay_filler_manifest_mac_m4max.json), only once 
     edited the harness afterwards; the committed harness differs from that snapshot only by the recorded diff).
 
 Header-split replay (reports/g2lite_replay_header_split_manifest_mac_m4max.json), only once it exists:
-11. Every formal header-split run manifest names the committed sources (made on committed code).
+11. Every formal header-split run manifest names the committed selector, data, scorer and wrapper sources and the as-run
+    harness snapshot reports/provenance/g2lite_replay/g2lite_quality_at_replay_header_split_run.py (the format-split
+    replay edited the harness afterwards; the committed harness differs from that snapshot only by the recorded diff).
+
+Format-split replay (reports/g2lite_replay_format_split_manifest_mac_m4max.json), only once it exists:
+12. Every formal format-split run manifest names the committed sources (made on committed code).
 
 P0 / P1 (PR #3, stopped prototype), only where the kernel sources exist:
 7. The four formal P0/P1 run manifests inside p0p1_runs_20261017.tar.gz name the committed metal_score.py /
@@ -116,7 +121,8 @@ def main() -> int:
               ("g2lite/g2lite_data_at_g2lite_runs.py", "g2lite/g2lite_data_post_g2lite_edit.diff", "src/attention_lab/g2lite_data.py"),
               ("g2lite/g2lite_quality_at_g2lite_runs.py", "g2lite/g2lite_quality_post_g2lite_edit.diff", "g2lite_replay/g2lite_quality_at_replay_header_run.py"),
               ("g2lite_replay/g2lite_quality_at_replay_header_run.py", "g2lite_replay/g2lite_quality_post_replay_header_edit.diff", "g2lite_replay/g2lite_quality_at_replay_filler_run.py"),
-              ("g2lite_replay/g2lite_quality_at_replay_filler_run.py", "g2lite_replay/g2lite_quality_post_replay_filler_edit.diff", "bench/g2lite_quality.py"))
+              ("g2lite_replay/g2lite_quality_at_replay_filler_run.py", "g2lite_replay/g2lite_quality_post_replay_filler_edit.diff", "g2lite_replay/g2lite_quality_at_replay_header_split_run.py"),
+              ("g2lite_replay/g2lite_quality_at_replay_header_split_run.py", "g2lite_replay/g2lite_quality_post_replay_header_split_edit.diff", "bench/g2lite_quality.py"))
     for snap, diff_file, current in chains:
         target = (ROOT / current) if current.startswith(("src/", "bench/")) else (PROV / current)
         stored_ = changed_lines((PROV / diff_file).read_text(encoding="utf-8"))
@@ -194,17 +200,29 @@ def main() -> int:
                 if run.get("source_hashes", {}).get(f_) != h:
                     errors.append(f"{run.get('run_id')}: {f_} hash != {'as-run snapshot' if 'quality' in f_ else 'committed file'} (filler-replay run was made on committed code at 5d9b9c7)")
             fp_checked += 1
-    # ---- header-split replay: formal run on committed code ----
+    # ---- header-split replay: formal run on the code committed at 3aa1ec8 (harness archived as g2lite_replay/* snapshot) ----
     hs_path = ROOT / "reports/g2lite_replay_header_split_manifest_mac_m4max.json"
     hs_checked = 0
     if hs_path.is_file():
         hs = json.loads(hs_path.read_text(encoding="utf-8"))
-        hs_committed = {f_: sha256(ROOT / f_) for f_ in g2_files}
+        hs_expect = {f_: sha256(ROOT / f_) for f_ in g2_files}
+        hs_expect["bench/g2lite_quality.py"] = sha256(PROV / "g2lite_replay/g2lite_quality_at_replay_header_split_run.py")
         for run in hs.get("runs", []):
-            for f_, h in hs_committed.items():
+            for f_, h in hs_expect.items():
                 if run.get("source_hashes", {}).get(f_) != h:
-                    errors.append(f"{run.get('run_id')}: {f_} hash != committed file (header-split replay runs must be on committed code)")
+                    errors.append(f"{run.get('run_id')}: {f_} hash != {'as-run snapshot' if 'quality' in f_ else 'committed file'} (header-split replay run was made on committed code at 3aa1ec8)")
             hs_checked += 1
+    # ---- format-split replay: formal run on committed code ----
+    fs_path = ROOT / "reports/g2lite_replay_format_split_manifest_mac_m4max.json"
+    fs_checked = 0
+    if fs_path.is_file():
+        fs = json.loads(fs_path.read_text(encoding="utf-8"))
+        fs_committed = {f_: sha256(ROOT / f_) for f_ in g2_files}
+        for run in fs.get("runs", []):
+            for f_, h in fs_committed.items():
+                if run.get("source_hashes", {}).get(f_) != h:
+                    errors.append(f"{run.get('run_id')}: {f_} hash != committed file (format-split replay runs must be on committed code)")
+            fs_checked += 1
     if errors:
         print("\n".join(errors))
         return 1
@@ -215,7 +233,8 @@ def main() -> int:
           + (f"; {g2_checked} G2-lite run manifest(s) on the af62df4 snapshots" if g2_checked else "")
           + (f"; {rp_checked} header-replay run manifest(s) on the e3296ec snapshot" if rp_checked else "")
           + (f"; {fp_checked} filler-replay run manifest(s) on the 5d9b9c7 snapshot" if fp_checked else "")
-          + (f"; {hs_checked} header-split replay run manifest(s) on committed code." if hs_checked else "."))
+          + (f"; {hs_checked} header-split replay run manifest(s) on the 3aa1ec8 snapshot" if hs_checked else "")
+          + (f"; {fs_checked} format-split replay run manifest(s) on committed code." if fs_checked else "."))
     return 0
 
 
