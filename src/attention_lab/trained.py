@@ -78,4 +78,4 @@ def load_bank(run_dir, metadata, geometry, *, device, initial=False):
 def make_trained_state(model, capacity, bank, *, sparse_layers=None, mode="sparse"):
     from .qwen_wrap import LabState,make_cache
     cache=make_cache(model,capacity,with_index=True,index_dim=bank.indexes[0].r,index_dtype=torch.float32)
-    return LabState(cache,bank.indexes,mode=mode,selector="index",sparse_layers=sparse_layers,cache_guard=bank.guard)
+    return LabState(cache,bank.indexes,mode=mode,selector="index",sparse_layers=sparse_layers,cache_guard=bank.guard,canonical_order=True)

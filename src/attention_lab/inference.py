@@ -23,6 +23,7 @@ def runner_for(model,holder,capacity,method,trained=None,initial=None,*,doc=None
         state=make_trained_state(model,capacity,initial if method=="D0" else trained,
                                  sparse_layers={13} if method=="D-one" else None)
     else:raise ValueError(method)
+    state.canonical_order = True  # same selected set, ascending original positions for all new sparse paths
     return LabRunner(model,holder,state)
 
 

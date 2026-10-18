@@ -96,9 +96,11 @@ def main() -> int:
                                      ("qwen_wrap_at_g1b_numerics4_and_phasefix_runs.py", "qwen_wrap_post_g1b_edit.diff", "src/attention_lab/qwen_wrap.py"),
                                      ("decode_at_g1a_g1b_runs.py", "decode_post_g1b_edit.diff", "src/attention_lab/decode.py")):
         target = (pg / current) if not current.startswith(("src/", "bench/")) else (ROOT / current)
-        if current == "src/attention_lab/qwen_wrap.py" and (PROV / "g3c/post_run_manifest.json").exists():
-            # Preserve the older post-run diff too: verify the chain G1b -> G2/G3b -> G3c.
-            target = ROOT / json.loads((PROV / "g3c/post_run_manifest.json").read_text())["snapshot"]
+        if (PROV / "g3c/post_run_manifest.json").exists():
+            # Preserve older post-run diffs: G1b -> G2/G3b -> G3c.
+            for later in json.loads((PROV / "g3c/post_run_manifest.json").read_text())["snapshots"]:
+                if current == later["source"]:
+                    target = ROOT / later["snapshot"]
         stored_ = changed_lines((pg / diff_file).read_text(encoding="utf-8"))
         current_ = changed_lines("".join(difflib.unified_diff((pg / snap).read_text(encoding="utf-8").splitlines(True), target.read_text(encoding="utf-8").splitlines(True))))
         if stored_ != current_:
@@ -145,16 +147,16 @@ def main() -> int:
         g2_committed = {f_: sha256(ROOT / f_) for f_ in g2_files}
         later_meta = PROV / "g3c/post_run_manifest.json"
         if later_meta.exists():
-            later = json.loads(later_meta.read_text())
-            snapshot = ROOT / later["snapshot"]
-            if sha256(snapshot) != later["sha256"]:
-                errors.append("changed pre-G3c wrapper snapshot")
-            g2_committed[later["source"]] = later["sha256"]
-            difference = "".join(difflib.unified_diff(snapshot.read_text().splitlines(True),
-                                    (ROOT / later["source"]).read_text().splitlines(True),
-                                    fromfile=later["snapshot"], tofile=later["source"], n=0))
-            if difference != (ROOT / later["diff"]).read_text():
-                errors.append("unrecorded post-G3b wrapper changes")
+            for later in json.loads(later_meta.read_text())["snapshots"]:
+                snapshot = ROOT / later["snapshot"]
+                if sha256(snapshot) != later["sha256"]:
+                    errors.append("changed pre-G3c source snapshot")
+                g2_committed[later["source"]] = later["sha256"]
+                difference = "".join(difflib.unified_diff(snapshot.read_text().splitlines(True),
+                                        (ROOT / later["source"]).read_text().splitlines(True),
+                                        fromfile=later["snapshot"], tofile=later["source"], n=0))
+                if difference != (ROOT / later["diff"]).read_text():
+                    errors.append("unrecorded post-G3b execution changes")
         review_meta = PROV / "g2lite_pr5_review_manifest.json"
         if review_meta.exists():
             review = json.loads(review_meta.read_text(encoding="utf-8"))

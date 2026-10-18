@@ -14,34 +14,41 @@
 @@ -194 +195,2 @@
 -                 decode_backend: str = "sdpa_fold", prefill_backend: str = "sdpa_fold", uniform_seed: int = 0):
 +                 decode_backend: str = "sdpa_fold", prefill_backend: str = "sdpa_fold", uniform_seed: int = 0,
-+                 sparse_layers=None, cache_guard=None):
-@@ -203,0 +206,4 @@
++                 sparse_layers=None, cache_guard=None, canonical_order=False):
+@@ -203,0 +206,5 @@
 +        self.sparse_layers = None if sparse_layers is None else frozenset(sparse_layers)
 +        if self.sparse_layers is not None and not self.sparse_layers.issubset(range(cache.layers)):
 +            raise ValueError("sparse layer index outside model")
 +        self.cache_guard = cache_guard
-@@ -286 +292 @@
++        self.canonical_order = bool(canonical_order)
+@@ -286 +293 @@
 -            if st.mode == "sparse":
 +            if st.mode == "sparse" and (st.sparse_layers is None or l in st.sparse_layers):
-@@ -293 +299 @@
+@@ -293 +300 @@
 -                    out, rows = sparse_decode_step_kernel(q5, q_pre.view(B, G, h, 1, d), cache.k[l], cache.v[l], cache.z[l],
 +                    out, rows = sparse_decode_step_kernel(q5, q_pre.view(B, G, h, 1, d).to(idx.wk.dtype), cache.k[l], cache.v[l], cache.z[l],
-@@ -295 +301 @@
+@@ -295,2 +302,3 @@
 -                                                          plan.hi, plan.k, plan.selected_count, k_pre_new=k_pre,
+-                                                          write_col=plan.write_col, scale=self.scaling, return_rows=True)
 +                                                          plan.hi, plan.k, plan.selected_count, k_pre_new=k_pre.to(idx.wk.dtype),
-@@ -307 +313,2 @@
++                                                          write_col=plan.write_col, scale=self.scaling, return_rows=True,
++                                                          canonical_order=st.canonical_order)
+@@ -302,0 +311,2 @@
++                    if st.canonical_order:
++                        rows = rows.view(B, G, plan.selected_count).sort(dim=-1).values.reshape(-1)
+@@ -307 +317,2 @@
 -                cache.append(l, k_main, v)
 +                z = project_keys(k_pre.to(st.indexers[l].wk.dtype), st.indexers[l].wk) if (cache.has_index and st.indexers is not None) else None
 +                cache.append(l, k_main, v, z)
-@@ -311 +318 @@
+@@ -311 +322 @@
 -            z = project_keys(k_pre, st.indexers[l].wk) if (cache.has_index and st.indexers is not None) else None
 +            z = project_keys(k_pre.to(st.indexers[l].wk.dtype), st.indexers[l].wk) if (cache.has_index and st.indexers is not None) else None
-@@ -357 +364 @@
+@@ -357 +368 @@
 -def make_cache(model, capacity: int, *, with_index: bool, index_dim: int = 32, batch: int = 1, dtype=None, device=None) -> LabCache:
 +def make_cache(model, capacity: int, *, with_index: bool, index_dim: int = 32, batch: int = 1, dtype=None, device=None, index_dtype=None) -> LabCache:
-@@ -362 +369 @@
+@@ -362 +373 @@
 -                    dtype=p.dtype if dtype is None else dtype)
 +                    dtype=p.dtype if dtype is None else dtype, index_dtype=index_dtype)
-@@ -428,0 +436,2 @@
+@@ -428,0 +440,2 @@
 +        if st.cache_guard is not None:
 +            st.cache_guard(st)

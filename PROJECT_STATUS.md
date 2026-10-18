@@ -22,7 +22,7 @@ G3b已完成：`runs/g3b-20261018T142640Z-formal`，运行源码 `2b6db0bc956414
 
 ## G3c 进行中（G3b待审不阻断已授权下游）
 
-G3b [PR #16](https://github.com/wlvh/attention-lab/pull/16)已提交，固定依赖 `c8b5dd6`；当前分支`task/g3c-real-sparse`。准备参数身份验证、float32索引缓存、单层/全层接入与同token状态诊断。旧G2/G3a/G3b执行时的wrapper已保存独立快照及后续diff，旧run与manifest不改。实际MPS诊断尚未执行，32份最终测试未评分。
+G3b [PR #16](https://github.com/wlvh/attention-lab/pull/16)已提交，固定依赖 `c8b5dd6`；当前分支`task/g3c-real-sparse`。准备参数身份验证、float32索引缓存、单层/全层接入与同token状态诊断。旧G2/G3a/G3b执行时的wrapper已保存独立快照及后续diff，旧run与manifest不改。第一次MPS检查在单层全选处停止，记录`g3c-20261018T153617Z`保留，新增6.60秒已入账。修复一：新路径按原位置升序排列入选集合，不变更集合/名额或容差，CPU等价检查后重试。32份最终测试仍未评分。
 
 下一条重模型命令（CPU检查且源码提交后）：`.venv/bin/python bench/g3c_diagnostics.py --bank-run runs/g3b-20261018T142640Z-formal`。新运行继续计入同一14400秒账，不开启额外训练。
 

@@ -193,7 +193,7 @@ class LabState:
 
     def __init__(self, cache: LabCache, indexers=None, *, mode: str = "full", selector: str = "index",
                  decode_backend: str = "sdpa_fold", prefill_backend: str = "sdpa_fold", uniform_seed: int = 0,
-                 sparse_layers=None, cache_guard=None):
+                 sparse_layers=None, cache_guard=None, canonical_order=False):
         if mode not in ("full", "sparse"):
             raise ValueError("mode must be 'full' or 'sparse'")
         if selector not in SELECTORS:
@@ -207,6 +207,7 @@ class LabState:
         if self.sparse_layers is not None and not self.sparse_layers.issubset(range(cache.layers)):
             raise ValueError("sparse layer index outside model")
         self.cache_guard = cache_guard
+        self.canonical_order = bool(canonical_order)
         self.decode_backend, self.prefill_backend = decode_backend, prefill_backend
         self.uniform_seed = int(uniform_seed)
         self.request_counter = 0           # bumped by begin_request: C's draws differ between requests on one state
@@ -299,13 +300,16 @@ class LabAttention(nn.Module):
                     out, rows = sparse_decode_step_kernel(q5, q_pre.view(B, G, h, 1, d).to(idx.wk.dtype), cache.k[l], cache.v[l], cache.z[l],
                                                           idx.wq_t_scaled, idx.wk, plan.fixed_rows, plan.off_lo, plan.lo,
                                                           plan.hi, plan.k, plan.selected_count, k_pre_new=k_pre.to(idx.wk.dtype),
-                                                          write_col=plan.write_col, scale=self.scaling, return_rows=True)
+                                                          write_col=plan.write_col, scale=self.scaling, return_rows=True,
+                                                          canonical_order=st.canonical_order)
                 else:                                         # B / C: same F, same count, no scoring, no index table
                     cache.append(l, k_main, v)
                     if st.selector == "recent":
                         rows = plan.shared_rows               # built once per step by LabRunner.forward
                     else:
                         rows = select_rows_uniform(plan.fixed_rows, plan.off_lo, plan.lo, plan.hi, plan.k, rng=plan.uniform_rng)
+                    if st.canonical_order:
+                        rows = rows.view(B, G, plan.selected_count).sort(dim=-1).values.reshape(-1)
                     out = gathered_decode_step_kernel(q5, cache.k[l], cache.v[l], rows, plan.selected_count, scale=self.scaling)
                 if st.record_selection:
                     st.last_rows[l] = rows

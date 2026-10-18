@@ -144,7 +144,7 @@ def gathered_decode_step_kernel(q_main, k_cache, v_cache, rows, selected_count: 
 
 def sparse_decode_step_kernel(q_main, q_pre, k_cache, v_cache, zT, wq_t_scaled, wk, fixed_rows, off_lo, lo: int,
                               hi: int, k: int, selected_count: int, *, k_pre_new=None, write_col: int = -1,
-                              scale=None, backend="sdpa", return_rows: bool = False):
+                              scale=None, backend="sdpa", return_rows: bool = False, canonical_order: bool = False):
     """One layer's D read for one new query (T == 1). Every D-only cost is inside this function.
 
     `return_rows=True` also returns the flat row ids that were read (for selection diagnostics); the device work is the
@@ -157,6 +157,8 @@ def sparse_decode_step_kernel(q_main, q_pre, k_cache, v_cache, zT, wq_t_scaled, 
         zT[..., write_col:write_col + 1].copy_(project_keys(k_pre_new, wk))   # z of the newest key, its own column
     u = project_queries(q_pre, wq_t_scaled)                                     # [B,G,1,r]
     rows = select_rows_kernel(u, zT, fixed_rows, off_lo, lo, hi, k)
+    if canonical_order:
+        rows = rows.view(B, G, selected_count).sort(dim=-1).values.reshape(-1)
     out = gathered_decode_step_kernel(q_main, k_cache, v_cache, rows, selected_count, scale=scale, backend=backend)
     return (out, rows) if return_rows else out
 

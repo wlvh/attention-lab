@@ -119,3 +119,19 @@ def test_index_cache_uses_pre_rope_keys_including_inactive_layers(tmp_path):
         weights=bank.indexes[layer].wk.numpy().astype(np.float64)
         expected=np.einsum('grd,gnd->grn',weights,keys)
         np.testing.assert_allclose(state.cache.z[layer][0,...,:82].numpy(),expected,atol=1e-6,rtol=1e-5)
+
+
+def test_canonical_order_preserves_selected_set_and_float64_attention(tmp_path):
+    model=tiny_qwen3(layers=2,dtype=torch.float64);holder=wrap_model(model);bank,_=setup_bank(tmp_path,model)
+    old=make_trained_state(model,96,bank);new=make_trained_state(model,96,bank)
+    old.canonical_order=False
+    old.record_selection=new.record_selection=True
+    a,b=LabRunner(model,holder,old),LabRunner(model,holder,new)
+    ids=torch.arange(1,81).view(1,-1)
+    a.prefill(ids,16);b.prefill(ids,16)
+    old.begin_request(.125);new.begin_request(.125)
+    left=a.step(torch.tensor([[81]]));right=b.step(torch.tensor([[81]]))
+    torch.testing.assert_close(left,right,atol=1e-10,rtol=1e-10)
+    for x,y in zip(old.last_rows,new.last_rows):
+        assert torch.equal(x.sort().values,y.sort().values)
+        assert torch.equal(y,y.sort().values)
