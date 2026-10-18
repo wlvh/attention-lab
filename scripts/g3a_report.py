@@ -1,0 +1,260 @@
+#!/usr/bin/env python3
+"""Rebuild G3a tables from archived per-query records. Standard library; no torch/model.
+
+Plot helpers import matplotlib only on demand. Raw frozen feature arrays remain in
+ignored runs/ with hashes; the compact archive includes all metrics, positions,
+documents, index weights, source snapshots and both preflight outcomes.
+"""
+from __future__ import annotations
+import argparse
+from collections import defaultdict
+import hashlib
+import io
+import json
+from pathlib import Path
+import statistics
+import subprocess
+import tarfile
+
+ROOT = Path(__file__).resolve().parents[1]
+ARCHIVE = ROOT / "reports/provenance/g3a_evidence_20261018.tar.gz"
+INDEX = ROOT / "reports/provenance/g3a_archive_manifest.json"
+METRICS = ("kl", "coverage", "candidate_mass", "missed_full_mass", "teacher_entropy", "output_rmse", "output_relative_l2")
+METHODS = ("C", "D0", "D", "R")
+
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def dump(path, value):
+    path.write_text(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False) + "\n")
+
+
+def package(run):
+    manifest = json.loads((run / "manifest.json").read_text())
+    if manifest["status"] != "done" or manifest["mode"] != "formal":
+        raise ValueError("only complete formal evidence may be packaged as the result")
+    files = {}
+    for directory in sorted((ROOT / "runs").glob("g3a-*-preflight")) + [run]:
+        for p in directory.iterdir():
+            if p.is_file():
+                files[f'{directory.name}/{p.name}'] = p.read_bytes()
+    files["budget.json"] = (ROOT / "runs/g3a-budget-20261018.json").read_bytes()
+    for path, digest in manifest["sources"].items():
+        content = subprocess.check_output(["git", "show", f'{manifest["git"]["commit"]}:{path}'], cwd=ROOT)
+        if sha(content) != digest:
+            raise ValueError(f"as-run source does not match commit: {path}")
+        files["source/" + path] = content
+    files["source/configs/mac_g2lite.json"] = subprocess.check_output(["git", "show", f'{manifest["git"]["commit"]}:configs/mac_g2lite.json'], cwd=ROOT)
+    with tarfile.open(ARCHIVE, "w:gz") as tar:
+        for name, content in sorted(files.items()):
+            info = tarfile.TarInfo(name)
+            info.size = len(content)
+            info.mode = 0o644
+            tar.addfile(info, io.BytesIO(content))
+    dump(INDEX, {"archive": str(ARCHIVE.relative_to(ROOT)), "sha256": sha(ARCHIVE.read_bytes()),
+                 "formal_run": run.name, "files": {k: {"bytes": len(v), "sha256": sha(v)} for k, v in files.items()},
+                 "excluded": "features/*.npz remain local in runs/, individually hashed in the original manifest; not uploaded"})
+
+
+def read_evidence():
+    index = json.loads(INDEX.read_text())
+    if sha(ARCHIVE.read_bytes()) != index["sha256"]:
+        raise ValueError("archive hash mismatch")
+    with tarfile.open(ARCHIVE) as tar:
+        files = {m.name: tar.extractfile(m).read() for m in tar.getmembers() if m.isfile()}
+    if set(files) != set(index["files"]):
+        raise ValueError("archive member set mismatch")
+    for name, content in files.items():
+        meta = index["files"][name]
+        if len(content) != meta["bytes"] or sha(content) != meta["sha256"]:
+            raise ValueError(f"member mismatch: {name}")
+    prefix = index["formal_run"] + "/"
+    get = lambda name: json.loads(files[prefix + name])
+    records = [json.loads(line) for line in files[prefix + "metrics.jsonl"].splitlines()]
+    docs = [json.loads(line) for line in files[prefix + "data.jsonl"].splitlines()]
+    manifest, status = get("manifest.json"), get("summary.json")
+    if status["status"] != "done" or manifest["status"] != "done" or status["mode"] != "formal" or status["completed"] != status["planned"]:
+        raise ValueError("incomplete/diagnostic run is not a formal result")
+    for name, digest in manifest["output_hashes"].items():
+        if name in ("summary.json", "manifest.json"):
+            continue
+        if sha(files[prefix + name]) != digest:
+            raise ValueError(f"original output hash mismatch: {name}")
+    for path, digest in manifest["sources"].items():
+        if sha(files["source/" + path]) != digest:
+            raise ValueError(f"source mismatch: {path}")
+    if sha(files[prefix + "index_final.npz"]) != manifest["final_checkpoint_sha256"]:
+        raise ValueError("checkpoint mismatch")
+    return dict(index=index, manifest=manifest, status=status, records=records, docs=docs,
+                training=get("training.json"), files=files, budget=json.loads(files["budget.json"]))
+
+
+def summarize(evidence):
+    docs, records = evidence["docs"], evidence["records"]
+    cfg = evidence["manifest"]["config"]
+    expected = {(d["doc_id"], qi, m) for d in docs for qi in range(len(cfg["query_offsets_from_suffix_end"])) for m in METHODS}
+    actual = [(r["doc_id"], r["query_index"], r["method"]) for r in records]
+    if set(actual) != expected or len(actual) != len(expected):
+        raise ValueError("missing/duplicate query/method records")
+    by_doc = {d["doc_id"]: d for d in docs}
+    pools = defaultdict(lambda: defaultdict(list))
+    for r in records:
+        if r["split"] != by_doc[r["doc_id"]]["split"]:
+            raise ValueError("split mismatch")
+        for positions in r["positions"]:
+            if len(positions) != r["selected_count"] or len(set(positions)) != len(positions) or not all(0 <= p < r["legal"] for p in positions):
+                raise ValueError("invalid original-position selection")
+        for metric in METRICS:
+            if r[metric] is None:
+                continue
+            for value, eligible in zip(r[metric], r["eligible"]):
+                if metric in ("kl", "coverage", "teacher_entropy") and not eligible:
+                    continue
+                pools[(r["split"], r["doc_id"], r["method"])][metric].append(value)
+    document_results = []
+    for (split, doc_id, method), metrics in sorted(pools.items()):
+        document_results.append(dict(split=split, doc_id=doc_id, method=method,
+                                     **{k: statistics.mean(v) for k, v in metrics.items()}))
+    aggregate = {}
+    for split in ("train", "heldout"):
+        aggregate[split] = {}
+        for method in METHODS:
+            rows = [r for r in document_results if r["split"] == split and r["method"] == method]
+            aggregate[split][method] = {metric: statistics.mean(r[metric] for r in rows if metric in r) if any(metric in r for r in rows) else None for metric in METRICS}
+            aggregate[split][method]["documents"] = len(rows)
+    paired = []
+    for d in docs:
+        methods = {r["method"]: r for r in document_results if r["doc_id"] == d["doc_id"]}
+        paired.append(dict(doc_id=d["doc_id"], split=d["split"],
+                           delta_kl=methods["D"]["kl"] - methods["D0"]["kl"],
+                           delta_coverage=methods["D"]["coverage"] - methods["D0"]["coverage"],
+                           delta_output_error=methods["D"]["output_relative_l2"] - methods["D0"]["output_relative_l2"]))
+    final_qi = len(cfg["query_offsets_from_suffix_end"]) - 1
+    held = [r for r in records if r["split"] == "heldout" and r["query_index"] == final_qi]
+    gains = {}
+    for d in docs:
+        if d["split"] == "heldout":
+            selected = {r["method"]: r for r in held if r["doc_id"] == d["doc_id"]}
+            gains[d["doc_id"]] = statistics.mean(selected["D"]["coverage"]) - statistics.mean(selected["D0"]["coverage"])
+    cases = []
+    for label, doc_id in (("最大改善", max(gains, key=gains.get)), ("最差变化", min(gains, key=gains.get))):
+        d = by_doc[doc_id]
+        cases.append({"label": label, "doc_id": doc_id, "selection_rule": "留出最终查询、8组平均 coverage 的 D-D0 极值；展示组固定为0",
+                      "question": d["question"], "target_records": [f'编号 {d["ids"][i]}：{d["values"][i]}' for i in d["target_indices"]],
+                      "target_spans": d["target_spans"], "prefix_tokens": d["prefix_token_count"],
+                      "group": 0, "delta_coverage": gains[doc_id], "records": [r for r in held if r["doc_id"] == doc_id]})
+    h = aggregate["heldout"]
+    support = h["D"]["kl"] < min(h["D0"]["kl"], h["C"]["kl"]) and h["D"]["coverage"] > max(h["D0"]["coverage"], h["C"]["coverage"])
+    return {"run_id": evidence["status"]["run_id"], "run_commit": evidence["manifest"]["git"]["commit"],
+            "report_source_sha256": sha(Path(__file__).read_bytes()), "archive_sha256": evidence["index"]["sha256"],
+            "status": "single_layer_descriptive_support" if support else "insufficient_evidence",
+            "scope": "full-path frozen features, one layer; not task accuracy, sparse trajectory or speed",
+            "aggregate": aggregate, "by_document": document_results, "paired": paired, "cases": cases,
+            "training": evidence["training"], "budget": evidence["budget"],
+            "range": {k: [min(r[k] for r in records), max(r[k] for r in records)] for k in ("k0", "k", "selected_count", "candidate_count", "legal")},
+            "prefix_tokens_range": [min(d["prefix_token_count"] for d in docs), max(d["prefix_token_count"] for d in docs)],
+            "rows": len(records), "skipped_train_rows": evidence["manifest"]["skipped_train_rows"]}
+
+
+def table(summary, split):
+    lines = ["| 方法 | KL（nats）↓ | 条件覆盖率 ↑ | 候选总权重 m_C | 遗漏完整权重 ↓ | 输出 RMSE ↓ | 输出相对 L2 ↓ |",
+             "|---|---:|---:|---:|---:|---:|---:|"]
+    for m in METHODS:
+        a = summary["aggregate"][split][m]
+        fmt = lambda x: "—" if x is None else f"{x:.5f}"
+        lines.append(f'| {m} | ' + " | ".join(fmt(a[k]) for k in ("kl", "coverage", "candidate_mass", "missed_full_mass", "output_rmse", "output_relative_l2")) + " |")
+    return "\n".join(lines)
+
+
+def markdown(summary, evidence):
+    m = evidence["manifest"]
+    paired = [r for r in summary["paired"] if r["split"] == "heldout"]
+    return f'''# G3a：单层索引器是否学会了选择
+
+判定：**{summary['status']}**。这是预登记条件下的描述性检查，不是总体泛化保证。只训练第 14 层的 98,304 个索引参数，主体、其他层和旧实验未改变。没有生成新答案，没有部署全层稀疏读取，也没有测加速。
+
+正式 run：`{summary['run_id']}`；运行代码 `{summary['run_commit']}`；报告生成源码 SHA-256 `{summary['report_source_sha256']}`。配置与原始数据在证据归档中，源自新的 48/16 T1 划分。
+
+## 留出：16 份完整资料
+
+{table(summary, 'heldout')}
+
+每份先对查询/组求均值，再对资料求均值。KL、条件覆盖率和熵排除 m_C<1e-4 的行，其他指标保留全部行。C 的 KL 是均匀全候选分布的 KL，coverage 来自实际随机名单；R 只有选位诊断。误差在注意力输出 o_proj 前计算，不能替代任务分数。
+
+相对 D0，留出资料中 KL 下降 {sum(r['delta_kl'] < 0 for r in paired)}/16；coverage 上升 {sum(r['delta_coverage'] > 0 for r in paired)}/16；相对输出误差下降 {sum(r['delta_output_error'] < 0 for r in paired)}/16。完整逐资料差异见 JSON，不把这些相关行当独立验证样本。
+
+## 训练：48 份完整资料
+
+{table(summary, 'train')}
+
+训练曲线记录每轮更新过程中遇到的损失，不是固定轮末参数的整集损失；上表才是同一最终参数重评的结果。固定第 50 轮，无留出早停或挑选。低候选质量跳过训练行数：{summary['skipped_train_rows']}。
+
+## 名额、来源与正确性
+
+- ρ=1/8；资料 token 范围 {summary['prefix_tokens_range']}；k0/实际 k/总读取数分别为 {summary['range']['k0']} / {summary['range']['k']} / {summary['range']['selected_count']}。候选数 {summary['range']['candidate_count']}，合法长度 {summary['range']['legal']}；k/M 与总读取比例按原始逐查询记录分别计算，不把 ρ 当作总比例。
+- 特征来自完整 A-step 路径；主体 bf16/MPS；教师与局部输出用保存特征在 CPU float32 重算；索引器 MPS float32。只抓取一个层、每资料四个问题/模板后缀位置，不保存全层注意力。
+- 主体提取前后 hash：`{m['body_hash_before']}` / `{m['body_hash_after_extraction']}`；主体在索引训练前释放；优化器仅含 Wq/Wk。
+- 原始逐查询/组数据共 {summary['rows']} 条方法记录；64 份资料与旧归档 60 个唯一资料 hash 重合为 0。新种子不使这 16 份成为更大总体的保证。
+- 两小时预算含失败预检、通过预检及正式运行，累计 {summary['budget']['used_seconds']:.1f} 秒；现金 0。第一次预检在布局振荡处停止，未训练，证据保留。G3a 单独采用 2048±64 token，未改旧生成器或旧 run。
+
+## 案例与解释边界
+
+案例按留出最终查询、8组平均 coverage 的 D-D0 最大/最小变化选取；展示组固定为0，极值不是典型样本。具体题目、目标记录、原位置名单与指标见 JSON 和 Notebook。目标位置覆盖、教师注意力覆盖、局部输出误差与答题正确性不是同一指标；R 覆盖最优也不保证输出误差最小。
+
+运行前预测保留在 `docs/tasks/06_G3A_SINGLE_LAYER.md`（首次提交 ee7e2f1）。全层稀疏轨迹、任务分数、训练种子稳定性、T2、速度与从资料开始稀疏均未检查。停止等待复审，不自动扩展。
+
+## 复现与展示
+
+`python scripts/g3a_report.py` 只读归档重建本报告/JSON，不导入 torch。Notebook 也不加载真实模型或训练。完整特征 NPZ 留在本机原始 run 的 features/（逐文件 hash 在 manifest），精简归档包含全部逐查询指标/名单位图的原位置列表、数据、初始/最终参数、运行源码、失败记录和预算账。
+
+HTML 与图像的实际展示检查范围见 PROJECT_STATUS.md；执行无错误不等于整页已视觉验收。
+'''
+
+
+def plot_overview(summary):
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(1, 3, figsize=(15, 4.2), layout="constrained")
+    trace = summary["training"]
+    axes[0].plot([x["epoch"] for x in trace], [x["online_train_kl"] for x in trace], color="#0072b2")
+    axes[0].set(xlabel="Epoch (fixed 50)", ylabel="Online train KL (nats)", title="Training updates; no heldout tuning")
+    colors = ["#999999", "#e69f00", "#0072b2", "#009e73"]
+    for ax, key, title in zip(axes[1:], ("coverage", "output_relative_l2"), ("Heldout teacher coverage (higher)", "Heldout local output error (lower)")):
+        ax.bar(METHODS, [summary["aggregate"]["heldout"][m][key] for m in METHODS], color=colors)
+        for i, method in enumerate(METHODS):
+            values = [r[key] for r in summary["by_document"] if r["split"] == "heldout" and r["method"] == method]
+            ax.plot([i] * len(values), values, "k.", alpha=.5, markersize=4)
+        ax.set(title=title, ylabel="Document mean (dots: 16 documents)", ylim=(0, None))
+    return fig
+
+
+def plot_case(case):
+    import matplotlib.pyplot as plt
+    fig, ax = plt.subplots(figsize=(12, 3.3), layout="constrained")
+    for i, row in enumerate(case["records"]):
+        positions = row["positions"][case["group"]]
+        ax.plot(positions, [i] * len(positions), "|", markersize=9, label=row["method"])
+    for j, (start, end) in enumerate(case["target_spans"]):
+        ax.axvspan(start, end, color="#cc79a7", alpha=.35, label="Target record" if j == 0 else None)
+    ax.set(yticks=range(4), yticklabels=[r["method"] for r in case["records"]], xlabel="Original token position (no renumbering)",
+           title=f'{case["doc_id"]}: final query; layer 14, KV group 0', ylim=(-.6, 3.7))
+    ax.legend(loc="upper left", bbox_to_anchor=(1, 1))
+    return fig
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--package-run", type=Path)
+    args = parser.parse_args()
+    if args.package_run:
+        package(args.package_run)
+    evidence = read_evidence()
+    result = summarize(evidence)
+    dump(ROOT / "reports/g3a_summary_mac_m4max.json", result)
+    (ROOT / "reports/g3a_mac_m4max.md").write_text(markdown(result, evidence))
+    print(json.dumps({"status": result["status"], "heldout": result["aggregate"]["heldout"]}, ensure_ascii=False, indent=2))
+
+
+if __name__ == "__main__":
+    main()
