@@ -75,6 +75,31 @@
       "path": "reports/provenance/g1b/model_numerics_at_formal3_run.py",
       "bytes": 26925,
       "sha256": "5809bd27b39730dfc5c5060676c182bf05561184d5f108158c2dbe052beecbfc"
+    },
+    {
+      "path": "reports/provenance/g2lite_runs_20261017.tar.gz",
+      "bytes": 3480995,
+      "sha256": "69d3f3afb12e10ad20d2cd4f8350c7dd2f1122855ba540004be7775ff1a7c42d"
+    },
+    {
+      "path": "reports/provenance/g1b/decode_at_g1a_g1b_runs.py",
+      "bytes": 6667,
+      "sha256": "f0dde0182b1c9df8b4417a31b1994d86215e0e38ae4e5fd5eb4ed1606cc514ee"
+    },
+    {
+      "path": "reports/provenance/g1b/decode_post_g1b_edit.diff",
+      "bytes": 6105,
+      "sha256": "130ba68cd75e7fa43636c35dc86e44a15782c9c0f98532c3fa5192a8909c95ef"
+    },
+    {
+      "path": "reports/provenance/g1b/qwen_wrap_at_g1b_numerics4_and_phasefix_runs.py",
+      "bytes": 31408,
+      "sha256": "5d6082bf37aeb0ec38fc56e717fe06ccdf4de70f2f2109e4863385540eac091a"
+    },
+    {
+      "path": "reports/provenance/g1b/qwen_wrap_post_g1b_edit.diff",
+      "bytes": 10772,
+      "sha256": "db3b75b789cc387aed10abd6eeefc500d7ea13360b2d208c42666ced490a2156"
     }
   ],
   "regenerate": [
@@ -106,5 +131,11 @@
     "p1-attend-20261017T075802Z-p2",
     "p1-formal.log"
   ],
-  "g1b_note": "Added 2026-10-17 (PR #2 review): the four G1b numerics runs, the formal decode run, the phase-fix appendix run and their logs (home paths replaced by ~), the as-run source snapshots with the post-run diffs, and the P0/P1 run inputs of PR #3 (integrity only). Extract in a clean directory and regenerate reports/g1b_mac_m4max.md with scripts/g1b_report.py, no GPU, no model."
+  "g1b_note": "Added 2026-10-17 (PR #2 review): the four G1b numerics runs, the formal decode run, the phase-fix appendix run and their logs (home paths replaced by ~), the as-run source snapshots with the post-run diffs, and the P0/P1 run inputs of PR #3 (integrity only). Extract in a clean directory and regenerate reports/g1b_mac_m4max.md with scripts/g1b_report.py, no GPU, no model.",
+  "g2lite": {
+    "created_utc": "20261017",
+    "archive": "reports/provenance/g2lite_runs_20261017.tar.gz",
+    "members": 152,
+    "note": "formal G2-lite runs (three passes) with data, answers, summaries, manifests and the as-run config; positions bitsets only for the representative cases; smoke and calibration runs without data files; logs"
+  }
 }

@@ -1,0 +1,43 @@
+--- reports/provenance/g2lite_pr5_review/g2lite_quality_at_formal_runs.py
++++ bench/g2lite_quality.py
+@@ -37,0 +38 @@
++from attention_lab.g2lite_control import RunProgress, UNIFORM_SEED_RULE, uniform_seed_for  # noqa: E402
+@@ -74,4 +74,0 @@
+-
+-
+-def uniform_seed_for(cfg, doc_id: str) -> int:
+-    return int(cfg["seeds"]["uniform_base"]) + int(hashlib.sha256(doc_id.encode("utf-8")).hexdigest()[:8], 16) % (1 << 20)
+@@ -175,0 +173,4 @@
++    plan_requests = [("A", None)] if "A" in a.methods else []
++    plan_requests += [(m, rho) for m in a.methods if m != "A" for rho in a.rhos]
++    progress = RunProgress([d["doc_id"] for d in docs], plan_requests)
++    manifest.update({"uniform_seed_rule": UNIFORM_SEED_RULE, "completion": progress.snapshot()})
+@@ -183,2 +183,0 @@
+-    plan_requests = [("A", None)] if "A" in a.methods else []
+-    plan_requests += [(m, rho) for m in a.methods if m != "A" for rho in a.rhos]
+@@ -203,0 +203,2 @@
++                progress.skip_document(doc["doc_id"], "cache_estimate_exceeds_memory_limit")
++                del cache0
+@@ -220 +221 @@
+-                useed = uniform_seed_for(cfg, doc["doc_id"])
++                useed = uniform_seed_for(cfg, doc)
+@@ -287,0 +289 @@
++                progress.complete(doc["doc_id"], method, rho)
+@@ -295,0 +298 @@
++                progress.stop("allocated_memory_above_warning_limit")
+@@ -299,0 +303,4 @@
++    completion = progress.snapshot(final=True)
++    if completion["status"] != "done":
++        for gate in agg["gate"].values():
++            gate.update({"usable": False, "reason": "incomplete_run"})
+@@ -303 +310,2 @@
+-               "n_docs": len(docs), "n_rows": len(rows), "prefill_ms_by_doc": prefill_ms_by_doc, "aggregate": agg, "memory_end": mem(torch), "_quality_path": runinfo.sanitize(str((out_dir / "quality.jsonl").relative_to(ROOT)))}
++               "status": completion["status"], "completion": completion, "uniform_seed_rule": UNIFORM_SEED_RULE,
++               "n_docs": completion["completed_docs"], "n_rows": len(rows), "prefill_ms_by_doc": prefill_ms_by_doc, "aggregate": agg, "memory_end": mem(torch), "_quality_path": runinfo.sanitize(str((out_dir / "quality.jsonl").relative_to(ROOT)))}
+@@ -305 +313,2 @@
+-    manifest.update({"status": "done", "finished_at_utc": summary["utc_end"], "budget": {"cloud_usd_actual": 0, "cloud_usd_committed": 0, "device_seconds": device_s}})
++    manifest.update({"status": completion["status"], "completion": completion, "n_docs": completion["completed_docs"],
++                     "finished_at_utc": summary["utc_end"], "budget": {"cloud_usd_actual": 0, "cloud_usd_committed": 0, "device_seconds": device_s}})
+@@ -313 +322 @@
+-    return 0
++    return 0 if completion["status"] == "done" else 2
