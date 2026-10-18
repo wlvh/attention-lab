@@ -1,5 +1,13 @@
 # 接力状态
 
+## 2026-10-18 PR #12 复审补丁：预检绑定执行源码
+
+本轮只修 P2 预检复用条件，未运行模型或训练，未合并 PR。`bench/g3a_train.py` 现在同时读取预检 summary/manifest，检查完成状态、记录配对、G3a 配置与基础数据配置的 SHA-256，以及 12 个本地执行源文件（运行器、特征/教师/索引训练、数据生成、完整注意力及依赖）。缺失或不一致拒绝；Git 提交号不作为门槛，文档、Notebook、报告和无关实验文件的提交不影响有效预检。
+
+核验记录：[g3a_preflight_binding_check.json](reports/g3a_preflight_binding_check.json)。成功预检 `1ee30e2` 与正式运行 `b998ee7` 的两个配置哈希和全部 23 个记录源码哈希一致，两个提交间仅新增 `scripts/g3a_report.py`；本机的四份 summary/manifest 与归档逐字节一致。历史绑定通过；当前执行器源码已改变，因此旧预检不被当作修后版本的新运行许可。
+
+CPU 回归 **18 项通过**（原有 12 项加 6 项预检绑定测试，涵盖全部 12 个执行文件的变化与缺失反例）。旧 run、manifest、归档、索引参数、成绩、Notebook 和 HTML 均未改写；第四课整页及窄屏布局仍未验。下一步只等待此补丁的最终合并确认；CPU 核验命令：`.venv/bin/python -m pytest tests/test_g3a.py tests/test_g3a_report.py -q`。
+
 ## 2026-10-18 当前增量：G3a 已完成，待 PR 复审
 
 基于已合并 PR #5 的 main `d2fc4ad` 完成独立缩减任务 [Issue #11](https://github.com/wlvh/attention-lab/issues/11)，分支 `task/g3a-single-layer`。任务书 [06_G3A_SINGLE_LAYER.md](docs/tasks/06_G3A_SINGLE_LAYER.md)，运行前预测提交 `ee7e2f1`。本节是最新状态，下文保留 G0—G2-lite 的历史交付记录。

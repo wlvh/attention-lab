@@ -1,7 +1,11 @@
 """CPU contracts for G3a; no checkpoint download or real model execution."""
 import importlib.util
+import copy
+import hashlib
+import json
 from pathlib import Path
 import sys
+import tarfile
 
 import unittest
 try:
@@ -164,3 +168,108 @@ def test_parameter_update_check_uses_tensor_values():
         current.wq.add_(.01)
         current.wk.add_(.02)
     assert min(runner.parameter_changes(current, initial).values()) > 0
+
+
+def preflight_fixture():
+    spec = importlib.util.spec_from_file_location("g3a_runner", ROOT / "bench/g3a_train.py")
+    runner = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runner)
+    plan = dict(documents=2, epochs=2, evaluated_documents=2)
+    summary = dict(run_id="fixture-preflight", status="done", mode="preflight",
+                   config_sha256="a" * 64, planned=plan, completed=plan.copy())
+    manifest = dict(copy.deepcopy(summary), base_config_sha256="b" * 64,
+                    sources={p: hashlib.sha256(p.encode()).hexdigest() for p in runner.EXECUTION_SOURCES},
+                    git={"commit": "preflight-commit"})
+    return runner, summary, manifest, copy.deepcopy(manifest)
+
+
+def test_preflight_rejects_source_changes_with_identical_config():
+    runner, summary, manifest, execution = preflight_fixture()
+    runner.validate_preflight(summary, manifest, execution)
+    for path in runner.EXECUTION_SOURCES:
+        changed = copy.deepcopy(execution)
+        changed["sources"][path] = "c" * 64
+        assert changed["config_sha256"] == summary["config_sha256"]
+        with pytest.raises(RuntimeError, match="execution source"):
+            runner.validate_preflight(summary, manifest, changed)
+
+
+def test_preflight_rejects_missing_execution_hashes():
+    runner, summary, manifest, execution = preflight_fixture()
+    for path in runner.EXECUTION_SOURCES:
+        for side in ("recorded", "current"):
+            recorded, current = copy.deepcopy(manifest), copy.deepcopy(execution)
+            (recorded if side == "recorded" else current)["sources"].pop(path)
+            with pytest.raises(RuntimeError, match="execution source"):
+                runner.validate_preflight(summary, recorded, current)
+
+
+def test_preflight_binds_both_config_files():
+    runner, summary, manifest, execution = preflight_fixture()
+    for key in ("config_sha256", "base_config_sha256"):
+        for change in ("different", "missing"):
+            current = copy.deepcopy(execution)
+            if change == "different":
+                current[key] = "c" * 64
+            else:
+                current.pop(key)
+            with pytest.raises(RuntimeError, match=key):
+                runner.validate_preflight(summary, manifest, current)
+    mismatched_manifest = dict(manifest, config_sha256="c" * 64)
+    with pytest.raises(RuntimeError, match="config_sha256"):
+        runner.validate_preflight(summary, mismatched_manifest, execution)
+
+
+def test_preflight_document_and_report_commits_do_not_invalidate(tmp_path):
+    runner, summary, manifest, execution = preflight_fixture()
+    for path in runner.EXECUTION_SOURCES:
+        source = tmp_path / path
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_text(f"# unchanged execution source: {path}\n")
+    manifest["sources"] = runner.runinfo.source_hashes(tmp_path)
+    (tmp_path / "README.md").write_text("Documentation-only change\n")
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / "scripts/g3a_report.py").write_text("# report presentation change\n")
+    current = dict(execution, sources=runner.runinfo.source_hashes(tmp_path), git={"commit": "new-document-commit"})
+    assert current["git"] != manifest["git"]
+    runner.validate_preflight(summary, manifest, current)
+
+
+def test_preflight_rejects_incomplete_or_unpaired_records():
+    runner, summary, manifest, execution = preflight_fixture()
+    for key, value in (("status", "incomplete"), ("mode", "formal"), ("run_id", "different-run"),
+                       ("completed", dict(summary["completed"], epochs=1))):
+        for side in ("summary", "manifest"):
+            s, m = copy.deepcopy(summary), copy.deepcopy(manifest)
+            (s if side == "summary" else m)[key] = value
+            with pytest.raises(RuntimeError):
+                runner.validate_preflight(s, m, execution)
+    different_plan = dict(manifest, planned=dict(documents=1, epochs=1, evaluated_documents=1),
+                          completed=dict(documents=1, epochs=1, evaluated_documents=1))
+    with pytest.raises(RuntimeError, match="plan differs"):
+        runner.validate_preflight(summary, different_plan, execution)
+
+
+def test_existing_successful_preflight_matches_formal_execution():
+    runner, _, _, _ = preflight_fixture()
+    index = json.loads((ROOT / "reports/provenance/g3a_archive_manifest.json").read_text())
+    archive = ROOT / index["archive"]
+    assert hashlib.sha256(archive.read_bytes()).hexdigest() == index["sha256"]
+    with tarfile.open(archive) as tar:
+        def read(run, filename):
+            name = f"{run}/{filename}"
+            data = tar.extractfile(name).read()
+            assert hashlib.sha256(data).hexdigest() == index["files"][name]["sha256"]
+            return json.loads(data)
+        pre_run = "g3a-20261018T122640Z-preflight"
+        summary = read(pre_run, "summary.json")
+        manifest = read(pre_run, "manifest.json")
+        formal = read(index["formal_run"], "manifest.json")
+    assert manifest["git"]["commit"] != formal["git"]["commit"]
+    assert manifest["sources"] == formal["sources"]
+    assert manifest["config"] == formal["config"]
+    runner.validate_preflight(summary, manifest, formal)
+    # The historical match does not grandfather this changed runner into approval.
+    current = dict(formal, sources=runner.runinfo.source_hashes(ROOT))
+    with pytest.raises(RuntimeError, match="bench/g3a_train.py"):
+        runner.validate_preflight(summary, manifest, current)

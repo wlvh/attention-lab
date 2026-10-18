@@ -17,6 +17,52 @@ sys.path.insert(0, str(ROOT / "src"))
 from attention_lab import runinfo
 
 
+# Keep this list aligned with the runner's local execution imports, including
+# package initialization and the full-attention wrapper's transitive dependencies.
+# Reports, notebooks, tests and unrelated experiments do not gate preflight reuse.
+EXECUTION_SOURCES = (
+    "bench/g3a_train.py",
+    "src/attention_lab/__init__.py",
+    "src/attention_lab/g3a.py",
+    "src/attention_lab/g2lite_data.py",
+    "src/attention_lab/qwen_wrap.py",
+    "src/attention_lab/indexer.py",
+    "src/attention_lab/selection.py",
+    "src/attention_lab/decode.py",
+    "src/attention_lab/full.py",
+    "src/attention_lab/sparse.py",
+    "src/attention_lab/reference.py",
+    "src/attention_lab/runinfo.py",
+)
+
+
+def validate_preflight(summary, manifest, execution):
+    """Bind a complete preflight to execution inputs, not the whole Git commit.
+
+    Reads the existing source/config fields, so historical manifests need no edits.
+    Missing hashes fail closed; the caller may only continue to model loading after
+    this check. `execution` can also be an existing formal manifest for CPU auditing.
+    """
+    for record in (summary, manifest):
+        if record.get("status") != "done" or record.get("mode") != "preflight":
+            raise RuntimeError("preflight incomplete or wrong mode")
+        if not record.get("planned") or record.get("completed") != record["planned"]:
+            raise RuntimeError("preflight completion counts differ")
+        if not execution.get("config_sha256") or record.get("config_sha256") != execution["config_sha256"]:
+            raise RuntimeError("preflight config_sha256 missing or differs")
+    if not summary.get("run_id") or summary["run_id"] != manifest.get("run_id"):
+        raise RuntimeError("preflight summary/manifest run_id differs")
+    if summary["planned"] != manifest["planned"]:
+        raise RuntimeError("preflight summary/manifest plan differs")
+    if not execution.get("base_config_sha256") or manifest.get("base_config_sha256") != execution["base_config_sha256"]:
+        raise RuntimeError("preflight base_config_sha256 missing or differs")
+    recorded = manifest.get("sources", {})
+    current = execution.get("sources", {})
+    for path in EXECUTION_SOURCES:
+        if not current.get(path) or recorded.get(path) != current[path]:
+            raise RuntimeError(f"preflight execution source missing or differs: {path}")
+
+
 def write_json(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
 
@@ -96,12 +142,15 @@ def main():
         raise RuntimeError("another registered G3a process is active")
     if ledger["used_seconds"] >= cfg["budget_seconds"]:
         raise RuntimeError("cumulative budget exhausted")
+    execution = {"config_sha256": cfg_hash,
+                 "base_config_sha256": runinfo.sha256_file(ROOT / cfg["base_config"]),
+                 "sources": runinfo.source_hashes(ROOT)}
     if args.mode == "formal":
         if args.preflight is None:
             raise RuntimeError("formal requires an explicit completed preflight")
         pre = json.loads((args.preflight / "summary.json").read_text())
-        if pre["status"] != "done" or pre["mode"] != "preflight" or pre["config_sha256"] != cfg_hash:
-            raise RuntimeError("preflight incomplete or config differs")
+        pre_manifest = json.loads((args.preflight / "manifest.json").read_text())
+        validate_preflight(pre, pre_manifest, execution)
         if pre["projected_formal_seconds"] * 1.5 > cfg["budget_seconds"] - ledger["used_seconds"]:
             raise RuntimeError("preflight projection exceeds remaining budget with 1.5x margin")
     run_id = f'g3a-{runinfo.utc_compact()}-{args.mode}'
@@ -116,9 +165,8 @@ def main():
     planned = {"documents": count, "epochs": epochs, "evaluated_documents": count}
     completed = {key: 0 for key in planned}
     manifest = {"run_id": run_id, "mode": args.mode, "status": "running", "utc_start": runinfo.utc_now(),
-                "pid": os.getpid(), "git": git, "config": cfg, "config_sha256": cfg_hash,
-                "base_config_sha256": runinfo.sha256_file(ROOT / cfg["base_config"]),
-                "sources": runinfo.source_hashes(ROOT), "environment": runinfo.torch_env(torch),
+                "pid": os.getpid(), "git": git, "config": cfg, **execution,
+                "environment": runinfo.torch_env(torch),
                 "transformers": transformers.__version__, "host": runinfo.host_info(),
                 "offline": True, "planned": planned, "completed": completed, "feature_files": {},
                 "memory_samples": [], "elapsed_budget_before_seconds": ledger["used_seconds"],
