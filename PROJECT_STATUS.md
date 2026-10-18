@@ -20,6 +20,12 @@ G3b已完成：`runs/g3b-20261018T142640Z-formal`，运行源码 `2b6db0bc956414
 
 下一步：提交G3b待审PR后，从固定提交建立G3c依赖分支；先CPU检查单层/全层接入与全选等价，再用4份旧开发资料和固定token序列检查真实状态差异。32份新最终测试还未评分。报告复核命令：`python scripts/g3b_report.py`，不会运行模型。页面预览、PR #10与历史诊断归档不阻挡研发；Metal/CUDA、更长上下文、T2、付费服务仍未授权。以下各节保留此前交付时点，旧停止点由本节限定授权取代。
 
+## G3c 进行中（G3b待审不阻断已授权下游）
+
+G3b [PR #16](https://github.com/wlvh/attention-lab/pull/16)已提交，固定依赖 `c8b5dd6`；当前分支`task/g3c-real-sparse`。准备参数身份验证、float32索引缓存、单层/全层接入与同token状态诊断。旧G2/G3a/G3b执行时的wrapper已保存独立快照及后续diff，旧run与manifest不改。实际MPS诊断尚未执行，32份最终测试未评分。
+
+下一条重模型命令（CPU检查且源码提交后）：`.venv/bin/python bench/g3c_diagnostics.py --bank-run runs/g3b-20261018T142640Z-formal`。新运行继续计入同一14400秒账，不开启额外训练。
+
 ## 2026-10-18 PR #12 复审补丁：预检绑定执行源码
 
 本轮只修 P2 预检复用条件，未运行模型或训练，未合并 PR。`bench/g3a_train.py` 现在同时读取预检 summary/manifest，检查完成状态、记录配对、G3a 配置与基础数据配置的 SHA-256，以及 12 个本地执行源文件（运行器、特征/教师/索引训练、数据生成、完整注意力及依赖）。缺失或不一致拒绝；Git 提交号不作为门槛，文档、Notebook、报告和无关实验文件的提交不影响有效预检。

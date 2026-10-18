@@ -57,13 +57,14 @@ class LabCache:
     """
 
     def __init__(self, *, layers: int, batch: int, groups: int, capacity: int, head_dim: int, index_dim=None, device,
-                 dtype=torch.float32):
+                 dtype=torch.float32, index_dtype=None):
         if int(capacity) <= 0 or int(layers) <= 0:
             raise ValueError("capacity and layers must be positive")
         self.layers, self.batch, self.groups = int(layers), int(batch), int(groups)
         self.capacity, self.head_dim = int(capacity), int(head_dim)
         self.index_dim = None if index_dim is None else int(index_dim)
         self.device, self.dtype = torch.device(device), dtype
+        self.index_dtype = dtype if index_dtype is None else index_dtype
         kv_shape = (self.batch, self.groups, self.capacity, self.head_dim)
         self.k = [torch.empty(kv_shape, device=self.device, dtype=dtype) for _ in range(self.layers)]
         self.v = [torch.empty(kv_shape, device=self.device, dtype=dtype) for _ in range(self.layers)]
@@ -71,7 +72,7 @@ class LabCache:
             self.z = None
         else:
             z_shape = (self.batch, self.groups, self.index_dim, self.capacity)                 # [B,G,r,C]: G0 layout
-            self.z = [torch.empty(z_shape, device=self.device, dtype=dtype) for _ in range(self.layers)]
+            self.z = [torch.empty(z_shape, device=self.device, dtype=self.index_dtype) for _ in range(self.layers)]
         self.valid_length = 0
         self.offsets = row_offsets(self.batch, self.groups, self.capacity, self.device)          # [B,G,1]
         ar = torch.arange(FIXED_PREFIX, device=self.device).view(1, 1, -1)
@@ -134,7 +135,7 @@ class LabCache:
     def bytes(self) -> dict:
         es = self.k[0].element_size()
         kv = self.layers * 2 * self.batch * self.groups * self.capacity * self.head_dim * es
-        z = 0 if self.z is None else self.layers * self.batch * self.groups * self.index_dim * self.capacity * es
+        z = 0 if self.z is None else self.layers * self.batch * self.groups * self.index_dim * self.capacity * self.z[0].element_size()
         return {"kv_bytes": kv, "index_bytes": z, "total_bytes": kv + z}
 
 
@@ -191,7 +192,8 @@ class LabState:
     (index = D0, recent = B, uniform = C) and the plan of the step in flight."""
 
     def __init__(self, cache: LabCache, indexers=None, *, mode: str = "full", selector: str = "index",
-                 decode_backend: str = "sdpa_fold", prefill_backend: str = "sdpa_fold", uniform_seed: int = 0):
+                 decode_backend: str = "sdpa_fold", prefill_backend: str = "sdpa_fold", uniform_seed: int = 0,
+                 sparse_layers=None, cache_guard=None):
         if mode not in ("full", "sparse"):
             raise ValueError("mode must be 'full' or 'sparse'")
         if selector not in SELECTORS:
@@ -201,6 +203,10 @@ class LabState:
         if indexers is not None and len(indexers) != cache.layers:
             raise ValueError("one indexer per layer")
         self.cache, self.indexers, self.mode, self.selector = cache, indexers, mode, selector
+        self.sparse_layers = None if sparse_layers is None else frozenset(sparse_layers)
+        if self.sparse_layers is not None and not self.sparse_layers.issubset(range(cache.layers)):
+            raise ValueError("sparse layer index outside model")
+        self.cache_guard = cache_guard
         self.decode_backend, self.prefill_backend = decode_backend, prefill_backend
         self.uniform_seed = int(uniform_seed)
         self.request_counter = 0           # bumped by begin_request: C's draws differ between requests on one state
@@ -283,16 +289,16 @@ class LabAttention(nn.Module):
         if st.phase == "decode":
             if T != 1:
                 raise RuntimeError("a decode step takes exactly one new token")
-            if st.mode == "sparse":
+            if st.mode == "sparse" and (st.sparse_layers is None or l in st.sparse_layers):
                 plan = st.plan
                 if plan is None or plan.legal_length != L0 + 1:
                     raise RuntimeError("sparse decode needs a StepPlan built for this step's legal length")
                 if st.selector == "index":                    # D0: score, top-k, merge with F (G1b path, unchanged)
                     idx = st.indexers[l]
                     cache.append(l, k_main, v)                # K/V once; z of the new key is written by the kernel below
-                    out, rows = sparse_decode_step_kernel(q5, q_pre.view(B, G, h, 1, d), cache.k[l], cache.v[l], cache.z[l],
+                    out, rows = sparse_decode_step_kernel(q5, q_pre.view(B, G, h, 1, d).to(idx.wk.dtype), cache.k[l], cache.v[l], cache.z[l],
                                                           idx.wq_t_scaled, idx.wk, plan.fixed_rows, plan.off_lo, plan.lo,
-                                                          plan.hi, plan.k, plan.selected_count, k_pre_new=k_pre,
+                                                          plan.hi, plan.k, plan.selected_count, k_pre_new=k_pre.to(idx.wk.dtype),
                                                           write_col=plan.write_col, scale=self.scaling, return_rows=True)
                 else:                                         # B / C: same F, same count, no scoring, no index table
                     cache.append(l, k_main, v)
@@ -304,11 +310,12 @@ class LabAttention(nn.Module):
                 if st.record_selection:
                     st.last_rows[l] = rows
             else:
-                cache.append(l, k_main, v)
+                z = project_keys(k_pre.to(st.indexers[l].wk.dtype), st.indexers[l].wk) if (cache.has_index and st.indexers is not None) else None
+                cache.append(l, k_main, v, z)
                 out = full_attention(q5, cache.k[l], cache.v[l], valid_length=L0 + 1, backend=st.decode_backend, scale=self.scaling)
         else:   # prefill: the full read over every legal position whatever the chunk size (a one-token chunk included);
                 # the index table is filled from the pre-RoPE K when the cache has one; nothing is selected
-            z = project_keys(k_pre, st.indexers[l].wk) if (cache.has_index and st.indexers is not None) else None
+            z = project_keys(k_pre.to(st.indexers[l].wk.dtype), st.indexers[l].wk) if (cache.has_index and st.indexers is not None) else None
             cache.append(l, k_main, v, z)
             out = full_attention(q5, cache.k[l], cache.v[l], valid_length=L0 + T, backend=st.prefill_backend, scale=self.scaling)
         attn = out.view(B, self.num_heads, T, d).transpose(1, 2).reshape(B, T, self.num_heads * d)
@@ -354,12 +361,12 @@ def geometry_of(model) -> ModelGeometry:
                          vocab=int(cfg.vocab_size), max_positions=int(cfg.max_position_embeddings))
 
 
-def make_cache(model, capacity: int, *, with_index: bool, index_dim: int = 32, batch: int = 1, dtype=None, device=None) -> LabCache:
+def make_cache(model, capacity: int, *, with_index: bool, index_dim: int = 32, batch: int = 1, dtype=None, device=None, index_dtype=None) -> LabCache:
     geo = geometry_of(model)
     p = next(model.parameters())
     return LabCache(layers=geo.layers, batch=batch, groups=geo.groups, capacity=capacity, head_dim=geo.head_dim,
                     index_dim=index_dim if with_index else None, device=p.device if device is None else device,
-                    dtype=p.dtype if dtype is None else dtype)
+                    dtype=p.dtype if dtype is None else dtype, index_dtype=index_dtype)
 
 
 def make_indexers(model, *, r: int = 32, seed: int = 0, dtype=None, device=None) -> list[GroupedIndexer]:
@@ -426,6 +433,8 @@ class LabRunner:
         if phase not in ("prefill", "decode"):
             raise ValueError("phase must be 'prefill' or 'decode'")
         st, cache = self.state, self.state.cache
+        if st.cache_guard is not None:
+            st.cache_guard(st)
         B, T = input_ids.shape
         if B != cache.batch:
             raise ValueError("batch size differs from the cache")

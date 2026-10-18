@@ -12,15 +12,24 @@ ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/"src"))
 from attention_lab.g3b import layer_config,feature_fingerprint,verify_reuse,train_layer,evaluate_layer
 
 
-def test_layer_seed_and_existing_reuse_identity():
+def test_layer_seed_and_existing_reuse_identity(tmp_path):
     cfg=json.loads((ROOT/"configs/mac_g3bg4lite.json").read_text())
     assert len({layer_config(cfg,l)["index_seed"] for l in range(28)})==28
     assert layer_config(cfg,13)["index_seed"]==1803
     import tarfile
     with tarfile.open(ROOT/"reports/provenance/g3a_evidence_20261018.tar.gz") as tar:
         m=json.loads(tar.extractfile("g3a-20261018T122927Z-formal/manifest.json").read())
-    verify_reuse(ROOT,cfg,m)
-    with pytest.raises(ValueError):verify_reuse(ROOT,dict(cfg,epochs=49),m)
+    # Historical training reuse remains valid on its as-run sources. Later inference
+    # changes must fail the future reuse gate, rather than weakening that gate.
+    with tarfile.open(ROOT/"reports/provenance/g3b_evidence_20261018.tar.gz") as tar:
+        for item in tar.getmembers():
+            if item.name.startswith("source/") and item.isfile():
+                target=tmp_path/item.name.removeprefix("source/")
+                target.parent.mkdir(parents=True,exist_ok=True)
+                target.write_bytes(tar.extractfile(item).read())
+    verify_reuse(tmp_path,cfg,m)
+    with pytest.raises(ValueError):verify_reuse(tmp_path,dict(cfg,epochs=49),m)
+    with pytest.raises(ValueError):verify_reuse(ROOT,cfg,m)
 
 
 def test_feature_hash_detects_mutation_and_shapes():

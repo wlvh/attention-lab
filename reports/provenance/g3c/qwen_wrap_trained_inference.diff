@@ -1,0 +1,47 @@
+--- reports/provenance/g3c/qwen_wrap_before_trained_inference.py
++++ src/attention_lab/qwen_wrap.py
+@@ -60 +60 @@
+-                 dtype=torch.float32):
++                 dtype=torch.float32, index_dtype=None):
+@@ -66,0 +67 @@
++        self.index_dtype = dtype if index_dtype is None else index_dtype
+@@ -74 +75 @@
+-            self.z = [torch.empty(z_shape, device=self.device, dtype=dtype) for _ in range(self.layers)]
++            self.z = [torch.empty(z_shape, device=self.device, dtype=self.index_dtype) for _ in range(self.layers)]
+@@ -137 +138 @@
+-        z = 0 if self.z is None else self.layers * self.batch * self.groups * self.index_dim * self.capacity * es
++        z = 0 if self.z is None else self.layers * self.batch * self.groups * self.index_dim * self.capacity * self.z[0].element_size()
+@@ -194 +195,2 @@
+-                 decode_backend: str = "sdpa_fold", prefill_backend: str = "sdpa_fold", uniform_seed: int = 0):
++                 decode_backend: str = "sdpa_fold", prefill_backend: str = "sdpa_fold", uniform_seed: int = 0,
++                 sparse_layers=None, cache_guard=None):
+@@ -203,0 +206,4 @@
++        self.sparse_layers = None if sparse_layers is None else frozenset(sparse_layers)
++        if self.sparse_layers is not None and not self.sparse_layers.issubset(range(cache.layers)):
++            raise ValueError("sparse layer index outside model")
++        self.cache_guard = cache_guard
+@@ -286 +292 @@
+-            if st.mode == "sparse":
++            if st.mode == "sparse" and (st.sparse_layers is None or l in st.sparse_layers):
+@@ -293 +299 @@
+-                    out, rows = sparse_decode_step_kernel(q5, q_pre.view(B, G, h, 1, d), cache.k[l], cache.v[l], cache.z[l],
++                    out, rows = sparse_decode_step_kernel(q5, q_pre.view(B, G, h, 1, d).to(idx.wk.dtype), cache.k[l], cache.v[l], cache.z[l],
+@@ -295 +301 @@
+-                                                          plan.hi, plan.k, plan.selected_count, k_pre_new=k_pre,
++                                                          plan.hi, plan.k, plan.selected_count, k_pre_new=k_pre.to(idx.wk.dtype),
+@@ -307 +313,2 @@
+-                cache.append(l, k_main, v)
++                z = project_keys(k_pre.to(st.indexers[l].wk.dtype), st.indexers[l].wk) if (cache.has_index and st.indexers is not None) else None
++                cache.append(l, k_main, v, z)
+@@ -311 +318 @@
+-            z = project_keys(k_pre, st.indexers[l].wk) if (cache.has_index and st.indexers is not None) else None
++            z = project_keys(k_pre.to(st.indexers[l].wk.dtype), st.indexers[l].wk) if (cache.has_index and st.indexers is not None) else None
+@@ -357 +364 @@
+-def make_cache(model, capacity: int, *, with_index: bool, index_dim: int = 32, batch: int = 1, dtype=None, device=None) -> LabCache:
++def make_cache(model, capacity: int, *, with_index: bool, index_dim: int = 32, batch: int = 1, dtype=None, device=None, index_dtype=None) -> LabCache:
+@@ -362 +369 @@
+-                    dtype=p.dtype if dtype is None else dtype)
++                    dtype=p.dtype if dtype is None else dtype, index_dtype=index_dtype)
+@@ -428,0 +436,2 @@
++        if st.cache_guard is not None:
++            st.cache_guard(st)

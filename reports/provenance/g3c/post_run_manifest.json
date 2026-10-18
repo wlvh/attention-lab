@@ -1,0 +1,8 @@
+{
+  "source": "src/attention_lab/qwen_wrap.py",
+  "snapshot": "reports/provenance/g3c/qwen_wrap_before_trained_inference.py",
+  "sha256": "a4ae836a3ae63aa3d8de47d92f0aaa8ccf90a62f5d29524863e80ac6d13d14ca",
+  "diff": "reports/provenance/g3c/qwen_wrap_trained_inference.diff",
+  "before_commit": "c8b5dd6604094aa7a32a7c2f871b6a71c9c19b7a",
+  "scope": "G2/G3a/G3b as-run wrapper retained; G3c adds parameter-bound fp32 index caches and active-layer selection"
+}

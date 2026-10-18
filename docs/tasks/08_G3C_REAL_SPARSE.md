@@ -15,3 +15,5 @@
 正式依赖：https://github.com/wlvh/attention-lab/issues/13。
 
 跟踪：https://github.com/wlvh/attention-lab/issues/14。
+
+执行前固定：依赖G3b PR #16的 `c8b5dd6`；真实bf16全选检查使用既有 `configs/mac_gate1b.json` 容差（logits最大绝对差≤1.0、相对L2≤0.02、argmax一致率≥0.95），CPU float64构造检查使用1e-10。全部4份开发资料分别生成A的16个控制token，即使遇到EOS也继续，仅作为对齐输入，绝不评分。每步记录28层Q/K及o_proj之前输出差异；首个答案预测和末个控制步保留实际原位置名单位图，第一份保留小型状态数组。模型主体bf16，D0和D索引均fp32，固定参数及参数身份绑定缓存。新最终测试仍不接触。
