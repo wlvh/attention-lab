@@ -9,6 +9,7 @@
 | `04_can_an_indexer_learn.ipynb` | G3a：固定主体，仅训练第14层索引器；训练/留出 KL、教师覆盖、局部误差、实际名单与残余误差 | 只读新 G3a 归档与小型 CPU 检查，不加载 0.6B，不训练或启动 GPU |
 
 | `05_training_all_layer_indexers.ipynb` | G3b：28层参数、逐层指标与完整路径训练的局限 | 只读归档、重算与画图，不加载模型或训练 |
+| `06_from_teacher_features_to_sparse_states.ipynb` | G3c：单层/全层接入、全选检查、同token状态差异 | 只读已有记录和源码，不运行模型 |
 
 已执行的 HTML 在 `../reports/`。从全新内核重跑并导出：
 

@@ -18,6 +18,7 @@
 | `04_can_an_indexer_learn.html` | 实验课04：第14层索引器第一次训练，冻结特征上的教师模仿与局部输出 | 新 G3a 48/16 资料；不是 G2-lite 重跑或整模型能力评测 |
 | `g3a_mac_m4max.md`、`g3a_summary_mac_m4max.json`、`g3a_cpu_audit.json` | 单层结果、逐资料/逐组指标、真实选位、独立 NumPy 核验 | 源自新的 G3a 原始记录 |
 | `05_training_all_layer_indexers.html`、`g3b_mac_m4max.md` | G3b：27层新训练、第14层复用；28层完整路径局部指标 | 旧开发集描述，不代表真实稀疏生成 |
+| `06_from_teacher_features_to_sparse_states.html`、`g3c_mac_m4max.md` | G3c：真实稀疏状态变化和数值检查 | 4份旧开发资料的控制序列，不是答题成绩 |
 | `cards/G0_mac_m4max.md`、`cards/G1a_mac_m4max.md`、`cards/G1b_mac_m4max.md`、`cards/G2lite_mac_m4max.md` | 关卡卡片：运行前预测、运行后观察、解释、决策 | 预测写于运行前 |
 | `g0_*.json`、`g1a_*.json`、`g1a_supplement_*.json` | 上述报告的精简数据与 manifest | 实测 |
 | `g0_roofline_mac_bw390.{md,json}` | 以实测 390 GB/s 回填的载荷情景 | 预测 |

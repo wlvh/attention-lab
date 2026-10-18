@@ -20,11 +20,15 @@ G3b已完成：`runs/g3b-20261018T142640Z-formal`，运行源码 `2b6db0bc956414
 
 下一步：提交G3b待审PR后，从固定提交建立G3c依赖分支；先CPU检查单层/全层接入与全选等价，再用4份旧开发资料和固定token序列检查真实状态差异。32份新最终测试还未评分。报告复核命令：`python scripts/g3b_report.py`，不会运行模型。页面预览、PR #10与历史诊断归档不阻挡研发；Metal/CUDA、更长上下文、T2、付费服务仍未授权。以下各节保留此前交付时点，旧停止点由本节限定授权取代。
 
-## G3c 进行中（G3b待审不阻断已授权下游）
+## G3c 已完成，继续G4-lite
 
-G3b [PR #16](https://github.com/wlvh/attention-lab/pull/16)已提交，固定依赖 `c8b5dd6`；当前分支`task/g3c-real-sparse`。准备参数身份验证、float32索引缓存、单层/全层接入与同token状态诊断。旧G2/G3a/G3b执行时的wrapper已保存独立快照及后续diff，旧run与manifest不改。第一次MPS检查在单层全选处停止，记录`g3c-20261018T153617Z`保留，新增6.60秒已入账。修复一：新路径按原位置升序排列入选集合，不变更集合/名额或容差，CPU等价检查后重试。32份最终测试仍未评分。
+G3b [PR #16](https://github.com/wlvh/attention-lab/pull/16)已提交，两项CI成功；固定依赖 `c8b5dd6`，当前分支`task/g3c-real-sparse`。G3c正式run `g3c-20261018T153929Z`，源码 `514c813`，4份旧开发资料完成16条独立控制轨迹和2项全选检查。单层/全层全选的51步logits均与A逐位一致，未放宽容差；原失败run `g3c-20261018T153617Z`及6.60秒消耗保留。修复为本轮所有稀疏方法选位后按原位置升序，集合与预算不变，仍实际gather和主注意力；旧G2/G3a/G3b源码快照、diff、manifest全部保留。
 
-下一条重模型命令（CPU检查且源码提交后）：`.venv/bin/python bench/g3c_diagnostics.py --bank-run runs/g3b-20261018T142640Z-formal`。新运行继续计入同一14400秒账，不开启额外训练。
+首个答案预测处，D对A的logits相对L2平均0.10713，D0为0.48042；D-one为0.03442。仅4份旧资料、相同控制token，不是答题成绩。参数固定并绑定索引缓存；主体前后hash相同。成功及失败累计设备账3586.61/14400秒（以归档账本精确值为准），现金0，32份最终测试仍未评分。
+
+证据：[G3c报告](reports/g3c_mac_m4max.md)、[归档](reports/provenance/g3c_evidence_20261018.tar.gz)、[第六课](reports/06_from_teacher_features_to_sparse_states.html)。新增8项推理CPU契约，旧wrapper/选择器CPU检查28项及12子检查通过；归档和保存向量另用NumPy float64重算（沿用G3a指标审计绝对容差1e-4，不是全选门槛）。Notebook6个代码单元新内核执行；两联图已实际检查坐标、图例与第14层标记。整页入口返回queued，整页/窄屏仍未验。
+
+下一步：提交G3c待审PR后从固定提交建立G4分支；仅32份预登记新T1自由生成与前4份同token成本，保留全部成绩、不调参、不增加训练。只读复核：`python scripts/g3c_report.py`。
 
 ## 2026-10-18 PR #12 复审补丁：预检绑定执行源码
 
