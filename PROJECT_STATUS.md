@@ -1,5 +1,21 @@
 # 接力状态
 
+## 当前持续目标：G3b-lite → G3c → G4-lite（2026-10-18）
+
+用户已明确授权连续研发，三阶段共享新增14400秒真实设备运行预算、现金0；完成各里程碑提交PR后继续已授权下游，后续PR不自行合并。PR #12 在已审 head 45adb93、两项CI成功且无冲突时以 merge commit 合并为 `0dd6b73`，分支保留，Issue #11 已关闭。本地main已快进并核对父提交。
+
+任务队列：
+
+- [g3b](https://github.com/wlvh/attention-lab/issues/13)
+- [g3c](https://github.com/wlvh/attention-lab/issues/14)
+- [g4](https://github.com/wlvh/attention-lab/issues/15)
+
+固定条件与预测见 `docs/tasks/07_G3B_LITE.md`、`08_G3C_REAL_SPARSE.md`、`09_G4_LITE.md` 和 `configs/mac_g3bg4lite.json`。当前分支 `task/g3b-lite` 基于main `0dd6b73`。G3a旧48份训练可复用，旧16份降格为开发诊断；新32份最终测试先登记再封存，首次评分到G4。主体冻结、P0/r32/rho=1/8，一个种子；第14层复用已审相同条件参数，其余27层训练。
+
+磁盘仅余约23GiB：逐层内存处理，只保留每层固定2份完整审计特征，其余数组记录hash后释放；全部指标、参数及输入可追溯，不删除旧run/缓存。共享预算账将单独写入 `runs/g3bg4lite-budget-20261018.json` 并引用旧G3a账，不重置或覆盖旧账。
+
+当前已完成共享预算保护、32份最终测试登记和逐层训练代码；21项相关CPU契约通过。当前尚无新模型运行，下一条命令：`.venv/bin/python bench/g3b_train.py --mode preflight`，只用旧训练资料0/1、第1/28层、2轮。页面预览、PR #10与历史诊断归档不阻挡研发；Metal/CUDA、更长上下文、T2、付费服务仍未授权。以下保留此前交付时点。
+
 ## 2026-10-18 PR #12 复审补丁：预检绑定执行源码
 
 本轮只修 P2 预检复用条件，未运行模型或训练，未合并 PR。`bench/g3a_train.py` 现在同时读取预检 summary/manifest，检查完成状态、记录配对、G3a 配置与基础数据配置的 SHA-256，以及 12 个本地执行源文件（运行器、特征/教师/索引训练、数据生成、完整注意力及依赖）。缺失或不一致拒绝；Git 提交号不作为门槛，文档、Notebook、报告和无关实验文件的提交不影响有效预检。
