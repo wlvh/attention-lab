@@ -5,6 +5,7 @@ including failed runs, charges the same ledger. Existing G3a accounting is read-
 """
 from __future__ import annotations
 import hashlib
+import fcntl
 import json
 import os
 from pathlib import Path
@@ -48,29 +49,51 @@ class BudgetStop(RuntimeError):
 
 
 class CampaignBudget:
+    """Hold a POSIX advisory lock from before the ledger read through exit accounting.
+
+    The sidecar stays on disk: unlinking/replacing it could give contenders different
+    lock inodes. Mac and Linux runners use this same gate. A forced process death
+    releases the OS lock but leaves active_pid for explicit accounting reconciliation.
+    """
+
     def __init__(self, root, cfg, run_id, *, clock=time.monotonic):
         self.root, self.cfg, self.run_id, self.clock = Path(root), cfg, run_id, clock
         self.path = self.root / "runs" / f'{cfg["campaign"]}-budget.json'
+        self.lock_path = self.path.with_suffix(self.path.suffix + ".lock")
+        self._lock_file = None
         self.start = None
 
     def __enter__(self):
-        if self.path.exists():
-            self.ledger = json.loads(self.path.read_text())
-        else:
-            old = self.root / "runs/g3a-budget-20261018.json"
-            self.ledger = {"campaign": self.cfg["campaign"], "limit_seconds": self.cfg["budget_seconds"],
-                           "used_seconds": 0.0, "runs": [], "prior_ledger": str(old.relative_to(self.root)),
-                           "prior_ledger_sha256": digest(old), "prior_g3a_seconds": json.loads(old.read_text())["used_seconds"]}
-        if self.ledger["limit_seconds"] != self.cfg["budget_seconds"]:
-            raise RuntimeError("cannot silently reset campaign budget")
-        if self.ledger.get("active_pid"):
-            raise RuntimeError("registered run still active or interrupted; reconcile PID/ledger before continuing")
-        if self.ledger["used_seconds"] >= self.ledger["limit_seconds"]:
-            raise BudgetStop("shared campaign budget exhausted")
-        self.start = self.clock()
-        self.ledger.update(active_pid=os.getpid(), active_run=self.run_id, active_started_unix=time.time())
-        write_json(self.path, self.ledger)
-        return self
+        if self._lock_file is not None:
+            raise RuntimeError("campaign budget context is already entered")
+        handle = self.lock_path.open("a")
+        try:
+            try:
+                fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as exc:
+                raise RuntimeError("another process holds the campaign budget lock") from exc
+            self._lock_file = handle
+            if self.path.exists():
+                self.ledger = json.loads(self.path.read_text())
+            else:
+                old = self.root / "runs/g3a-budget-20261018.json"
+                self.ledger = {"campaign": self.cfg["campaign"], "limit_seconds": self.cfg["budget_seconds"],
+                               "used_seconds": 0.0, "runs": [], "prior_ledger": str(old.relative_to(self.root)),
+                               "prior_ledger_sha256": digest(old), "prior_g3a_seconds": json.loads(old.read_text())["used_seconds"]}
+            if self.ledger["limit_seconds"] != self.cfg["budget_seconds"]:
+                raise RuntimeError("cannot silently reset campaign budget")
+            if self.ledger.get("active_pid"):
+                raise RuntimeError("registered run still active or interrupted; reconcile PID/ledger before continuing")
+            if self.ledger["used_seconds"] >= self.ledger["limit_seconds"]:
+                raise BudgetStop("shared campaign budget exhausted")
+            self.start = self.clock()
+            self.ledger.update(active_pid=os.getpid(), active_run=self.run_id, active_started_unix=time.time())
+            write_json(self.path, self.ledger)
+            return self
+        except BaseException:
+            self._lock_file = None
+            handle.close()
+            raise
 
     @property
     def remaining(self):
@@ -83,13 +106,18 @@ class CampaignBudget:
             raise BudgetStop("disk safety reserve reached")
 
     def __exit__(self, kind, value, tb):
-        elapsed = self.clock() - self.start
-        self.ledger["used_seconds"] += elapsed
-        self.ledger["runs"].append({"run_id": self.run_id, "elapsed_seconds": elapsed,
-                                    "status": "done" if kind is None else "incomplete",
-                                    "reason": None if value is None else str(value)})
-        self.ledger.update(active_pid=None, active_run=None, active_started_unix=None)
-        write_json(self.path, self.ledger)
+        try:
+            elapsed = self.clock() - self.start
+            self.ledger["used_seconds"] += elapsed
+            self.ledger["runs"].append({"run_id": self.run_id, "elapsed_seconds": elapsed,
+                                        "status": "done" if kind is None else "incomplete",
+                                        "reason": None if value is None else str(value)})
+            self.ledger.update(active_pid=None, active_run=None, active_started_unix=None)
+            write_json(self.path, self.ledger)
+        finally:
+            handle, self._lock_file = self._lock_file, None
+            if handle is not None:
+                handle.close()  # OS releases the lock, including if the ledger write failed.
         return False
 
 
