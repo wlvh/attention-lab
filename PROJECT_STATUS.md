@@ -1,6 +1,6 @@
 # 接力状态
 
-更新日期：2026-10-18。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_DONE（工程完成；性能 `correct_but_not_faster`，收口速度主线）/ NOTEBOOK_02_DONE / P0_FUSED_SCORE_DONE（停止门通过）/ P1_FUSED_ATTEND_DONE（停止门未通过：比值 0.82 / 0.83 > 0.80）/ FUSED_KERNEL_LINE_STOPPED（用户决定，2026-10-17）/ PR2_MERGED（`e682e9b`）/ PR3_MERGED（`158bad9`）/ PR4_MERGED（`5f55729`）/ G2LITE_DONE / PR5_REVIEW_FIX_IN_PROGRESS（旧结果保留，配置 v3 NOT_RUN，等待收尾复审）**。`task/p0-fused-score-kernel`（PR #3）是已合并归档的停止原型；可合并的记录不等于内核完成生产验收。
+更新日期：2026-10-18。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_DONE（工程完成；性能 `correct_but_not_faster`，收口速度主线）/ NOTEBOOK_02_DONE / P0_FUSED_SCORE_DONE（停止门通过）/ P1_FUSED_ATTEND_DONE（停止门未通过：比值 0.82 / 0.83 > 0.80）/ FUSED_KERNEL_LINE_STOPPED（用户决定，2026-10-17）/ PR2_MERGED（`e682e9b`）/ PR3_MERGED（`158bad9`）/ PR4_MERGED（`5f55729`）/ G2LITE_DONE / PR5_REVIEW_FIX_READY（旧结果保留，配置 v3 NOT_RUN，待复审）**。`task/p0-fused-score-kernel`（PR #3）是已合并归档的停止原型；可合并的记录不等于内核完成生产验收。
 
 ## 远端与发布
 
@@ -73,12 +73,12 @@ PR #5 分支 `task/g2-lite-mac` 在旧 head `bb1b639` 后追加收尾修复。�
 - 解释：撤回窗口外必不变、必须同层组读齐四位值和结构性下界等强结论。读齐仍错只否定充分性；必要性未经证明。完整 Prefill 允许跨位置传播信息，具体路径未定位。
 - 证据：`reports/g2lite_mac_m4max.md`、`reports/g2lite_summary_mac_m4max.json`、不变的 `reports/g2lite_answers_mac_m4max.json` / `reports/g2lite_manifest_mac_m4max.json`；旧归档 `reports/provenance/g2lite_runs_20261017.tar.gz`；新增运行时快照 `reports/provenance/g2lite_pr5_review/`、独立修复来源清单 `reports/provenance/g2lite_pr5_review_manifest.json` 和新报告生成清单 `reports/g2lite_report_build.json`。
 - 教学：`notebooks/03_what_is_lost_when_reading_less.ipynb` 与 `reports/03_what_is_lost_when_reading_less.html`。原预测保留在卡片，审查修订另列；动态计数由 `.py` 汇总实现生成，Notebook 不另维护评分算法。
-- 当前验收进度：针对性 CPU 回归已通过；待本次代码提交后重新执行 Notebook、导出 HTML、最终核验报告不变量与远端 CI。最终结果记入 `docs/PR5_REVIEW_FIXES_2026-10-18.md`，不把运行成功当成视觉验收。
+- 验收：25 项针对性 CPU 测试、5 个子测试通过；无 torch 的入口及旧归档重生成通过；89 项标准库环境测试通过（53 项依赖相关跳过）；原件、旧答案/manifest、主表/门槛/配对表与预测原文不变量通过。Notebook 新内核顺序执行 18 个代码单元、无错误，已导出 HTML；9 张图与旧版逐字节相同，5 张独立图已逐一检查。整页 HTML 布局未验：此前浏览器拒绝 file://，本轮受支持的 Codex 文件预览返回 queued，未确认实际展示。生成代码提交 `72b848d`；远端 CI 与本地检查分别确认，以 PR 当前 head 为准。
 - 早期证据缺口：v1 calib-w2/w4/w5 的生成器源码未恢复；旧配置/输出仍可读。资料设计调整不是密度的单变量实验。诊断报告路径/default 输出问题留待处理 #6–#9，不扩大本补丁。
 
 ## 下一步与停止点
 
-完成本轮旧记录重生成和实验课验收，推送修复提交并等待复审。合并必须由用户另行明确指令，采用 merge commit 并保留分支。G3、融合 Metal、CUDA、更长上下文、追加ρ及T2变式均未授权。没有新增云或付费 API 支出。
+本轮代码、旧记录重生成与实验课执行已完成，交付修复提交后等待复审。合并必须由用户另行明确指令，采用 merge commit 并保留分支。G3、融合 Metal、CUDA、更长上下文、追加ρ及T2变式均未授权。没有新增云或付费 API 支出。
 
 复核命令（使用现有隔离 Python 环境，不初始化环境、不启动 GPU）：
 

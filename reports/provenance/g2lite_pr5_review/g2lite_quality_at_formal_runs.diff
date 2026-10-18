@@ -1,102 +1,43 @@
 --- reports/provenance/g2lite_pr5_review/g2lite_quality_at_formal_runs.py
 +++ bench/g2lite_quality.py
-@@ -35,6 +35,7 @@
- 
- from attention_lab import g2lite_data as gd  # noqa: E402
- from attention_lab import runinfo  # noqa: E402
+@@ -37,0 +38 @@
 +from attention_lab.g2lite_control import RunProgress, UNIFORM_SEED_RULE, uniform_seed_for  # noqa: E402
- from attention_lab.g2lite_eval import aggregate, cell_key, method_key, score_answer, select_move_cases, usable_cells  # noqa: E402
- 
- METHODS = ("A", "B", "C", "D0")
-@@ -71,10 +72,6 @@
- def mem(torch):
-     return {"current_allocated_bytes": int(torch.mps.current_allocated_memory()), "driver_allocated_bytes": int(torch.mps.driver_allocated_memory()),
-             "ru_maxrss_bytes": int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)}
+@@ -74,4 +74,0 @@
 -
 -
 -def uniform_seed_for(cfg, doc_id: str) -> int:
 -    return int(cfg["seeds"]["uniform_base"]) + int(hashlib.sha256(doc_id.encode("utf-8")).hexdigest()[:8], 16) % (1 << 20)
- 
- 
- def read_rows(path: Path) -> list:
-@@ -173,6 +170,10 @@
-                 "artifacts": ["data.jsonl", "quality.jsonl", "summary.json", "manifest.json", "positions/*.npz"], "args": args_rec,
-                 "usable_from": usable_src, "move_cases": move_cases, "n_docs": len(docs),
-                 "limitations": ["48 exploratory documents at most; T1/T2 record lookup only; Qwen3-0.6B bf16 on MPS; untrained indexer; no training; no statistical interval claims"]}
+@@ -175,0 +173,4 @@
 +    plan_requests = [("A", None)] if "A" in a.methods else []
 +    plan_requests += [(m, rho) for m in a.methods if m != "A" for rho in a.rhos]
 +    progress = RunProgress([d["doc_id"] for d in docs], plan_requests)
 +    manifest.update({"uniform_seed_rule": UNIFORM_SEED_RULE, "completion": progress.snapshot()})
-     (out_dir / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-     shutil.copy(a.config, out_dir / "config.json")                  # the exact config this run used (prompt wording, parse and stop rules)
-     holder = wrap_model(model)
-@@ -180,8 +181,6 @@
-     rec_max = manifest["software"].get("recommended_max_memory") or 0
-     rows, prefill_ms_by_doc = [], {}
-     qf = open(out_dir / "quality.jsonl", "w", encoding="utf-8")
+@@ -183,2 +183,0 @@
 -    plan_requests = [("A", None)] if "A" in a.methods else []
 -    plan_requests += [(m, rho) for m in a.methods if m != "A" for rho in a.rhos]
-     print(f"{len(docs)} documents x {len(plan_requests)} requests {[method_key(m, rho) for m, rho in plan_requests]}; usable cells: {sorted(usable) if usable is not None else 'all'}; move cases: {move_cases}")
- 
-     def timed(fn):
-@@ -201,6 +200,8 @@
-             need = 2 * cache0.bytes()["total_bytes"]
-             if need > STOP_BYTES or (rec_max and need > 0.8 * rec_max):
-                 print(f"skip {doc['doc_id']}: {need/1e9:.1f} GB of caches exceeds limits")
+@@ -203,0 +203,2 @@
 +                progress.skip_document(doc["doc_id"], "cache_estimate_exceeds_memory_limit")
 +                del cache0
-                 continue
-             st0 = LabState(cache0, indexers, mode="full")               # dense prefix, index table filled
-             run0 = LabRunner(model, holder, st0)
-@@ -217,7 +218,7 @@
-             for method, rho in plan_requests:
-                 spec = cfg["methods"][method]
-                 cache = cache0.clone()
+@@ -220 +221 @@
 -                useed = uniform_seed_for(cfg, doc["doc_id"])
 +                useed = uniform_seed_for(cfg, doc)
-                 st = LabState(cache, indexers if method == "D0" else None, mode=spec["mode"], selector=spec["selector"] or "index", uniform_seed=useed)
-                 run = LabRunner(model, holder, st)
-                 k0 = st.begin_request(rho) if method != "A" else None
-@@ -285,6 +286,7 @@
-                 rows.append(row)
-                 qf.write(json.dumps(row, ensure_ascii=False) + "\n")
-                 qf.flush()
+@@ -287,0 +289 @@
 +                progress.complete(doc["doc_id"], method, rho)
-                 line += f" {method_key(method, rho)}:{'✓' if sc['exact_match'] else '✗'}{'(trunc)' if truncated else ''}"
-                 del cache, st, run, cov
-             m = mem(torch)
-@@ -293,16 +295,23 @@
-             torch.mps.empty_cache()
-             if m["current_allocated_bytes"] > WARN_BYTES:
-                 print("WARNING: allocated memory above the 80 GB warning line; stopping")
+@@ -295,0 +298 @@
 +                progress.stop("allocated_memory_above_warning_limit")
-                 break
-     qf.close()
-     device_s = time.perf_counter() - t_start
-     agg = aggregate(rows, docs, cfg, prefill_ms_by_doc, prev_rows=prev_rows)
+@@ -299,0 +303,4 @@
 +    completion = progress.snapshot(final=True)
 +    if completion["status"] != "done":
 +        for gate in agg["gate"].values():
 +            gate.update({"usable": False, "reason": "incomplete_run"})
-     summary = {"run_id": run_id, "quick": a.quick, "calibration": a.calibration, "utc_start": manifest["created_at_utc"], "utc_end": runinfo.utc_now(), "device_seconds": device_s, "model_load_seconds": load_s,
-                "args": args_rec, "config_version": cfg["config_version"], "config_sha256": manifest["config_sha256"], "data_sha256": data_digest, "model_info": {**info, "mismatch_vs_config_json": mism},
-                "host": manifest["host"], "software": manifest["software"], "git": manifest["git"], "source_hashes": manifest["source_hashes"], "usable_from": usable_src, "move_cases": move_cases,
+@@ -303 +310,2 @@
 -               "n_docs": len(docs), "n_rows": len(rows), "prefill_ms_by_doc": prefill_ms_by_doc, "aggregate": agg, "memory_end": mem(torch), "_quality_path": runinfo.sanitize(str((out_dir / "quality.jsonl").relative_to(ROOT)))}
 +               "status": completion["status"], "completion": completion, "uniform_seed_rule": UNIFORM_SEED_RULE,
 +               "n_docs": completion["completed_docs"], "n_rows": len(rows), "prefill_ms_by_doc": prefill_ms_by_doc, "aggregate": agg, "memory_end": mem(torch), "_quality_path": runinfo.sanitize(str((out_dir / "quality.jsonl").relative_to(ROOT)))}
-     (out_dir / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+@@ -305 +313,2 @@
 -    manifest.update({"status": "done", "finished_at_utc": summary["utc_end"], "budget": {"cloud_usd_actual": 0, "cloud_usd_committed": 0, "device_seconds": device_s}})
 +    manifest.update({"status": completion["status"], "completion": completion, "n_docs": completion["completed_docs"],
 +                     "finished_at_utc": summary["utc_end"], "budget": {"cloud_usd_actual": 0, "cloud_usd_committed": 0, "device_seconds": device_s}})
-     (out_dir / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-     print("\n== exact-match rate per cell (base documents) ==")
-     for c, table in agg["methods"].items():
-@@ -310,7 +319,7 @@
-     if agg["rewrites"]:
-         print(f"  rewrites: {len(agg['rewrites'])} rows")
-     print(f"\nwrote {runinfo.sanitize(str(out_dir))}  ({device_s:.0f} s device time incl. load {load_s:.0f} s)")
+@@ -313 +322 @@
 -    return 0
 +    return 0 if completion["status"] == "done" else 2
- 
- 
- if __name__ == "__main__":

@@ -7835,7 +7835,8 @@ a.anchor-link {
 </tr>
 </tbody>
 </table>
-<p>F = 首 4 ∪ 近 64；B、C、D0 的实际读取数都是 68 + k0。<strong>C 不叫"随机筛选"，D0 也不叫</strong>：C 的选择与内容无关，D0 的选择由内容决定但没有学过。每个案例按固定结构：资料与问题 → 运行前预测 → 四种方法实际回答 → 各自选择的位置 → 改动一处资料再检查 → 哪些解释得到支持、哪些仍不确定。所有数字来自 Mac M4 Max 的 MPS 实测；<strong>48 份是探索样本，不做区间统计，不支持"损失小于 2 个百分点"或其反面；D0 未训练，B 由窗口几何决定。</strong></p>
+<p>F = 首 4 ∪ 近 64；B、C、D0 的实际读取数都是 68 + k0。<strong>C 不叫"随机筛选"，D0 也不叫</strong>：C 的选择与内容无关，D0 的选择由内容决定但没有学过。每个案例按固定结构：资料与问题 → 运行前预测 → 四种方法实际回答 → 各自选择的位置 → 改动一处资料再检查 → 哪些解释得到支持、哪些仍不确定。模型成绩来自 2026-10-17 保存的 Mac M4 Max / MPS 运行；本次报告修订与 CPU 契约不产生新的模型成绩；<strong>48 份是探索样本，不做区间统计，不支持"损失小于 2 个百分点"或其反面；D0 未训练，B 的名单按窗口几何确定，正确性另测。</strong></p>
+<p><strong>2026-10-18 审查修订。</strong> 主表准确率保持不变；修正改写计数、案例邻域和预算口径。旧 C 改写同时改变了资料和随机名单，保留为混杂观察。当前配置 v3 的稳定父资料种子规则尚未做模型运行；本页结果仍来自 v2。学习重点是分清观察、充分条件与必要条件。</p>
 </div>
 </div>
 </div>
@@ -7859,7 +7860,8 @@ a.anchor-link {
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span><span class="o">,</span><span class="w"> </span><span class="nn">inspect</span><span class="o">,</span><span class="w"> </span><span class="nn">json</span><span class="o">,</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">textwrap</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span><span class="o">,</span><span class="w"> </span><span class="nn">inspect</span><span class="o">,</span><span class="w"> </span><span class="nn">importlib.util</span><span class="o">,</span><span class="w"> </span><span class="nn">json</span><span class="o">,</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">textwrap</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">display</span><span class="p">,</span> <span class="n">Markdown</span>
 <span class="n">root</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">(),</span> <span class="o">*</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">]</span> <span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="o">/</span> <span class="s2">".attention_lab_bootstrap"</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">()),</span> <span class="kc">None</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"请从 attention-lab 项目目录或 notebooks 子目录打开本页"</span>
 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="s2">"src"</span><span class="p">))</span>
@@ -7871,7 +7873,15 @@ a.anchor-link {
 <span class="n">summary</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s2">"reports/g2lite_summary_mac_m4max.json"</span><span class="p">)</span>      <span class="c1"># 表格、案例、改写、成本（精简）</span>
 <span class="n">answers</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s2">"reports/g2lite_answers_mac_m4max.json"</span><span class="p">)</span>      <span class="c1"># 逐题回答与解析结果</span>
 <span class="n">manifests</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s2">"reports/g2lite_manifest_mac_m4max.json"</span><span class="p">)</span>   <span class="c1"># 三遍 run 的 manifest</span>
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s2">"configs/mac_g2lite.json"</span><span class="p">)</span>
+<span class="n">cfg</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s2">"reports/provenance/g2lite_pr5_review/mac_g2lite_at_formal_runs.json"</span><span class="p">)</span>  <span class="c1"># 运行时 v2</span>
+<span class="n">build</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s2">"reports/g2lite_report_build.json"</span><span class="p">)</span>
+<span class="n">review_sources</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s2">"reports/provenance/g2lite_pr5_review_manifest.json"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_module</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">relative_path</span><span class="p">):</span>
+    <span class="n">spec</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">spec_from_file_location</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">root</span> <span class="o">/</span> <span class="n">relative_path</span><span class="p">)</span>
+    <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">module_from_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+    <span class="n">spec</span><span class="o">.</span><span class="n">loader</span><span class="o">.</span><span class="n">exec_module</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">module</span>
+<span class="n">reporting</span> <span class="o">=</span> <span class="n">load_module</span><span class="p">(</span><span class="s2">"lesson03_reporting"</span><span class="p">,</span> <span class="s2">"scripts/g2lite_report.py"</span><span class="p">)</span>
 <span class="k">if</span> <span class="n">summary</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">answers</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">manifests</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">"未执行：reports/ 下没有 G2-lite 结果。入口：python bench/g2lite_quality.py --methods A --tag pass1-A 等三遍，再 python scripts/g2lite_report.py"</span><span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
@@ -7912,11 +7922,17 @@ g2lite-20261017T130715Z-pass3b-move      commit af62df48d2 dirty None model c189
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">sha</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 <span class="k">if</span> <span class="n">manifests</span><span class="p">:</span>
+    <span class="n">snapshots</span> <span class="o">=</span> <span class="p">{</span><span class="n">item</span><span class="p">[</span><span class="s2">"source"</span><span class="p">]:</span> <span class="n">item</span><span class="p">[</span><span class="s2">"snapshot"</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">review_sources</span><span class="p">[</span><span class="s2">"snapshots"</span><span class="p">]}</span>
     <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"src/attention_lab/decode.py"</span><span class="p">,</span> <span class="s2">"src/attention_lab/qwen_wrap.py"</span><span class="p">,</span> <span class="s2">"src/attention_lab/g2lite_data.py"</span><span class="p">,</span> <span class="s2">"src/attention_lab/g2lite_eval.py"</span><span class="p">,</span> <span class="s2">"bench/g2lite_quality.py"</span><span class="p">]</span>
-    <span class="k">for</span> <span class="n">rel</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
-        <span class="n">now</span> <span class="o">=</span> <span class="n">sha</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">rel</span><span class="p">)</span>
-        <span class="n">rec</span> <span class="o">=</span> <span class="p">{</span><span class="n">m</span><span class="p">[</span><span class="s2">"run_id"</span><span class="p">]:</span> <span class="n">m</span><span class="p">[</span><span class="s2">"source_hashes"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rel</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">manifests</span><span class="p">[</span><span class="s2">"runs"</span><span class="p">]}</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">rel</span><span class="si">:</span><span class="s2">&lt;40s</span><span class="si">}</span><span class="s2"> 当前 </span><span class="si">{</span><span class="n">now</span><span class="p">[:</span><span class="mi">12</span><span class="p">]</span><span class="si">}</span><span class="s2">  "</span> <span class="o">+</span> <span class="s2">"  "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">'-'</span><span class="p">)[</span><span class="mi">1</span><span class="p">][:</span><span class="mi">15</span><span class="p">]</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="s1">'一致'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">now</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'不同'</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">rec</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+    <span class="k">for</span> <span class="n">relative_path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+        <span class="n">as_run</span> <span class="o">=</span> <span class="n">root</span> <span class="o">/</span> <span class="n">snapshots</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">relative_path</span><span class="p">,</span> <span class="n">relative_path</span><span class="p">)</span>
+        <span class="n">recorded_hash</span> <span class="o">=</span> <span class="n">sha</span><span class="p">(</span><span class="n">as_run</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="s2">"source_hashes"</span><span class="p">][</span><span class="n">relative_path</span><span class="p">]</span> <span class="o">==</span> <span class="n">recorded_hash</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">manifests</span><span class="p">[</span><span class="s2">"runs"</span><span class="p">])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">relative_path</span><span class="p">,</span> <span class="s2">"运行时源码核对通过"</span><span class="p">,</span> <span class="s2">"当前文件相同"</span> <span class="k">if</span> <span class="n">sha</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">relative_path</span><span class="p">)</span> <span class="o">==</span> <span class="n">recorded_hash</span> <span class="k">else</span> <span class="s2">"当前已修复；旧版本由快照保留"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">relative_path</span><span class="p">,</span> <span class="n">expected</span> <span class="ow">in</span> <span class="n">build</span><span class="p">[</span><span class="s2">"report_source_hashes"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">assert</span> <span class="n">sha</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">relative_path</span><span class="p">)</span> <span class="o">==</span> <span class="n">expected</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"报告生成提交:"</span><span class="p">,</span> <span class="n">build</span><span class="p">[</span><span class="s2">"source_commit"</span><span class="p">],</span> <span class="s2">"| 新模型运行:"</span><span class="p">,</span> <span class="n">build</span><span class="p">[</span><span class="s2">"new_model_runs"</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"旧数据版本:"</span><span class="p">,</span> <span class="n">build</span><span class="p">[</span><span class="s2">"model_run_config_versions"</span><span class="p">],</span> <span class="s2">"| 当前修复配置:"</span><span class="p">,</span> <span class="n">load</span><span class="p">(</span><span class="s2">"configs/mac_g2lite.json"</span><span class="p">)[</span><span class="s2">"config_version"</span><span class="p">],</span> <span class="s2">"NOT_RUN"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -7929,11 +7945,13 @@ g2lite-20261017T130715Z-pass3b-move      commit af62df48d2 dirty None model c189
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>src/attention_lab/decode.py              当前 273e3abe8093  20261017T130007:一致  20261017T130319:一致  20261017T130551:一致  20261017T130715:一致
-src/attention_lab/qwen_wrap.py           当前 a4ae836a3ae6  20261017T130007:一致  20261017T130319:一致  20261017T130551:一致  20261017T130715:一致
-src/attention_lab/g2lite_data.py         当前 7a82de22754a  20261017T130007:一致  20261017T130319:一致  20261017T130551:一致  20261017T130715:一致
-src/attention_lab/g2lite_eval.py         当前 be8cc6a17cd0  20261017T130007:一致  20261017T130319:一致  20261017T130551:一致  20261017T130715:一致
-bench/g2lite_quality.py                  当前 d397c5013ada  20261017T130007:一致  20261017T130319:一致  20261017T130551:一致  20261017T130715:一致
+<pre>src/attention_lab/decode.py 运行时源码核对通过 当前文件相同
+src/attention_lab/qwen_wrap.py 运行时源码核对通过 当前文件相同
+src/attention_lab/g2lite_data.py 运行时源码核对通过 当前文件相同
+src/attention_lab/g2lite_eval.py 运行时源码核对通过 当前已修复；旧版本由快照保留
+bench/g2lite_quality.py 运行时源码核对通过 当前已修复；旧版本由快照保留
+报告生成提交: 72b848d76683ac0bdc26d4c7cdf8e0d67b24fff8 | 新模型运行: False
+旧数据版本: [2] | 当前修复配置: 3 NOT_RUN
 </pre>
 </div>
 </div>
@@ -7946,7 +7964,8 @@ bench/g2lite_quality.py                  当前 d397c5013ada  20261017T130007:�
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>读法。</strong> 三遍正式 run 都在同一个提交（<code>af62df4</code>）、干净工作树上运行，manifest 记录的五个源码文件哈希与当前文件全部一致，模型与 tokenizer revision 同为 <code>c1899de…</code>，配置是 v2（校准后冻结，见卡片附录），数据 digest 相同。本页展示的源码就是跑出结果的源码。</p>
+<p><strong>读法。</strong> 四个正式 run 使用 <code>af62df4</code> 的源码、配置 v2，模型与 tokenizer revision 同为 <code>c1899de…</code>。基线、可用格子对照和两组改写的资料集合不同，数据 digest 各自不同；不能把“相同生成规则”写成“相同数据摘要”。</p>
+<p>选择器和 Qwen 封装未改，本页的 CPU 演示调用它们的原实现。运行器和汇总逻辑已有修复：运行时版本由来源快照保存，今日报告另记生成代码提交与 SHA-256。旧 run/manifest 不改，旧 C 的混杂不会因为今天修了代码而消失。</p>
 </div>
 </div>
 </div>
@@ -7986,7 +8005,7 @@ bench/g2lite_quality.py                  当前 d397c5013ada  20261017T130007:�
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
-<pre>W1017 21:17:23.296000 64989 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+<pre>W1018 13:06:04.893000 93639 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
 </pre>
 </div>
 </div>
@@ -8184,7 +8203,7 @@ D0  读取数 81 = 81  含 F: True  额外 13 个候选: [4, 6, 7, 12, 13, 15, 1
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>解释。</strong> 三种方法的差别只在「名额给谁」：读取数、固定集合 F、取行核都相同，所以后面的质量差别不能归因于读得多或少，只能归因于读了哪些位置。污染测试说明 B 和 C 的输出只由它们名单上的行决定——这也是后面「覆盖率」这个量有意义的前提：名单之外的行对输出没有影响。</p>
+<p><strong>解释。</strong> B、C、D0 在同题同档使用相同 F 和名额，区别是每一步选择的位置以及随后各自形成的状态。污染测试固定已经算好的缓存，只检查本次读取是否触及名单之外的行；它不证明“重建资料后，名单外的原文不能影响名单内的深层 K/V”。后面的改写必须保留这一区别。</p>
 </div>
 </div>
 </div>
@@ -8207,9 +8226,10 @@ D0  读取数 81 = 81  含 F: True  额外 13 个候选: [4, 6, 7, 12, 13, 15, 1
 <div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">attention_lab</span><span class="w"> </span><span class="kn">import</span> <span class="n">g2lite_data</span><span class="p">,</span> <span class="n">g2lite_eval</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">attention_lab</span><span class="w"> </span><span class="kn">import</span> <span class="n">g2lite_data</span>
+<span class="n">as_run_evaluation</span> <span class="o">=</span> <span class="n">load_module</span><span class="p">(</span><span class="s2">"lesson03_as_run_evaluation"</span><span class="p">,</span> <span class="s2">"reports/provenance/g2lite_pr5_review/g2lite_eval_at_formal_runs.py"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">g2lite_data</span><span class="o">.</span><span class="n">layout_document</span><span class="p">)[:</span><span class="mi">2600</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">g2lite_eval</span><span class="o">.</span><span class="n">score_answer</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">as_run_evaluation</span><span class="o">.</span><span class="n">score_answer</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -8381,7 +8401,8 @@ T2-8K-编号 3 middle/back_far      8189   54        [225, 3914]     [1, 8]
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>读法。</strong> 每份资料 16 条记录穿插在无数字的中文填充句之间，前缀 2037–2060 或 8181–8204 token；问题与模板尾部 35（T1）或 54（T2）token。名额由请求起始长度决定：2K 时 k0 = 64（ρ = 1/32）/ 256（1/8），8K 时 256 / 1024，B、C、D0 的读取数都是 68 + k0。B 的窗口在生成第一个答案 token 那一步覆盖的资料 token 数是 64 + k0 − Q：T1 在 2K 为 93 / 285，在 8K 为 285 / 1053。尾部两条记录放在受控距离上：倒数第一条（back_near，行末距末尾 32–60 token）在四个设置下都落在 B 的窗口内，倒数第二条（back_far，150–250 token）只在 2K · ρ = 1/32 之外的三个设置内；front / middle 永远在窗口外；F 的近 64 不含任何记录。这是用几何预先把「B 应该在哪些资料上对」写死，再去看模型是否照做。</p>
+<p><strong>读法。</strong> 每份资料 16 条记录穿插在无数字的中文填充句之间；问题与模板尾部为 35（T1）或 54（T2）token。ρ 在请求起始合法长度 N0=P+1 上决定固定 k0，实际前缀略有长短，因此相同 ρ 下不同资料的 k0 可以略有不同；同一资料的 B/C/D0 则相同。</p>
+<p>预测第一个答案 token 时，问题已处理完，合法长度 N=P+Q，候选域大小 M=N−|F|。需要分别看 <strong>ρ、k/M、(F+k)/N</strong>；下面按逐题记录展示范围。B 此时覆盖的资料尾部长度为 64+k0−Q。记录是否落入窗口是可检查的几何关系，不预先保证模型答对。</p>
 </div>
 </div>
 </div>
@@ -8461,8 +8482,8 @@ T2/8K     12   1     8%        4                17%        0     0  front/back_f
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>观察。</strong> T1 两档可用（2K 12/12，8K 10/12），T2 两档不可用（2K 8/12 = 67%，8K 1/12）——校准后修订的主情景成立。A 在 T1 上的两处错误都在 8K，都答成另一条记录的值（第 0 条问成第 1 条、第 5 条问成第 2 条），没有编号回声。T2 的错误一半是把两个编号原样复述，一半是一对一错；8K 上还有一份输出「编号:值」配对，按冻结规则判错。<strong>按预登记：T2 不进入对照，也不花那一次提示修正</strong>（校准集已试过四种措辞，最高 6/12）；T2 的结论是 <code>baseline_too_weak</code>，证据在 <code>reports/g2lite_answers_mac_m4max.json</code>。</p>
-<p><strong>不能推出什么。</strong> 80% 是小样本可用性检查；T1 在 8K 的 10/12 不是这个模型在 8K 上检索能力的区间估计。</p>
+<p><strong>观察。</strong> T1 两档基线达到本批探索样本的可用性门槛，T2 两档未达到。A 的 T1 错误发生在 8K，回答了其他记录的值，没有编号回声。T2 有编号回声、一对一错或全错等形态；8K 还出现“编号:值”配对格式。冻结评分取最前面的一个或两个独立四位数，不能与“整段包含正确内容”混同。</p>
+<p><strong>边界。</strong> <code>baseline_too_weak</code> 仅指当前提示、生成和评分协议下没有过门槛，不是“模型没有双证据读取能力”。本轮未改评分规则，T2 不进入稀疏对照；80% 也不是总体能力的区间估计。</p>
 </div>
 </div>
 </div>
@@ -8494,7 +8515,7 @@ T2/8K     12   1     8%        4                17%        0     0  front/back_f
             <span class="n">rows_c</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">comp_rows</span> <span class="k">if</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'task'</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'length_tag'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span> <span class="o">==</span> <span class="n">c</span> <span class="ow">and</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"method"</span><span class="p">]</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"rho"</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'method'</span><span class="p">]</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'rho'</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="o">==</span> <span class="n">mk</span><span class="p">]</span>
             <span class="n">pr</span> <span class="o">=</span> <span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s2">"paired"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mk</span><span class="p">)</span>
             <span class="n">p2</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pr</span><span class="p">[</span><span class="s1">'counts'</span><span class="p">][</span><span class="s1">'both_right'</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pr</span><span class="p">[</span><span class="s1">'counts'</span><span class="p">][</span><span class="s1">'A_right_other_wrong'</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pr</span><span class="p">[</span><span class="s1">'counts'</span><span class="p">][</span><span class="s1">'A_wrong_other_right'</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pr</span><span class="p">[</span><span class="s1">'counts'</span><span class="p">][</span><span class="s1">'both_wrong'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">pr</span> <span class="k">else</span> <span class="s2">"—"</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">c</span><span class="si">:</span><span class="s2">&lt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">mk</span><span class="si">:</span><span class="s2">&lt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s1">'k0'</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">t</span><span class="p">[</span><span class="s1">'k0'</span><span class="p">]</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'—'</span><span class="p">)</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s1">'selected'</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">t</span><span class="p">[</span><span class="s1">'selected'</span><span class="p">]</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'全部'</span><span class="p">)</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">t</span><span class="p">[</span><span class="s1">'hits'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;2</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">t</span><span class="p">[</span><span class="s1">'n'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;3</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'answered_with_ids'</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">rows_c</span><span class="p">)</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">t</span><span class="p">[</span><span class="s1">'any_order'</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">&gt;7.0f</span><span class="si">}</span><span class="s2">% </span><span class="si">{</span><span class="n">p2</span><span class="si">:</span><span class="s2">&gt;26</span><span class="si">}</span><span class="s2">  "</span> <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">b</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">v</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">%"</span> <span class="k">for</span> <span class="n">b</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">t</span><span class="p">[</span><span class="s2">"by_bucket"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">c</span><span class="si">:</span><span class="s2">&lt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">mk</span><span class="si">:</span><span class="s2">&lt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">reporting</span><span class="o">.</span><span class="n">value_range</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s1">'k0'</span><span class="p">])</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="p">(</span><span class="n">reporting</span><span class="o">.</span><span class="n">value_range</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s1">'selected'</span><span class="p">])</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">t</span><span class="p">[</span><span class="s1">'selected'</span><span class="p">]</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'全部'</span><span class="p">)</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">t</span><span class="p">[</span><span class="s1">'hits'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;2</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">t</span><span class="p">[</span><span class="s1">'n'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;3</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'answered_with_ids'</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">rows_c</span><span class="p">)</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">t</span><span class="p">[</span><span class="s1">'any_order'</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">&gt;7.0f</span><span class="si">}</span><span class="s2">% </span><span class="si">{</span><span class="n">p2</span><span class="si">:</span><span class="s2">&gt;26</span><span class="si">}</span><span class="s2">  "</span> <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">b</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">v</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">%"</span> <span class="k">for</span> <span class="n">b</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">t</span><span class="p">[</span><span class="s2">"by_bucket"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
 </pre></div>
 </div>
 </div>
@@ -8511,18 +8532,18 @@ T2/8K     12   1     8%        4                17%        0     0  front/back_f
 格子       方法            k0    读取    对/n     答成编号     任意顺序            同对/A对它错/A错它对/同错  按目标位置
 T1/2K    A              —    全部 12/12         0     100%                          —  back_far 100%; back_near 100%; front 100%; middle 100%
 T1/2K    B@0.03125     64   132  2/12        10      17%                   2/10/0/0  back_far 0%; back_near 100%; front 0%; middle 0%
-T1/2K    B@0.125      255   323  2/12         9      17%                   2/10/0/0  back_far 50%; back_near 50%; front 0%; middle 0%
+T1/2K    B@0.125    255–258 323–326  2/12         9      17%                   2/10/0/0  back_far 50%; back_near 50%; front 0%; middle 0%
 T1/2K    C@0.03125     64   132  0/12        12       0%                   0/12/0/0  back_far 0%; back_near 0%; front 0%; middle 0%
-T1/2K    C@0.125      255   323  0/12        12       0%                   0/12/0/0  back_far 0%; back_near 0%; front 0%; middle 0%
+T1/2K    C@0.125    255–258 323–326  0/12        12       0%                   0/12/0/0  back_far 0%; back_near 0%; front 0%; middle 0%
 T1/2K    D0@0.03125    64   132  0/12        12       0%                   0/12/0/0  back_far 0%; back_near 0%; front 0%; middle 0%
-T1/2K    D0@0.125     255   323  0/12        12       0%                   0/12/0/0  back_far 0%; back_near 0%; front 0%; middle 0%
+T1/2K    D0@0.125   255–258 323–326  0/12        12       0%                   0/12/0/0  back_far 0%; back_near 0%; front 0%; middle 0%
 T1/8K    A              —    全部 10/12         0      83%                          —  back_far 100%; back_near 100%; front 75%; middle 75%
 T1/8K    B@0.03125    256   324  2/12        10      17%                    2/8/0/2  back_far 50%; back_near 50%; front 0%; middle 0%
-T1/8K    B@0.125     1023  1091  3/12         9      25%                    3/7/0/2  back_far 50%; back_near 100%; front 0%; middle 0%
+T1/8K    B@0.125    1023–1026 1091–1094  3/12         9      25%                    3/7/0/2  back_far 50%; back_near 100%; front 0%; middle 0%
 T1/8K    C@0.03125    256   324  0/12        12       0%                   0/10/0/2  back_far 0%; back_near 0%; front 0%; middle 0%
-T1/8K    C@0.125     1023  1091  0/12        11       0%                   0/10/0/2  back_far 0%; back_near 0%; front 0%; middle 0%
+T1/8K    C@0.125    1023–1026 1091–1094  0/12        11       0%                   0/10/0/2  back_far 0%; back_near 0%; front 0%; middle 0%
 T1/8K    D0@0.03125   256   324  0/12        12       0%                   0/10/0/2  back_far 0%; back_near 0%; front 0%; middle 0%
-T1/8K    D0@0.125    1023  1091  0/12        12       0%                   0/10/0/2  back_far 0%; back_near 0%; front 0%; middle 0%
+T1/8K    D0@0.125   1023–1026 1091–1094  0/12        12       0%                   0/10/0/2  back_far 0%; back_near 0%; front 0%; middle 0%
 </pre>
 </div>
 </div>
@@ -8580,10 +8601,19 @@ T1/8K    D0@0.125    1023  1091  0/12        12       0%                   0/10/
         <span class="k">for</span> <span class="n">mk</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">({</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'method'</span><span class="p">]</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'rho'</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">comp_rows</span><span class="p">}):</span>
             <span class="n">rs</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">comp_rows</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"length_tag"</span><span class="p">]</span> <span class="o">==</span> <span class="n">lt</span> <span class="ow">and</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'method'</span><span class="p">]</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'rho'</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">"</span> <span class="o">==</span> <span class="n">mk</span><span class="p">]</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">rs</span><span class="p">:</span> <span class="k">continue</span>
-            <span class="n">k0</span> <span class="o">=</span> <span class="n">rs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"k0"</span><span class="p">];</span> <span class="n">M</span> <span class="o">=</span> <span class="n">rs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"legal_start"</span><span class="p">]</span> <span class="o">-</span> <span class="mi">68</span>
+            <span class="n">budget</span> <span class="o">=</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"read_budgets"</span><span class="p">][</span><span class="sa">f</span><span class="s2">"T1/</span><span class="si">{</span><span class="n">lt</span><span class="si">}</span><span class="s2">"</span><span class="p">][</span><span class="n">mk</span><span class="p">]</span>
             <span class="n">fl</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">"coverage_first_gen_step_per_layer"</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rs</span><span class="p">]</span>
             <span class="n">per_layer</span> <span class="o">=</span> <span class="p">[</span><span class="n">statistics</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">l</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">fl</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fl</span><span class="p">[</span><span class="mi">0</span><span class="p">]))]</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">lt</span><span class="si">:</span><span class="s2">&lt;4</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">mk</span><span class="si">:</span><span class="s2">&lt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">k0</span><span class="o">/</span><span class="n">M</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">&gt;8.1f</span><span class="si">}</span><span class="s2">% </span><span class="si">{</span><span class="n">statistics</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'coverage_question_steps'</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">rs</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">&gt;8.1f</span><span class="si">}</span><span class="s2">% </span><span class="si">{</span><span class="n">statistics</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'coverage_generation_steps'</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">rs</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">r</span><span class="p">[</span><span class="s1">'coverage_generation_steps'</span><span class="p">]</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="kc">None</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">&gt;8.1f</span><span class="si">}</span><span class="s2">% </span><span class="si">{</span><span class="n">statistics</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'coverage_first_gen_step_mean'</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">rs</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">&gt;9.1f</span><span class="si">}</span><span class="s2">% / </span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="n">per_layer</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% / </span><span class="si">{</span><span class="nb">max</span><span class="p">(</span><span class="n">per_layer</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%"</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">lt</span><span class="si">:</span><span class="s2">&lt;4</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">mk</span><span class="si">:</span><span class="s2">&lt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">budget</span><span class="p">[</span><span class="s2">"candidate_fraction_mean"</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">&gt;8.1f</span><span class="si">}</span><span class="s2">% </span><span class="si">{</span><span class="n">statistics</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'coverage_question_steps'</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">rs</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">&gt;8.1f</span><span class="si">}</span><span class="s2">% </span><span class="si">{</span><span class="n">statistics</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'coverage_generation_steps'</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">rs</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">r</span><span class="p">[</span><span class="s1">'coverage_generation_steps'</span><span class="p">]</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="kc">None</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">&gt;8.1f</span><span class="si">}</span><span class="s2">% </span><span class="si">{</span><span class="n">statistics</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'coverage_first_gen_step_mean'</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">rs</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">&gt;9.1f</span><span class="si">}</span><span class="s2">% / </span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="n">per_layer</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% / </span><span class="si">{</span><span class="nb">max</span><span class="p">(</span><span class="n">per_layer</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%"</span><span class="p">)</span>
+
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"| 格子 | ρ | 实际 k0 | 总读取数 | 首生成步 N | k/M | 总读取比例 |"</span><span class="p">,</span> <span class="s2">"|---|---:|---|---|---|---|---|"</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">cell</span><span class="p">,</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"read_budgets"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">method</span><span class="p">,</span> <span class="n">budget</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">method</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"B@"</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">vr</span> <span class="o">=</span> <span class="n">reporting</span><span class="o">.</span><span class="n">value_range</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"| </span><span class="si">{</span><span class="n">cell</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">budget</span><span class="p">[</span><span class="s1">'rho'</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">vr</span><span class="p">(</span><span class="n">budget</span><span class="p">[</span><span class="s1">'k0'</span><span class="p">])</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">vr</span><span class="p">(</span><span class="n">budget</span><span class="p">[</span><span class="s1">'selected'</span><span class="p">])</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">vr</span><span class="p">(</span><span class="n">budget</span><span class="p">[</span><span class="s1">'legal'</span><span class="p">])</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">vr</span><span class="p">(</span><span class="n">budget</span><span class="p">[</span><span class="s1">'candidate_fraction'</span><span class="p">],</span><span class="w"> </span><span class="n">percent</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">vr</span><span class="p">(</span><span class="n">budget</span><span class="p">[</span><span class="s1">'total_read_fraction'</span><span class="p">],</span><span class="w"> </span><span class="n">percent</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="s2"> |"</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)))</span>
 </pre></div>
 </div>
 </div>
@@ -8598,11 +8628,11 @@ T1/8K    D0@0.125    1023  1091  0/12        12       0%                   0/10/
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>长度   方法            k/M 期望      问题阶段      生成阶段              首生成步 均值/最低层/最高层
 2K   B@0.03125       3.2%     16.7%     16.7%      16.7% / 16.7% / 16.7%
-2K   B@0.125        12.9%     33.3%     33.3%      33.3% / 33.3% / 33.3%
+2K   B@0.125        12.7%     33.3%     33.3%      33.3% / 33.3% / 33.3%
 2K   C@0.03125       3.2%      5.2%      3.2%       3.2% / 2.3% / 4.7%
-2K   C@0.125        12.9%     14.7%     12.7%      12.8% / 10.8% / 14.5%
+2K   C@0.125        12.7%     14.7%     12.7%      12.8% / 10.8% / 14.5%
 2K   D0@0.03125      3.2%      6.5%      4.9%       4.5% / 0.8% / 8.8%
-2K   D0@0.125       12.9%     17.4%     16.6%      15.4% / 5.9% / 26.2%
+2K   D0@0.125       12.7%     17.4%     16.6%      15.4% / 5.9% / 26.2%
 8K   B@0.03125       3.1%     33.3%     33.3%      33.3% / 33.3% / 33.3%
 8K   B@0.125        12.6%     33.3%     33.3%      33.3% / 33.3% / 33.3%
 8K   C@0.03125       3.1%      8.8%      3.1%       3.2% / 2.6% / 4.5%
@@ -8610,6 +8640,62 @@ T1/8K    D0@0.125    1023  1091  0/12        12       0%                   0/10/
 8K   D0@0.03125      3.1%     12.0%      7.5%       6.7% / 1.5% / 14.8%
 8K   D0@0.125       12.6%     22.4%     19.3%      17.0% / 4.6% / 34.6%
 </pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output" data-mime-type="text/markdown" tabindex="0">
+<table>
+<thead>
+<tr>
+<th>格子</th>
+<th style="text-align:right">ρ</th>
+<th>实际 k0</th>
+<th>总读取数</th>
+<th>首生成步 N</th>
+<th>k/M</th>
+<th>总读取比例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T1/2K</td>
+<td style="text-align:right">0.03125</td>
+<td>64</td>
+<td>132</td>
+<td>2072–2095</td>
+<td>3.16%–3.19%</td>
+<td>6.30%–6.37%</td>
+</tr>
+<tr>
+<td>T1/2K</td>
+<td style="text-align:right">0.125</td>
+<td>255–258</td>
+<td>323–326</td>
+<td>2072–2095</td>
+<td>12.69%–12.74%</td>
+<td>15.53%–15.59%</td>
+</tr>
+<tr>
+<td>T1/8K</td>
+<td style="text-align:right">0.03125</td>
+<td>256</td>
+<td>324</td>
+<td>8216–8239</td>
+<td>3.13%–3.14%</td>
+<td>3.93%–3.94%</td>
+</tr>
+<tr>
+<td>T1/8K</td>
+<td style="text-align:right">0.125</td>
+<td>1023–1026</td>
+<td>1091–1094</td>
+<td>8216–8239</td>
+<td>12.55%–12.56%</td>
+<td>13.27%–13.28%</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
@@ -8621,9 +8707,9 @@ T1/8K    D0@0.125    1023  1091  0/12        12       0%                   0/10/
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>观察。</strong> 在 3% 到 13% 的读取比例下：C 与 D0 的完整匹配 0/12 ×4；B 2/12（2K 两档）、2/12 与 3/12（8K）；A 12/12 与 10/12。没有任何一个请求出现「A 错而稀疏读取对」。错误形态几乎只有一种：<strong>答成问题里的编号</strong>——C 48 个请求 47 个、D0 48/48、B 窗口外 34 个请求 33 个。B 在窗口外 0/34；窗口内 9/14，五个窗口内答错的请求全部发生在 2K 的大名额（ρ = 1/8）或 8K，且同一份资料上 1/32 对、1/8 错出现两次。覆盖率表证实了结构：C 的覆盖率与 k / M 相差不到 0.1 个百分点；D0 高于 k / M（1.2 到 2.2 倍，中间层更成簇），但没有一个层组完整读到那条记录（最高 2%）。A 重跑 24/24 逐位相同。</p>
-<p><strong>解释。</strong> 少读历史时丢掉的不是「答错的记录」，而是「检索本身」：模型退回到复述它能看到的唯一四位数（F 的近 64 永远包含问题）。这是关联：无法由此判断是「没找到就复述最近的数字」这一退化策略，还是「不要输出编号」这个否定指令在小模型上失效。对 B，记录在窗口内是必要条件不是充分条件——候选解释（表头不在 F 里、窗口从句中切入、问题 token 的 K/V 在部分读取下算出、窗口越大干扰越多）都没有分离。</p>
-<p><strong>不能推出什么。</strong> D0 的零不是索引方法的上限（它没训练过）；B 的数字依赖「F ∪ 最近 k 个候选」这个定义；中间档 ρ 没有数据；每步耗时含记账与同步，不是速度基准。</p>
+<p><strong>观察。</strong> 主表和配对结果与旧记录一致：C/D0 在四格均未答对；B 窗口内 9/14、窗口外 0/34，且有增加名额后由对变错的案例。多数失败答成问题里的编号。C 的目标位置覆盖接近对应步骤的 k/M；D0 的覆盖较高，但分数仍为零。</p>
+<p><strong>解释的边界。</strong> 这里同时观察到了低目标位置覆盖和零分，不能仅凭这个指标确定两者的充分或必要关系。覆盖指标计算整条记录，而非仅四位答案；跨层、跨位置的信息传递也没有被分离。“没直接选到目标行”和“没有任何目标信息”不是同一件事。</p>
+<p>D0 未训练，其零分不代表训练后索引的上限。B 的结果限定于当前 F、预算和样本。计时含覆盖率记账与同步，不能作为新的速度基准。</p>
 </div>
 </div>
 </div>
@@ -8650,7 +8736,13 @@ T1/8K    D0@0.125    1023  1091  0/12        12       0%                   0/10/
     <span class="n">d</span> <span class="o">=</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"case_details"</span><span class="p">][</span><span class="n">doc_id</span><span class="p">];</span> <span class="n">doc</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">"doc"</span><span class="p">]</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">"="</span> <span class="o">*</span> <span class="mi">110</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"资料 </span><span class="si">{</span><span class="n">doc_id</span><span class="si">}</span><span class="s2"> · </span><span class="si">{</span><span class="n">doc</span><span class="p">[</span><span class="s1">'task'</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">doc</span><span class="p">[</span><span class="s1">'length_tag'</span><span class="p">]</span><span class="si">}</span><span class="s2"> · 目标桶 </span><span class="si">{</span><span class="n">doc</span><span class="p">[</span><span class="s1">'buckets'</span><span class="p">]</span><span class="si">}</span><span class="s2"> · 倒数第 </span><span class="si">{</span><span class="n">doc</span><span class="p">[</span><span class="s1">'target_records_from_end'</span><span class="p">]</span><span class="si">}</span><span class="s2"> 条 · 距前缀末尾 </span><span class="si">{</span><span class="n">doc</span><span class="p">[</span><span class="s1">'target_distance_from_prefix_end'</span><span class="p">]</span><span class="si">}</span><span class="s2"> token · 前缀 </span><span class="si">{</span><span class="n">doc</span><span class="p">[</span><span class="s1">'prefix_token_count'</span><span class="p">]</span><span class="si">}</span><span class="s2"> token"</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"问题:"</span><span class="p">,</span> <span class="n">doc</span><span class="p">[</span><span class="s2">"question"</span><span class="p">]);</span> <span class="nb">print</span><span class="p">(</span><span class="s2">"目标值:"</span><span class="p">,</span> <span class="n">doc</span><span class="p">[</span><span class="s2">"targets"</span><span class="p">],</span> <span class="s2">"| 目标附近的记录 (编号, 值):"</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">"records_around_targets"</span><span class="p">],</span> <span class="s2">"| 资料末尾的记录:"</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">"last_records"</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"问题:"</span><span class="p">,</span> <span class="n">doc</span><span class="p">[</span><span class="s2">"question"</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"目标值:"</span><span class="p">,</span> <span class="n">doc</span><span class="p">[</span><span class="s2">"targets"</span><span class="p">])</span>
+    <span class="n">neighborhood</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"| 原记录序号（从 0 计数） | 编号 | 值 | 是否目标 |"</span><span class="p">,</span> <span class="s2">"|---:|---|---|---|"</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">record_index</span><span class="p">,</span> <span class="p">(</span><span class="n">record_id</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">"records_around_targets"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">neighborhood</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"| </span><span class="si">{</span><span class="n">record_index</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">record_id</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="s1">'目标'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="nb">int</span><span class="p">(</span><span class="n">record_index</span><span class="p">)</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">doc</span><span class="p">[</span><span class="s1">'target_indices'</span><span class="p">]</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'邻近'</span><span class="si">}</span><span class="s2"> |"</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">neighborhood</span><span class="p">)))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"资料末尾六条 (编号, 值):"</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">"last_records"</span><span class="p">])</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'方法'</span><span class="si">:</span><span class="s2">&lt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'读取'</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'回答'</span><span class="si">:</span><span class="s2">&lt;34</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'判定'</span><span class="si">:</span><span class="s2">&lt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'目标覆盖 首生成步 均值'</span><span class="si">:</span><span class="s2">&gt;22</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'层组全覆盖比例'</span><span class="si">:</span><span class="s2">&gt;14</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">mk</span><span class="p">,</span> <span class="n">an</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">"answers"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">cov</span> <span class="o">=</span> <span class="n">an</span><span class="p">[</span><span class="s2">"coverage"</span><span class="p">]</span>
@@ -8661,7 +8753,9 @@ T1/8K    D0@0.125    1023  1091  0/12        12       0%                   0/10/
         <span class="n">ex</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="s2">"example_rows"</span><span class="p">]</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">mk</span><span class="si">}</span><span class="s2"> 第一个生成 token 那一步的名单（第 0 组）："</span> <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">v</span><span class="p">[</span><span class="s1">'n_rows'</span><span class="p">]</span><span class="si">}</span><span class="s2"> 行, </span><span class="si">{</span><span class="n">v</span><span class="p">[</span><span class="s1">'n_ranges'</span><span class="p">]</span><span class="si">}</span><span class="s2"> 段, 前几段 </span><span class="si">{</span><span class="n">v</span><span class="p">[</span><span class="s1">'ranges'</span><span class="p">][:</span><span class="mi">6</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ex</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
     <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">"rewrites"</span><span class="p">]:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">"  改写："</span> <span class="o">+</span> <span class="s2">" | "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'variant'</span><span class="p">]</span><span class="si">}</span><span class="s2">→</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'method'</span><span class="p">]</span><span class="si">}{</span><span class="s1">'@'</span><span class="o">+</span><span class="nb">format</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'rho'</span><span class="p">],</span><span class="s1">'g'</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">r</span><span class="p">[</span><span class="s1">'rho'</span><span class="p">]</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="kc">None</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2"> 答 </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'predicted'</span><span class="p">]</span><span class="si">}</span><span class="s2"> 目标 </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'targets'</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'✓'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">r</span><span class="p">[</span><span class="s1">'exact'</span><span class="p">]</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'✗'</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">"rewrites"</span><span class="p">]))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"  旧记录改写（C 的随机名单也变化）："</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">"rewrites"</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'variant'</span><span class="p">]</span><span class="si">}</span><span class="s2"> → </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'method'</span><span class="p">]</span><span class="si">}{</span><span class="s1">'@'</span><span class="o">+</span><span class="nb">format</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'rho'</span><span class="p">],</span><span class="s1">'g'</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">r</span><span class="p">[</span><span class="s1">'rho'</span><span class="p">]</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="kc">None</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2">: 答 </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'predicted'</span><span class="p">]</span><span class="si">}</span><span class="s2">，目标 </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'targets'</span><span class="p">]</span><span class="si">}</span><span class="s2">，</span><span class="si">{</span><span class="s1">'✓'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">r</span><span class="p">[</span><span class="s1">'exact'</span><span class="p">]</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'✗'</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">plot_case_coverage</span><span class="p">(</span><span class="n">doc_id</span><span class="p">):</span>
     <span class="n">d</span> <span class="o">=</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"case_details"</span><span class="p">][</span><span class="n">doc_id</span><span class="p">]</span>
@@ -8733,7 +8827,49 @@ T1/8K    D0@0.125    1023  1091  0/12        12       0%                   0/10/
 <pre>==============================================================================================================
 资料 T1-2K-00 · T1 2K · 目标桶 ['front'] · 倒数第 [15] 条 · 距前缀末尾 [1888] token · 前缀 2050 token
 问题: 问题：编号 1563 对应的数值是多少？只输出该编号对应的四位数值，不要输出编号。
-目标值: ['8422'] | 目标附近的记录 (编号, 值): {'0': ['7303', '8080']} | 资料末尾的记录: [['8625', '6309'], ['7457', '7558'], ['4601', '6179'], ['4186', '3363'], ['1567', '8340'], ['2121', '8859']]
+目标值: ['8422']
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output" data-mime-type="text/markdown" tabindex="0">
+<table>
+<thead>
+<tr>
+<th style="text-align:right">原记录序号（从 0 计数）</th>
+<th>编号</th>
+<th>值</th>
+<th>是否目标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">0</td>
+<td>1563</td>
+<td>8422</td>
+<td>目标</td>
+</tr>
+<tr>
+<td style="text-align:right">1</td>
+<td>3619</td>
+<td>6096</td>
+<td>邻近</td>
+</tr>
+<tr>
+<td style="text-align:right">2</td>
+<td>7303</td>
+<td>8080</td>
+<td>邻近</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>资料末尾六条 (编号, 值): [['8625', '6309'], ['7457', '7558'], ['4601', '6179'], ['4186', '3363'], ['1567', '8340'], ['2121', '8859']]
 方法            读取 回答                                 判定                 目标覆盖 首生成步 均值        层组全覆盖比例
 A             全部 '8422'                             ✓                             全部              —
 B@0.03125    132 '1563'                             ✗(答成编号)                     0.0%             0%
@@ -8748,7 +8884,28 @@ D0@0.125     324 '1563'                             ✗(答成编号)           
   C@0.125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 324 行, 228 段, 前几段 [[0, 4], [17, 18], [20, 21], [31, 32], [37, 38], [45, 46]]; layer14_group0: 324 行, 224 段, 前几段 [[0, 4], [9, 10], [12, 13], [21, 22], [23, 25], [28, 29]]; layer27_group0: 324 行, 227 段, 前几段 [[0, 4], [5, 6], [8, 9], [16, 17], [19, 20], [22, 23]]
   D0@0.03125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 132 行, 66 段, 前几段 [[0, 4], [10, 11], [58, 59], [70, 71], [81, 82], [84, 85]]; layer14_group0: 132 行, 52 段, 前几段 [[0, 4], [58, 59], [88, 89], [105, 106], [169, 170], [176, 177]]; layer27_group0: 132 行, 58 段, 前几段 [[0, 4], [66, 67], [96, 97], [155, 156], [173, 174], [181, 182]]
   D0@0.125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 324 行, 233 段, 前几段 [[0, 4], [10, 12], [38, 39], [55, 57], [58, 59], [67, 68]]; layer14_group0: 324 行, 162 段, 前几段 [[0, 4], [47, 48], [58, 60], [65, 66], [68, 69], [88, 90]]; layer27_group0: 324 行, 179 段, 前几段 [[0, 4], [15, 17], [19, 20], [25, 26], [33, 34], [50, 51]]
-  改写：value→A 答 ['4122'] 目标 ['4122'] ✓ | value→B@0.03125 答 ['1563'] 目标 ['4122'] ✗ | value→B@0.125 答 ['1563'] 目标 ['4122'] ✗ | value→C@0.03125 答 ['1563'] 目标 ['4122'] ✗ | value→C@0.125 答 ['1563'] 目标 ['4122'] ✗ | value→D0@0.03125 答 ['1563'] 目标 ['4122'] ✗ | value→D0@0.125 答 ['1563'] 目标 ['4122'] ✗ | irrelevant→A 答 ['8422'] 目标 ['8422'] ✓ | irrelevant→B@0.03125 答 ['1563'] 目标 ['8422'] ✗ | irrelevant→B@0.125 答 ['1563'] 目标 ['8422'] ✗ | irrelevant→C@0.03125 答 ['1563'] 目标 ['8422'] ✗ | irrelevant→C@0.125 答 ['1563'] 目标 ['8422'] ✗ | irrelevant→D0@0.03125 答 ['1563'] 目标 ['8422'] ✗ | irrelevant→D0@0.125 答 ['1563'] 目标 ['8422'] ✗ | move→A 答 ['8422'] 目标 ['8422'] ✓ | move→B@0.03125 答 ['8422'] 目标 ['8422'] ✓ | move→B@0.125 答 ['8422'] 目标 ['8422'] ✓ | move→C@0.03125 答 ['1563'] 目标 ['8422'] ✗ | move→C@0.125 答 ['1563'] 目标 ['8422'] ✗ | move→D0@0.03125 答 ['1563'] 目标 ['8422'] ✗ | move→D0@0.125 答 ['8263'] 目标 ['8422'] ✗
+  旧记录改写（C 的随机名单也变化）：
+    value → A: 答 ['4122']，目标 ['4122']，✓
+    value → B@0.03125: 答 ['1563']，目标 ['4122']，✗
+    value → B@0.125: 答 ['1563']，目标 ['4122']，✗
+    value → C@0.03125: 答 ['1563']，目标 ['4122']，✗
+    value → C@0.125: 答 ['1563']，目标 ['4122']，✗
+    value → D0@0.03125: 答 ['1563']，目标 ['4122']，✗
+    value → D0@0.125: 答 ['1563']，目标 ['4122']，✗
+    irrelevant → A: 答 ['8422']，目标 ['8422']，✓
+    irrelevant → B@0.03125: 答 ['1563']，目标 ['8422']，✗
+    irrelevant → B@0.125: 答 ['1563']，目标 ['8422']，✗
+    irrelevant → C@0.03125: 答 ['1563']，目标 ['8422']，✗
+    irrelevant → C@0.125: 答 ['1563']，目标 ['8422']，✗
+    irrelevant → D0@0.03125: 答 ['1563']，目标 ['8422']，✗
+    irrelevant → D0@0.125: 答 ['1563']，目标 ['8422']，✗
+    move → A: 答 ['8422']，目标 ['8422']，✓
+    move → B@0.03125: 答 ['8422']，目标 ['8422']，✓
+    move → B@0.125: 答 ['8422']，目标 ['8422']，✓
+    move → C@0.03125: 答 ['1563']，目标 ['8422']，✗
+    move → C@0.125: 答 ['1563']，目标 ['8422']，✗
+    move → D0@0.03125: 答 ['1563']，目标 ['8422']，✗
+    move → D0@0.125: 答 ['8263']，目标 ['8422']，✗
 </pre>
 </div>
 </div>
@@ -8764,7 +8921,55 @@ D0@0.125     324 '1563'                             ✗(答成编号)           
 <pre>==============================================================================================================
 资料 T1-2K-01 · T1 2K · 目标桶 ['front'] · 倒数第 [14] 条 · 距前缀末尾 [1787] token · 前缀 2060 token
 问题: 问题：编号 1066 对应的数值是多少？只输出该编号对应的四位数值，不要输出编号。
-目标值: ['7745'] | 目标附近的记录 (编号, 值): {'1': ['3449', '2603']} | 资料末尾的记录: [['1799', '2875'], ['8917', '9534'], ['7060', '7815'], ['5115', '4342'], ['2569', '1669'], ['5735', '5592']]
+目标值: ['7745']
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output" data-mime-type="text/markdown" tabindex="0">
+<table>
+<thead>
+<tr>
+<th style="text-align:right">原记录序号（从 0 计数）</th>
+<th>编号</th>
+<th>值</th>
+<th>是否目标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">0</td>
+<td>8395</td>
+<td>6235</td>
+<td>邻近</td>
+</tr>
+<tr>
+<td style="text-align:right">1</td>
+<td>1066</td>
+<td>7745</td>
+<td>目标</td>
+</tr>
+<tr>
+<td style="text-align:right">2</td>
+<td>7348</td>
+<td>3658</td>
+<td>邻近</td>
+</tr>
+<tr>
+<td style="text-align:right">3</td>
+<td>3449</td>
+<td>2603</td>
+<td>邻近</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>资料末尾六条 (编号, 值): [['1799', '2875'], ['8917', '9534'], ['7060', '7815'], ['5115', '4342'], ['2569', '1669'], ['5735', '5592']]
 方法            读取 回答                                 判定                 目标覆盖 首生成步 均值        层组全覆盖比例
 A             全部 '7745'                             ✓                             全部              —
 B@0.03125    132 '1066'                             ✗(答成编号)                     0.0%             0%
@@ -8779,7 +8984,14 @@ D0@0.125     326 '1066'                             ✗(答成编号)           
   C@0.125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 326 行, 224 段, 前几段 [[0, 4], [13, 14], [32, 33], [41, 42], [51, 52], [58, 59]]; layer14_group0: 326 行, 228 段, 前几段 [[0, 4], [8, 9], [10, 11], [12, 13], [23, 25], [56, 57]]; layer27_group0: 326 行, 226 段, 前几段 [[0, 4], [7, 8], [9, 10], [13, 14], [16, 17], [21, 22]]
   D0@0.03125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 132 行, 66 段, 前几段 [[0, 4], [10, 11], [69, 70], [91, 92], [174, 175], [188, 189]]; layer14_group0: 132 行, 47 段, 前几段 [[0, 4], [164, 165], [169, 170], [171, 173], [196, 197], [217, 218]]; layer27_group0: 132 行, 63 段, 前几段 [[0, 4], [47, 48], [67, 69], [71, 72], [84, 85], [100, 101]]
   D0@0.125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 326 行, 253 段, 前几段 [[0, 4], [10, 12], [38, 39], [41, 42], [52, 53], [69, 70]]; layer14_group0: 326 行, 179 段, 前几段 [[0, 4], [62, 64], [67, 68], [84, 85], [87, 88], [91, 92]]; layer27_group0: 326 行, 216 段, 前几段 [[0, 4], [33, 34], [42, 43], [47, 48], [49, 50], [54, 55]]
-  改写：move→A 答 ['7745'] 目标 ['7745'] ✓ | move→B@0.03125 答 ['1066'] 目标 ['7745'] ✗ | move→B@0.125 答 ['1066'] 目标 ['7745'] ✗ | move→C@0.03125 答 ['1066'] 目标 ['7745'] ✗ | move→C@0.125 答 ['1066'] 目标 ['7745'] ✗ | move→D0@0.03125 答 ['1066'] 目标 ['7745'] ✗ | move→D0@0.125 答 ['1066'] 目标 ['7745'] ✗
+  旧记录改写（C 的随机名单也变化）：
+    move → A: 答 ['7745']，目标 ['7745']，✓
+    move → B@0.03125: 答 ['1066']，目标 ['7745']，✗
+    move → B@0.125: 答 ['1066']，目标 ['7745']，✗
+    move → C@0.03125: 答 ['1066']，目标 ['7745']，✗
+    move → C@0.125: 答 ['1066']，目标 ['7745']，✗
+    move → D0@0.03125: 答 ['1066']，目标 ['7745']，✗
+    move → D0@0.125: 答 ['1066']，目标 ['7745']，✗
 </pre>
 </div>
 </div>
@@ -8795,7 +9007,49 @@ D0@0.125     326 '1066'                             ✗(答成编号)           
 <pre>==============================================================================================================
 资料 T1-8K-00 · T1 8K · 目标桶 ['front'] · 倒数第 [15] 条 · 距前缀末尾 [7626] token · 前缀 8202 token
 问题: 问题：编号 1553 对应的数值是多少？只输出该编号对应的四位数值，不要输出编号。
-目标值: ['6429'] | 目标附近的记录 (编号, 值): {'0': ['4738', '7258']} | 资料末尾的记录: [['5785', '7976'], ['2188', '5403'], ['7121', '2679'], ['5686', '2721'], ['7993', '1881'], ['8681', '3937']]
+目标值: ['6429']
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output" data-mime-type="text/markdown" tabindex="0">
+<table>
+<thead>
+<tr>
+<th style="text-align:right">原记录序号（从 0 计数）</th>
+<th>编号</th>
+<th>值</th>
+<th>是否目标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">0</td>
+<td>1553</td>
+<td>6429</td>
+<td>目标</td>
+</tr>
+<tr>
+<td style="text-align:right">1</td>
+<td>3989</td>
+<td>6658</td>
+<td>邻近</td>
+</tr>
+<tr>
+<td style="text-align:right">2</td>
+<td>4738</td>
+<td>7258</td>
+<td>邻近</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>资料末尾六条 (编号, 值): [['5785', '7976'], ['2188', '5403'], ['7121', '2679'], ['5686', '2721'], ['7993', '1881'], ['8681', '3937']]
 方法            读取 回答                                 判定                 目标覆盖 首生成步 均值        层组全覆盖比例
 A             全部 '6429'                             ✓                             全部              —
 B@0.03125    324 '1553'                             ✗(答成编号)                     0.0%             0%
@@ -8810,7 +9064,28 @@ D0@0.125    1093 '1553'                             ✗(答成编号)           
   C@0.125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 1093 行, 899 段, 前几段 [[0, 4], [34, 35], [38, 39], [43, 44], [64, 65], [66, 67]]; layer14_group0: 1093 行, 906 段, 前几段 [[0, 4], [12, 13], [16, 19], [29, 30], [46, 47], [49, 51]]; layer27_group0: 1093 行, 886 段, 前几段 [[0, 4], [64, 65], [71, 72], [76, 78], [99, 100], [104, 105]]
   D0@0.03125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 324 行, 258 段, 前几段 [[0, 4], [10, 11], [46, 47], [51, 52], [58, 59], [100, 101]]; layer14_group0: 324 行, 214 段, 前几段 [[0, 4], [174, 175], [178, 179], [181, 182], [190, 191], [365, 366]]; layer27_group0: 324 行, 231 段, 前几段 [[0, 4], [45, 46], [48, 49], [60, 61], [64, 65], [77, 78]]
   D0@0.125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 1093 行, 1012 段, 前几段 [[0, 4], [10, 12], [46, 47], [51, 52], [58, 59], [65, 66]]; layer14_group0: 1093 行, 633 段, 前几段 [[0, 4], [50, 51], [112, 113], [118, 119], [136, 138], [153, 155]]; layer27_group0: 1093 行, 787 段, 前几段 [[0, 4], [25, 26], [33, 34], [38, 39], [44, 46], [48, 49]]
-  改写：value→A 答 ['6413'] 目标 ['6413'] ✓ | value→B@0.03125 答 ['1553'] 目标 ['6413'] ✗ | value→B@0.125 答 ['1553'] 目标 ['6413'] ✗ | value→C@0.03125 答 ['1553'] 目标 ['6413'] ✗ | value→C@0.125 答 ['1553'] 目标 ['6413'] ✗ | value→D0@0.03125 答 ['1553'] 目标 ['6413'] ✗ | value→D0@0.125 答 ['1553'] 目标 ['6413'] ✗ | irrelevant→A 答 ['6429'] 目标 ['6429'] ✓ | irrelevant→B@0.03125 答 ['1553'] 目标 ['6429'] ✗ | irrelevant→B@0.125 答 ['1553'] 目标 ['6429'] ✗ | irrelevant→C@0.03125 答 ['1553'] 目标 ['6429'] ✗ | irrelevant→C@0.125 答 ['1553'] 目标 ['6429'] ✗ | irrelevant→D0@0.03125 答 ['1553'] 目标 ['6429'] ✗ | irrelevant→D0@0.125 答 ['1553'] 目标 ['6429'] ✗ | move→A 答 ['6429'] 目标 ['6429'] ✓ | move→B@0.03125 答 ['6429'] 目标 ['6429'] ✓ | move→B@0.125 答 ['1553'] 目标 ['6429'] ✗ | move→C@0.03125 答 ['1553'] 目标 ['6429'] ✗ | move→C@0.125 答 ['1553'] 目标 ['6429'] ✗ | move→D0@0.03125 答 ['1553'] 目标 ['6429'] ✗ | move→D0@0.125 答 ['1553'] 目标 ['6429'] ✗
+  旧记录改写（C 的随机名单也变化）：
+    value → A: 答 ['6413']，目标 ['6413']，✓
+    value → B@0.03125: 答 ['1553']，目标 ['6413']，✗
+    value → B@0.125: 答 ['1553']，目标 ['6413']，✗
+    value → C@0.03125: 答 ['1553']，目标 ['6413']，✗
+    value → C@0.125: 答 ['1553']，目标 ['6413']，✗
+    value → D0@0.03125: 答 ['1553']，目标 ['6413']，✗
+    value → D0@0.125: 答 ['1553']，目标 ['6413']，✗
+    irrelevant → A: 答 ['6429']，目标 ['6429']，✓
+    irrelevant → B@0.03125: 答 ['1553']，目标 ['6429']，✗
+    irrelevant → B@0.125: 答 ['1553']，目标 ['6429']，✗
+    irrelevant → C@0.03125: 答 ['1553']，目标 ['6429']，✗
+    irrelevant → C@0.125: 答 ['1553']，目标 ['6429']，✗
+    irrelevant → D0@0.03125: 答 ['1553']，目标 ['6429']，✗
+    irrelevant → D0@0.125: 答 ['1553']，目标 ['6429']，✗
+    move → A: 答 ['6429']，目标 ['6429']，✓
+    move → B@0.03125: 答 ['6429']，目标 ['6429']，✓
+    move → B@0.125: 答 ['1553']，目标 ['6429']，✗
+    move → C@0.03125: 答 ['1553']，目标 ['6429']，✗
+    move → C@0.125: 答 ['1553']，目标 ['6429']，✗
+    move → D0@0.03125: 答 ['1553']，目标 ['6429']，✗
+    move → D0@0.125: 答 ['1553']，目标 ['6429']，✗
 </pre>
 </div>
 </div>
@@ -8826,7 +9101,55 @@ D0@0.125    1093 '1553'                             ✗(答成编号)           
 <pre>==============================================================================================================
 资料 T1-8K-01 · T1 8K · 目标桶 ['front'] · 倒数第 [14] 条 · 距前缀末尾 [7073] token · 前缀 8190 token
 问题: 问题：编号 3090 对应的数值是多少？只输出该编号对应的四位数值，不要输出编号。
-目标值: ['5498'] | 目标附近的记录 (编号, 值): {'1': ['9862', '6912']} | 资料末尾的记录: [['3391', '4247'], ['2368', '8270'], ['9435', '5221'], ['9684', '7500'], ['3220', '4895'], ['5213', '8988']]
+目标值: ['5498']
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output" data-mime-type="text/markdown" tabindex="0">
+<table>
+<thead>
+<tr>
+<th style="text-align:right">原记录序号（从 0 计数）</th>
+<th>编号</th>
+<th>值</th>
+<th>是否目标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">0</td>
+<td>5171</td>
+<td>1706</td>
+<td>邻近</td>
+</tr>
+<tr>
+<td style="text-align:right">1</td>
+<td>3090</td>
+<td>5498</td>
+<td>目标</td>
+</tr>
+<tr>
+<td style="text-align:right">2</td>
+<td>3039</td>
+<td>2293</td>
+<td>邻近</td>
+</tr>
+<tr>
+<td style="text-align:right">3</td>
+<td>9862</td>
+<td>6912</td>
+<td>邻近</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>资料末尾六条 (编号, 值): [['3391', '4247'], ['2368', '8270'], ['9435', '5221'], ['9684', '7500'], ['3220', '4895'], ['5213', '8988']]
 方法            读取 回答                                 判定                 目标覆盖 首生成步 均值        层组全覆盖比例
 A             全部 '5498'                             ✓                             全部              —
 B@0.03125    324 '3090'                             ✗(答成编号)                     0.0%             0%
@@ -8841,7 +9164,14 @@ D0@0.125    1092 '3090'                             ✗(答成编号)           
   C@0.125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 1092 行, 902 段, 前几段 [[0, 4], [12, 13], [17, 18], [20, 21], [28, 29], [39, 40]]; layer14_group0: 1092 行, 899 段, 前几段 [[0, 4], [9, 10], [11, 12], [13, 14], [16, 17], [40, 41]]; layer27_group0: 1092 行, 897 段, 前几段 [[0, 4], [5, 6], [11, 12], [13, 14], [20, 21], [41, 42]]
   D0@0.03125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 324 行, 257 段, 前几段 [[0, 4], [10, 11], [39, 40], [100, 101], [121, 122], [125, 126]]; layer14_group0: 324 行, 194 段, 前几段 [[0, 4], [143, 144], [183, 185], [189, 190], [221, 222], [239, 240]]; layer27_group0: 324 行, 246 段, 前几段 [[0, 4], [101, 102], [113, 114], [120, 121], [189, 190], [254, 255]]
   D0@0.125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 1092 行, 1005 段, 前几段 [[0, 4], [10, 12], [37, 38], [39, 40], [51, 52], [55, 56]]; layer14_group0: 1092 行, 638 段, 前几段 [[0, 4], [82, 83], [143, 144], [183, 185], [187, 188], [189, 190]]; layer27_group0: 1092 行, 778 段, 前几段 [[0, 4], [25, 26], [33, 34], [48, 49], [53, 54], [59, 60]]
-  改写：move→A 答 ['5498'] 目标 ['5498'] ✓ | move→B@0.03125 答 ['4895'] 目标 ['5498'] ✗ | move→B@0.125 答 ['5498'] 目标 ['5498'] ✓ | move→C@0.03125 答 ['3090'] 目标 ['5498'] ✗ | move→C@0.125 答 ['3090'] 目标 ['5498'] ✗ | move→D0@0.03125 答 ['3090'] 目标 ['5498'] ✗ | move→D0@0.125 答 ['3090'] 目标 ['5498'] ✗
+  旧记录改写（C 的随机名单也变化）：
+    move → A: 答 ['5498']，目标 ['5498']，✓
+    move → B@0.03125: 答 ['4895']，目标 ['5498']，✗
+    move → B@0.125: 答 ['5498']，目标 ['5498']，✓
+    move → C@0.03125: 答 ['3090']，目标 ['5498']，✗
+    move → C@0.125: 答 ['3090']，目标 ['5498']，✗
+    move → D0@0.03125: 答 ['3090']，目标 ['5498']，✗
+    move → D0@0.125: 答 ['3090']，目标 ['5498']，✗
 </pre>
 </div>
 </div>
@@ -8860,7 +9190,8 @@ D0@0.125    1092 '3090'                             ✗(答成编号)           
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>哪些解释得到支持。</strong> 四份 front 目标距前缀末尾 1787 到 7626 token，B 的名单是首 4 ∪ 最后 132 / 324（2K）或 324 / 1092（8K）个位置，对目标的覆盖率为 0，于是 B 与 C、D0 一样答成编号；A 答对。移近改写（把被查询记录与倒数第一条互换）：T1-2K-00 两档变对，T1-8K-00 只在 1/32 变对，T1-8K-01 只在 1/8 变对，T1-2K-01 两档仍答编号——按资料 3/4 支持「关键记录在窗口外」这一解释，按（资料, ρ）只有 4/8。<strong>仍不确定。</strong> 为什么同一条记录移进窗口后，B 在一档对、另一档错；T1-2K-01 为什么两档都不对。value 改写里 A 跟着新值走（3/3），B / C / D0 的回答纹丝不动（24/24 仍是编号）：它们的输出与那条记录的内容无关，这是「没读到」的签名。</p>
+<p><strong>哪些解释得到支持。</strong> 这四份前段目标在 B 窗口外，A 答对而 B 答错。移近后的变化支持位置选择与表现有关，但不是保证：同一资料的不同预算仍可给出不同结果。窗口名单严格是 F ∪ 最近 k0 个候选，不能再把首 4 重复加入总读取数。</p>
+<p><strong>反例与边界。</strong> <code>T1-2K-00，B，ρ=1/8</code> 的目标仍在窗口外，value 改写却使回答由 8340 变为 1563，两次都错。第 6 节从逐题记录分别统计回答是否变化、正误是否变化、是否变成编号。“仍错”不代表“纹丝不动”。完整 Prefill 后的间接信息路径尚未定位，不能断言这条记录与输出无关。</p>
 </div>
 </div>
 </div>
@@ -8903,7 +9234,49 @@ D0@0.125    1092 '3090'                             ✗(答成编号)           
 <pre>==============================================================================================================
 资料 T1-2K-00 · T1 2K · 目标桶 ['front'] · 倒数第 [15] 条 · 距前缀末尾 [1888] token · 前缀 2050 token
 问题: 问题：编号 1563 对应的数值是多少？只输出该编号对应的四位数值，不要输出编号。
-目标值: ['8422'] | 目标附近的记录 (编号, 值): {'0': ['7303', '8080']} | 资料末尾的记录: [['8625', '6309'], ['7457', '7558'], ['4601', '6179'], ['4186', '3363'], ['1567', '8340'], ['2121', '8859']]
+目标值: ['8422']
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output" data-mime-type="text/markdown" tabindex="0">
+<table>
+<thead>
+<tr>
+<th style="text-align:right">原记录序号（从 0 计数）</th>
+<th>编号</th>
+<th>值</th>
+<th>是否目标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">0</td>
+<td>1563</td>
+<td>8422</td>
+<td>目标</td>
+</tr>
+<tr>
+<td style="text-align:right">1</td>
+<td>3619</td>
+<td>6096</td>
+<td>邻近</td>
+</tr>
+<tr>
+<td style="text-align:right">2</td>
+<td>7303</td>
+<td>8080</td>
+<td>邻近</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>资料末尾六条 (编号, 值): [['8625', '6309'], ['7457', '7558'], ['4601', '6179'], ['4186', '3363'], ['1567', '8340'], ['2121', '8859']]
 方法            读取 回答                                 判定                 目标覆盖 首生成步 均值        层组全覆盖比例
 A             全部 '8422'                             ✓                             全部              —
 B@0.03125    132 '1563'                             ✗(答成编号)                     0.0%             0%
@@ -8918,7 +9291,28 @@ D0@0.125     324 '1563'                             ✗(答成编号)           
   C@0.125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 324 行, 228 段, 前几段 [[0, 4], [17, 18], [20, 21], [31, 32], [37, 38], [45, 46]]; layer14_group0: 324 行, 224 段, 前几段 [[0, 4], [9, 10], [12, 13], [21, 22], [23, 25], [28, 29]]; layer27_group0: 324 行, 227 段, 前几段 [[0, 4], [5, 6], [8, 9], [16, 17], [19, 20], [22, 23]]
   D0@0.03125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 132 行, 66 段, 前几段 [[0, 4], [10, 11], [58, 59], [70, 71], [81, 82], [84, 85]]; layer14_group0: 132 行, 52 段, 前几段 [[0, 4], [58, 59], [88, 89], [105, 106], [169, 170], [176, 177]]; layer27_group0: 132 行, 58 段, 前几段 [[0, 4], [66, 67], [96, 97], [155, 156], [173, 174], [181, 182]]
   D0@0.125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 324 行, 233 段, 前几段 [[0, 4], [10, 12], [38, 39], [55, 57], [58, 59], [67, 68]]; layer14_group0: 324 行, 162 段, 前几段 [[0, 4], [47, 48], [58, 60], [65, 66], [68, 69], [88, 90]]; layer27_group0: 324 行, 179 段, 前几段 [[0, 4], [15, 17], [19, 20], [25, 26], [33, 34], [50, 51]]
-  改写：value→A 答 ['4122'] 目标 ['4122'] ✓ | value→B@0.03125 答 ['1563'] 目标 ['4122'] ✗ | value→B@0.125 答 ['1563'] 目标 ['4122'] ✗ | value→C@0.03125 答 ['1563'] 目标 ['4122'] ✗ | value→C@0.125 答 ['1563'] 目标 ['4122'] ✗ | value→D0@0.03125 答 ['1563'] 目标 ['4122'] ✗ | value→D0@0.125 答 ['1563'] 目标 ['4122'] ✗ | irrelevant→A 答 ['8422'] 目标 ['8422'] ✓ | irrelevant→B@0.03125 答 ['1563'] 目标 ['8422'] ✗ | irrelevant→B@0.125 答 ['1563'] 目标 ['8422'] ✗ | irrelevant→C@0.03125 答 ['1563'] 目标 ['8422'] ✗ | irrelevant→C@0.125 答 ['1563'] 目标 ['8422'] ✗ | irrelevant→D0@0.03125 答 ['1563'] 目标 ['8422'] ✗ | irrelevant→D0@0.125 答 ['1563'] 目标 ['8422'] ✗ | move→A 答 ['8422'] 目标 ['8422'] ✓ | move→B@0.03125 答 ['8422'] 目标 ['8422'] ✓ | move→B@0.125 答 ['8422'] 目标 ['8422'] ✓ | move→C@0.03125 答 ['1563'] 目标 ['8422'] ✗ | move→C@0.125 答 ['1563'] 目标 ['8422'] ✗ | move→D0@0.03125 答 ['1563'] 目标 ['8422'] ✗ | move→D0@0.125 答 ['8263'] 目标 ['8422'] ✗
+  旧记录改写（C 的随机名单也变化）：
+    value → A: 答 ['4122']，目标 ['4122']，✓
+    value → B@0.03125: 答 ['1563']，目标 ['4122']，✗
+    value → B@0.125: 答 ['1563']，目标 ['4122']，✗
+    value → C@0.03125: 答 ['1563']，目标 ['4122']，✗
+    value → C@0.125: 答 ['1563']，目标 ['4122']，✗
+    value → D0@0.03125: 答 ['1563']，目标 ['4122']，✗
+    value → D0@0.125: 答 ['1563']，目标 ['4122']，✗
+    irrelevant → A: 答 ['8422']，目标 ['8422']，✓
+    irrelevant → B@0.03125: 答 ['1563']，目标 ['8422']，✗
+    irrelevant → B@0.125: 答 ['1563']，目标 ['8422']，✗
+    irrelevant → C@0.03125: 答 ['1563']，目标 ['8422']，✗
+    irrelevant → C@0.125: 答 ['1563']，目标 ['8422']，✗
+    irrelevant → D0@0.03125: 答 ['1563']，目标 ['8422']，✗
+    irrelevant → D0@0.125: 答 ['1563']，目标 ['8422']，✗
+    move → A: 答 ['8422']，目标 ['8422']，✓
+    move → B@0.03125: 答 ['8422']，目标 ['8422']，✓
+    move → B@0.125: 答 ['8422']，目标 ['8422']，✓
+    move → C@0.03125: 答 ['1563']，目标 ['8422']，✗
+    move → C@0.125: 答 ['1563']，目标 ['8422']，✗
+    move → D0@0.03125: 答 ['1563']，目标 ['8422']，✗
+    move → D0@0.125: 答 ['8263']，目标 ['8422']，✗
 </pre>
 </div>
 </div>
@@ -8934,7 +9328,55 @@ D0@0.125     324 '1563'                             ✗(答成编号)           
 <pre>==============================================================================================================
 资料 T1-2K-01 · T1 2K · 目标桶 ['front'] · 倒数第 [14] 条 · 距前缀末尾 [1787] token · 前缀 2060 token
 问题: 问题：编号 1066 对应的数值是多少？只输出该编号对应的四位数值，不要输出编号。
-目标值: ['7745'] | 目标附近的记录 (编号, 值): {'1': ['3449', '2603']} | 资料末尾的记录: [['1799', '2875'], ['8917', '9534'], ['7060', '7815'], ['5115', '4342'], ['2569', '1669'], ['5735', '5592']]
+目标值: ['7745']
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output" data-mime-type="text/markdown" tabindex="0">
+<table>
+<thead>
+<tr>
+<th style="text-align:right">原记录序号（从 0 计数）</th>
+<th>编号</th>
+<th>值</th>
+<th>是否目标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">0</td>
+<td>8395</td>
+<td>6235</td>
+<td>邻近</td>
+</tr>
+<tr>
+<td style="text-align:right">1</td>
+<td>1066</td>
+<td>7745</td>
+<td>目标</td>
+</tr>
+<tr>
+<td style="text-align:right">2</td>
+<td>7348</td>
+<td>3658</td>
+<td>邻近</td>
+</tr>
+<tr>
+<td style="text-align:right">3</td>
+<td>3449</td>
+<td>2603</td>
+<td>邻近</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>资料末尾六条 (编号, 值): [['1799', '2875'], ['8917', '9534'], ['7060', '7815'], ['5115', '4342'], ['2569', '1669'], ['5735', '5592']]
 方法            读取 回答                                 判定                 目标覆盖 首生成步 均值        层组全覆盖比例
 A             全部 '7745'                             ✓                             全部              —
 B@0.03125    132 '1066'                             ✗(答成编号)                     0.0%             0%
@@ -8949,7 +9391,14 @@ D0@0.125     326 '1066'                             ✗(答成编号)           
   C@0.125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 326 行, 224 段, 前几段 [[0, 4], [13, 14], [32, 33], [41, 42], [51, 52], [58, 59]]; layer14_group0: 326 行, 228 段, 前几段 [[0, 4], [8, 9], [10, 11], [12, 13], [23, 25], [56, 57]]; layer27_group0: 326 行, 226 段, 前几段 [[0, 4], [7, 8], [9, 10], [13, 14], [16, 17], [21, 22]]
   D0@0.03125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 132 行, 66 段, 前几段 [[0, 4], [10, 11], [69, 70], [91, 92], [174, 175], [188, 189]]; layer14_group0: 132 行, 47 段, 前几段 [[0, 4], [164, 165], [169, 170], [171, 173], [196, 197], [217, 218]]; layer27_group0: 132 行, 63 段, 前几段 [[0, 4], [47, 48], [67, 69], [71, 72], [84, 85], [100, 101]]
   D0@0.125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 326 行, 253 段, 前几段 [[0, 4], [10, 12], [38, 39], [41, 42], [52, 53], [69, 70]]; layer14_group0: 326 行, 179 段, 前几段 [[0, 4], [62, 64], [67, 68], [84, 85], [87, 88], [91, 92]]; layer27_group0: 326 行, 216 段, 前几段 [[0, 4], [33, 34], [42, 43], [47, 48], [49, 50], [54, 55]]
-  改写：move→A 答 ['7745'] 目标 ['7745'] ✓ | move→B@0.03125 答 ['1066'] 目标 ['7745'] ✗ | move→B@0.125 答 ['1066'] 目标 ['7745'] ✗ | move→C@0.03125 答 ['1066'] 目标 ['7745'] ✗ | move→C@0.125 答 ['1066'] 目标 ['7745'] ✗ | move→D0@0.03125 答 ['1066'] 目标 ['7745'] ✗ | move→D0@0.125 答 ['1066'] 目标 ['7745'] ✗
+  旧记录改写（C 的随机名单也变化）：
+    move → A: 答 ['7745']，目标 ['7745']，✓
+    move → B@0.03125: 答 ['1066']，目标 ['7745']，✗
+    move → B@0.125: 答 ['1066']，目标 ['7745']，✗
+    move → C@0.03125: 答 ['1066']，目标 ['7745']，✗
+    move → C@0.125: 答 ['1066']，目标 ['7745']，✗
+    move → D0@0.03125: 答 ['1066']，目标 ['7745']，✗
+    move → D0@0.125: 答 ['1066']，目标 ['7745']，✗
 </pre>
 </div>
 </div>
@@ -8965,7 +9414,49 @@ D0@0.125     326 '1066'                             ✗(答成编号)           
 <pre>==============================================================================================================
 资料 T1-8K-00 · T1 8K · 目标桶 ['front'] · 倒数第 [15] 条 · 距前缀末尾 [7626] token · 前缀 8202 token
 问题: 问题：编号 1553 对应的数值是多少？只输出该编号对应的四位数值，不要输出编号。
-目标值: ['6429'] | 目标附近的记录 (编号, 值): {'0': ['4738', '7258']} | 资料末尾的记录: [['5785', '7976'], ['2188', '5403'], ['7121', '2679'], ['5686', '2721'], ['7993', '1881'], ['8681', '3937']]
+目标值: ['6429']
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output" data-mime-type="text/markdown" tabindex="0">
+<table>
+<thead>
+<tr>
+<th style="text-align:right">原记录序号（从 0 计数）</th>
+<th>编号</th>
+<th>值</th>
+<th>是否目标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">0</td>
+<td>1553</td>
+<td>6429</td>
+<td>目标</td>
+</tr>
+<tr>
+<td style="text-align:right">1</td>
+<td>3989</td>
+<td>6658</td>
+<td>邻近</td>
+</tr>
+<tr>
+<td style="text-align:right">2</td>
+<td>4738</td>
+<td>7258</td>
+<td>邻近</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>资料末尾六条 (编号, 值): [['5785', '7976'], ['2188', '5403'], ['7121', '2679'], ['5686', '2721'], ['7993', '1881'], ['8681', '3937']]
 方法            读取 回答                                 判定                 目标覆盖 首生成步 均值        层组全覆盖比例
 A             全部 '6429'                             ✓                             全部              —
 B@0.03125    324 '1553'                             ✗(答成编号)                     0.0%             0%
@@ -8980,7 +9471,28 @@ D0@0.125    1093 '1553'                             ✗(答成编号)           
   C@0.125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 1093 行, 899 段, 前几段 [[0, 4], [34, 35], [38, 39], [43, 44], [64, 65], [66, 67]]; layer14_group0: 1093 行, 906 段, 前几段 [[0, 4], [12, 13], [16, 19], [29, 30], [46, 47], [49, 51]]; layer27_group0: 1093 行, 886 段, 前几段 [[0, 4], [64, 65], [71, 72], [76, 78], [99, 100], [104, 105]]
   D0@0.03125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 324 行, 258 段, 前几段 [[0, 4], [10, 11], [46, 47], [51, 52], [58, 59], [100, 101]]; layer14_group0: 324 行, 214 段, 前几段 [[0, 4], [174, 175], [178, 179], [181, 182], [190, 191], [365, 366]]; layer27_group0: 324 行, 231 段, 前几段 [[0, 4], [45, 46], [48, 49], [60, 61], [64, 65], [77, 78]]
   D0@0.125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 1093 行, 1012 段, 前几段 [[0, 4], [10, 12], [46, 47], [51, 52], [58, 59], [65, 66]]; layer14_group0: 1093 行, 633 段, 前几段 [[0, 4], [50, 51], [112, 113], [118, 119], [136, 138], [153, 155]]; layer27_group0: 1093 行, 787 段, 前几段 [[0, 4], [25, 26], [33, 34], [38, 39], [44, 46], [48, 49]]
-  改写：value→A 答 ['6413'] 目标 ['6413'] ✓ | value→B@0.03125 答 ['1553'] 目标 ['6413'] ✗ | value→B@0.125 答 ['1553'] 目标 ['6413'] ✗ | value→C@0.03125 答 ['1553'] 目标 ['6413'] ✗ | value→C@0.125 答 ['1553'] 目标 ['6413'] ✗ | value→D0@0.03125 答 ['1553'] 目标 ['6413'] ✗ | value→D0@0.125 答 ['1553'] 目标 ['6413'] ✗ | irrelevant→A 答 ['6429'] 目标 ['6429'] ✓ | irrelevant→B@0.03125 答 ['1553'] 目标 ['6429'] ✗ | irrelevant→B@0.125 答 ['1553'] 目标 ['6429'] ✗ | irrelevant→C@0.03125 答 ['1553'] 目标 ['6429'] ✗ | irrelevant→C@0.125 答 ['1553'] 目标 ['6429'] ✗ | irrelevant→D0@0.03125 答 ['1553'] 目标 ['6429'] ✗ | irrelevant→D0@0.125 答 ['1553'] 目标 ['6429'] ✗ | move→A 答 ['6429'] 目标 ['6429'] ✓ | move→B@0.03125 答 ['6429'] 目标 ['6429'] ✓ | move→B@0.125 答 ['1553'] 目标 ['6429'] ✗ | move→C@0.03125 答 ['1553'] 目标 ['6429'] ✗ | move→C@0.125 答 ['1553'] 目标 ['6429'] ✗ | move→D0@0.03125 答 ['1553'] 目标 ['6429'] ✗ | move→D0@0.125 答 ['1553'] 目标 ['6429'] ✗
+  旧记录改写（C 的随机名单也变化）：
+    value → A: 答 ['6413']，目标 ['6413']，✓
+    value → B@0.03125: 答 ['1553']，目标 ['6413']，✗
+    value → B@0.125: 答 ['1553']，目标 ['6413']，✗
+    value → C@0.03125: 答 ['1553']，目标 ['6413']，✗
+    value → C@0.125: 答 ['1553']，目标 ['6413']，✗
+    value → D0@0.03125: 答 ['1553']，目标 ['6413']，✗
+    value → D0@0.125: 答 ['1553']，目标 ['6413']，✗
+    irrelevant → A: 答 ['6429']，目标 ['6429']，✓
+    irrelevant → B@0.03125: 答 ['1553']，目标 ['6429']，✗
+    irrelevant → B@0.125: 答 ['1553']，目标 ['6429']，✗
+    irrelevant → C@0.03125: 答 ['1553']，目标 ['6429']，✗
+    irrelevant → C@0.125: 答 ['1553']，目标 ['6429']，✗
+    irrelevant → D0@0.03125: 答 ['1553']，目标 ['6429']，✗
+    irrelevant → D0@0.125: 答 ['1553']，目标 ['6429']，✗
+    move → A: 答 ['6429']，目标 ['6429']，✓
+    move → B@0.03125: 答 ['6429']，目标 ['6429']，✓
+    move → B@0.125: 答 ['1553']，目标 ['6429']，✗
+    move → C@0.03125: 答 ['1553']，目标 ['6429']，✗
+    move → C@0.125: 答 ['1553']，目标 ['6429']，✗
+    move → D0@0.03125: 答 ['1553']，目标 ['6429']，✗
+    move → D0@0.125: 答 ['1553']，目标 ['6429']，✗
 </pre>
 </div>
 </div>
@@ -8996,7 +9508,55 @@ D0@0.125    1093 '1553'                             ✗(答成编号)           
 <pre>==============================================================================================================
 资料 T1-8K-01 · T1 8K · 目标桶 ['front'] · 倒数第 [14] 条 · 距前缀末尾 [7073] token · 前缀 8190 token
 问题: 问题：编号 3090 对应的数值是多少？只输出该编号对应的四位数值，不要输出编号。
-目标值: ['5498'] | 目标附近的记录 (编号, 值): {'1': ['9862', '6912']} | 资料末尾的记录: [['3391', '4247'], ['2368', '8270'], ['9435', '5221'], ['9684', '7500'], ['3220', '4895'], ['5213', '8988']]
+目标值: ['5498']
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output" data-mime-type="text/markdown" tabindex="0">
+<table>
+<thead>
+<tr>
+<th style="text-align:right">原记录序号（从 0 计数）</th>
+<th>编号</th>
+<th>值</th>
+<th>是否目标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">0</td>
+<td>5171</td>
+<td>1706</td>
+<td>邻近</td>
+</tr>
+<tr>
+<td style="text-align:right">1</td>
+<td>3090</td>
+<td>5498</td>
+<td>目标</td>
+</tr>
+<tr>
+<td style="text-align:right">2</td>
+<td>3039</td>
+<td>2293</td>
+<td>邻近</td>
+</tr>
+<tr>
+<td style="text-align:right">3</td>
+<td>9862</td>
+<td>6912</td>
+<td>邻近</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>资料末尾六条 (编号, 值): [['3391', '4247'], ['2368', '8270'], ['9435', '5221'], ['9684', '7500'], ['3220', '4895'], ['5213', '8988']]
 方法            读取 回答                                 判定                 目标覆盖 首生成步 均值        层组全覆盖比例
 A             全部 '5498'                             ✓                             全部              —
 B@0.03125    324 '3090'                             ✗(答成编号)                     0.0%             0%
@@ -9011,7 +9571,14 @@ D0@0.125    1092 '3090'                             ✗(答成编号)           
   C@0.125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 1092 行, 902 段, 前几段 [[0, 4], [12, 13], [17, 18], [20, 21], [28, 29], [39, 40]]; layer14_group0: 1092 行, 899 段, 前几段 [[0, 4], [9, 10], [11, 12], [13, 14], [16, 17], [40, 41]]; layer27_group0: 1092 行, 897 段, 前几段 [[0, 4], [5, 6], [11, 12], [13, 14], [20, 21], [41, 42]]
   D0@0.03125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 324 行, 257 段, 前几段 [[0, 4], [10, 11], [39, 40], [100, 101], [121, 122], [125, 126]]; layer14_group0: 324 行, 194 段, 前几段 [[0, 4], [143, 144], [183, 185], [189, 190], [221, 222], [239, 240]]; layer27_group0: 324 行, 246 段, 前几段 [[0, 4], [101, 102], [113, 114], [120, 121], [189, 190], [254, 255]]
   D0@0.125 第一个生成 token 那一步的名单（第 0 组）：layer0_group0: 1092 行, 1005 段, 前几段 [[0, 4], [10, 12], [37, 38], [39, 40], [51, 52], [55, 56]]; layer14_group0: 1092 行, 638 段, 前几段 [[0, 4], [82, 83], [143, 144], [183, 185], [187, 188], [189, 190]]; layer27_group0: 1092 行, 778 段, 前几段 [[0, 4], [25, 26], [33, 34], [48, 49], [53, 54], [59, 60]]
-  改写：move→A 答 ['5498'] 目标 ['5498'] ✓ | move→B@0.03125 答 ['4895'] 目标 ['5498'] ✗ | move→B@0.125 答 ['5498'] 目标 ['5498'] ✓ | move→C@0.03125 答 ['3090'] 目标 ['5498'] ✗ | move→C@0.125 答 ['3090'] 目标 ['5498'] ✗ | move→D0@0.03125 答 ['3090'] 目标 ['5498'] ✗ | move→D0@0.125 答 ['3090'] 目标 ['5498'] ✗
+  旧记录改写（C 的随机名单也变化）：
+    move → A: 答 ['5498']，目标 ['5498']，✓
+    move → B@0.03125: 答 ['4895']，目标 ['5498']，✗
+    move → B@0.125: 答 ['5498']，目标 ['5498']，✓
+    move → C@0.03125: 答 ['3090']，目标 ['5498']，✗
+    move → C@0.125: 答 ['3090']，目标 ['5498']，✗
+    move → D0@0.03125: 答 ['3090']，目标 ['5498']，✗
+    move → D0@0.125: 答 ['3090']，目标 ['5498']，✗
 </pre>
 </div>
 </div>
@@ -9030,7 +9597,8 @@ D0@0.125    1092 '3090'                             ✗(答成编号)           
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>哪些解释得到支持。</strong> 与上一类是同四份资料（预登记规则按序号取，恰好重合）。C 的名单在三层的例子里各是约 60 到 250 段单个位置，对目标 11 个 token 的覆盖率 3%–13%；D0 的名单段数更少（第 14 层 162 段对 C 的 224 段）、覆盖率 5%–20%，但层组完整覆盖的比例 0%–2%。两者都答编号。这支持「覆盖率 ≈ k/M 时无法抄出四位值」的结构解释，也支持「D0 偏好目标 token 但远远不够」。<strong>仍不确定。</strong> D0 偏好目标 token 的机制（问题里的数字 token 投影后与资料里的数字 token 更接近）是假设，没有单独验证。</p>
+<p><strong>哪些解释得到支持。</strong> C 和 D0 的选择位置分布不同，目标位置覆盖和成簇程度也不同，但本批请求都未答对。此处的覆盖率是整条记录位置被选中的比例，不是注意力权重，不等于四个值 token 的覆盖率。</p>
+<p><strong>必要条件与充分条件要分开。</strong> 若某层组读齐四个值 token 却仍错，它只说明“读齐”不足以保证答对；不能据此推出“不读齐也能答对”。原实验没有证明“必须同层组读齐”这个必要条件，因此应撤回结构性下界的解释。低覆盖与零分同时出现的观察保留；具体失败机制尚未分离。</p>
 </div>
 </div>
 </div>
@@ -9094,11 +9662,12 @@ D0@0.125    1092 '3090'                             ✗(答成编号)           
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="6.-%E5%8F%8D%E4%BA%8B%E5%AE%9E%E6%94%B9%E5%86%99%EF%BC%9A%E5%8F%AA%E6%94%B9%E4%B8%80%E5%A4%84%E8%B5%84%E6%96%99%E5%86%8D%E6%A3%80%E6%9F%A5">6. 反事实改写：只改一处资料再检查<a class="anchor-link" href="#6.-%E5%8F%8D%E4%BA%8B%E5%AE%9E%E6%94%B9%E5%86%99%EF%BC%9A%E5%8F%AA%E6%94%B9%E4%B8%80%E5%A4%84%E8%B5%84%E6%96%99%E5%86%8D%E6%A3%80%E6%9F%A5">¶</a></h2><p><strong>运行前的预测。</strong> A：改被查询记录的值后答案跟着改（≥ 90%），改无关记录后不变（≥ 90%）。B：目标在窗口外时改值后回答不变（它没读到），这是窗口基线的签名。C：改无关记录时回答不变 ≥ 70%；D0 ≥ 50%。移位改写：A 仍对的样本上 B 变对 ≥ 3/4。</p>
+<h2 id="6.-%E8%B5%84%E6%96%99%E6%94%B9%E5%86%99%EF%BC%9A%E5%85%88%E6%A0%B8%E5%AF%B9%E6%AF%94%E8%BE%83%E6%98%AF%E5%90%A6%E5%8F%AA%E6%94%B9%E5%8F%98%E4%B8%80%E4%B8%AA%E6%9D%A1%E4%BB%B6">6. 资料改写：先核对比较是否只改变一个条件<a class="anchor-link" href="#6.-%E8%B5%84%E6%96%99%E6%94%B9%E5%86%99%EF%BC%9A%E5%85%88%E6%A0%B8%E5%AF%B9%E6%AF%94%E8%BE%83%E6%98%AF%E5%90%A6%E5%8F%AA%E6%94%B9%E5%8F%98%E4%B8%80%E4%B8%AA%E6%9D%A1%E4%BB%B6">¶</a></h2><p><strong>运行前的预测保留。</strong> A 改目标值应跟着改、改无关值应不变；B 窗口外改值应不变；C/D0 对无关改写的不变率有预期。完整预测原文保存在卡片，下面用旧记录逐项检查，不能把预测直接写成结论。</p>
+<p><strong>C 的旧记录有混杂。</strong> 原资料用随机名单 U，改后资料用另一名单 U′，因此同时改变了资料与随机抽样。新代码从 <code>parent_doc_id or doc_id</code> 派生种子，并通过 CPU 测试核对同候选域、k、请求计数和步号下的实际原位置名单。新规则是未运行的 v3；旧数据仍是 v2。D0 的参数与规则固定，但它随内容改变名单的响应应当保留。</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c034">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=bc9df0b4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9106,20 +9675,16 @@ D0@0.125    1092 '3090'                             ✗(答成编号)           
 <div class="jp-InputPrompt jp-InputArea-prompt">In [16]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">if</span> <span class="n">summary</span> <span class="ow">and</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"rewrites"</span><span class="p">]:</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
-    <span class="n">agg</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
-    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"rewrites"</span><span class="p">]:</span>
-        <span class="n">key</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"value"</span><span class="p">:</span> <span class="s2">"answer_followed_change"</span><span class="p">,</span> <span class="s2">"irrelevant"</span><span class="p">:</span> <span class="s2">"answer_unchanged"</span><span class="p">,</span> <span class="s2">"move"</span><span class="p">:</span> <span class="s2">"became_right"</span><span class="p">}[</span><span class="n">r</span><span class="p">[</span><span class="s2">"variant"</span><span class="p">]]</span>
-        <span class="n">mk</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s2">"method"</span><span class="p">]</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"rho"</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'method'</span><span class="p">]</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'rho'</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">"</span>
-        <span class="n">agg</span><span class="p">[(</span><span class="n">r</span><span class="p">[</span><span class="s2">"variant"</span><span class="p">],</span> <span class="n">mk</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)));</span> <span class="n">agg</span><span class="p">[(</span><span class="n">r</span><span class="p">[</span><span class="s2">"variant"</span><span class="p">],</span> <span class="n">mk</span><span class="p">)][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'改写'</span><span class="si">:</span><span class="s2">&lt;11</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'方法'</span><span class="si">:</span><span class="s2">&lt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'检查'</span><span class="si">:</span><span class="s2">&lt;22</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'成立/样本'</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="k">for</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">mk</span><span class="p">),</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">agg</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">v</span><span class="si">:</span><span class="s2">&lt;11</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">mk</span><span class="si">:</span><span class="s2">&lt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="p">({</span><span class="s1">'value'</span><span class="p">:</span><span class="w"> </span><span class="s1">'答案跟着改'</span><span class="p">,</span><span class="w"> </span><span class="s1">'irrelevant'</span><span class="p">:</span><span class="w"> </span><span class="s1">'答案不变'</span><span class="p">,</span><span class="w"> </span><span class="s1">'move'</span><span class="p">:</span><span class="w"> </span><span class="s1">'移近后变对'</span><span class="p">}[</span><span class="n">v</span><span class="p">])</span><span class="si">:</span><span class="s2">&lt;22</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s2">&lt;4</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"rewrites"</span><span class="p">]:</span>
-        <span class="n">mk</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s2">"method"</span><span class="p">]</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"rho"</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'method'</span><span class="p">]</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'rho'</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">"</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'variant'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'parent_doc_id'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">mk</span><span class="si">:</span><span class="s2">&lt;10</span><span class="si">}</span><span class="s2"> 原答 </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'base_predicted'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="s1">'✓'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">r</span><span class="p">[</span><span class="s1">'base_exact'</span><span class="p">]</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'✗'</span><span class="si">}</span><span class="s2">) → 改后答 </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'rewrite_predicted'</span><span class="p">]</span><span class="si">}</span><span class="s2"> 目标 </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'rewrite_targets'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="s1">'✓'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">r</span><span class="p">[</span><span class="s1">'rewrite_exact'</span><span class="p">]</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'✗'</span><span class="si">}</span><span class="s2">)  </span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'note'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># 今日代码修复（v3，未运行新模型），不替换旧 v2 的回答和种子</span>
+<span class="n">control</span> <span class="o">=</span> <span class="n">load_module</span><span class="p">(</span><span class="s2">"lesson03_control"</span><span class="p">,</span> <span class="s2">"src/attention_lab/g2lite_control.py"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">uniform_seed_for</span><span class="p">))</span>
+<span class="n">current_config</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s2">"configs/mac_g2lite.json"</span><span class="p">)</span>
+<span class="n">base_id</span> <span class="o">=</span> <span class="s2">"T1-2K-00"</span>
+<span class="k">for</span> <span class="n">variant</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"base"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">,</span> <span class="s2">"irrelevant"</span><span class="p">):</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"doc_id"</span><span class="p">:</span> <span class="n">base_id</span> <span class="k">if</span> <span class="n">variant</span> <span class="o">==</span> <span class="s2">"base"</span> <span class="k">else</span> <span class="n">base_id</span> <span class="o">+</span> <span class="s2">"-"</span> <span class="o">+</span> <span class="n">variant</span><span class="p">,</span>
+           <span class="s2">"parent_doc_id"</span><span class="p">:</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">variant</span> <span class="o">==</span> <span class="s2">"base"</span> <span class="k">else</span> <span class="n">base_id</span><span class="p">}</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">variant</span><span class="p">,</span> <span class="n">control</span><span class="o">.</span><span class="n">uniform_seed_for</span><span class="p">(</span><span class="n">current_config</span><span class="p">,</span> <span class="n">doc</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"种子相同只是第一步。tests/test_g2lite.py 还在相同候选域、k、请求计数、步号下核对逐层逐组的实际原位置名单。D0 不使用这条外部随机种子规则。"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -9132,113 +9697,224 @@ D0@0.125    1092 '3090'                             ✗(答成编号)           
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>改写          方法         检查                          成立/样本
-irrelevant  A          答案不变                      4/4   
-irrelevant  B@0.03125  答案不变                      4/4   
-irrelevant  B@0.125    答案不变                      3/4   
-irrelevant  C@0.03125  答案不变                      4/4   
-irrelevant  C@0.125    答案不变                      4/4   
-irrelevant  D0@0.03125 答案不变                      4/4   
-irrelevant  D0@0.125   答案不变                      4/4   
-move        A          移近后变对                     0/4   
-move        B@0.03125  移近后变对                     2/4   
-move        B@0.125    移近后变对                     2/4   
-move        C@0.03125  移近后变对                     0/4   
-move        C@0.125    移近后变对                     0/4   
-move        D0@0.03125 移近后变对                     0/4   
-move        D0@0.125   移近后变对                     0/4   
-value       A          答案跟着改                     3/4   
-value       B@0.03125  答案跟着改                     0/4   
-value       B@0.125    答案跟着改                     0/4   
-value       C@0.03125  答案跟着改                     0/4   
-value       C@0.125    答案跟着改                     0/4   
-value       D0@0.03125 答案跟着改                     0/4   
-value       D0@0.125   答案跟着改                     0/4   
+<pre>def uniform_seed_for(cfg: dict, doc: dict) -&gt; int:
+    """Hold C's external randomness constant across rewrites of one document.
 
-  value      T1-2K-00   A          原答 ['8422'] (✓) → 改后答 ['4122'] 目标 ['4122'] (✓)  value of queried record 0 changed 8422 -&gt; 4122
-  value      T1-2K-00   B@0.03125  原答 ['1563'] (✗) → 改后答 ['1563'] 目标 ['4122'] (✗)  value of queried record 0 changed 8422 -&gt; 4122
-  value      T1-2K-00   B@0.125    原答 ['8340'] (✗) → 改后答 ['1563'] 目标 ['4122'] (✗)  value of queried record 0 changed 8422 -&gt; 4122
-  value      T1-2K-00   C@0.03125  原答 ['1563'] (✗) → 改后答 ['1563'] 目标 ['4122'] (✗)  value of queried record 0 changed 8422 -&gt; 4122
-  value      T1-2K-00   C@0.125    原答 ['1563'] (✗) → 改后答 ['1563'] 目标 ['4122'] (✗)  value of queried record 0 changed 8422 -&gt; 4122
-  value      T1-2K-00   D0@0.03125 原答 ['1563'] (✗) → 改后答 ['1563'] 目标 ['4122'] (✗)  value of queried record 0 changed 8422 -&gt; 4122
-  value      T1-2K-00   D0@0.125   原答 ['1563'] (✗) → 改后答 ['1563'] 目标 ['4122'] (✗)  value of queried record 0 changed 8422 -&gt; 4122
-  irrelevant T1-2K-00   A          原答 ['8422'] (✓) → 改后答 ['8422'] 目标 ['8422'] (✓)  value of non-target record 15 changed 8859 -&gt; 4205
-  irrelevant T1-2K-00   B@0.03125  原答 ['1563'] (✗) → 改后答 ['1563'] 目标 ['8422'] (✗)  value of non-target record 15 changed 8859 -&gt; 4205
-  irrelevant T1-2K-00   B@0.125    原答 ['8340'] (✗) → 改后答 ['1563'] 目标 ['8422'] (✗)  value of non-target record 15 changed 8859 -&gt; 4205
-  irrelevant T1-2K-00   C@0.03125  原答 ['1563'] (✗) → 改后答 ['1563'] 目标 ['8422'] (✗)  value of non-target record 15 changed 8859 -&gt; 4205
-  irrelevant T1-2K-00   C@0.125    原答 ['1563'] (✗) → 改后答 ['1563'] 目标 ['8422'] (✗)  value of non-target record 15 changed 8859 -&gt; 4205
-  irrelevant T1-2K-00   D0@0.03125 原答 ['1563'] (✗) → 改后答 ['1563'] 目标 ['8422'] (✗)  value of non-target record 15 changed 8859 -&gt; 4205
-  irrelevant T1-2K-00   D0@0.125   原答 ['1563'] (✗) → 改后答 ['1563'] 目标 ['8422'] (✗)  value of non-target record 15 changed 8859 -&gt; 4205
-  value      T1-2K-04   A          原答 ['4376'] (✓) → 改后答 ['4003'] 目标 ['4003'] (✓)  value of queried record 0 changed 4376 -&gt; 4003
-  value      T1-2K-04   B@0.03125  原答 ['5602'] (✗) → 改后答 ['5602'] 目标 ['4003'] (✗)  value of queried record 0 changed 4376 -&gt; 4003
-  value      T1-2K-04   B@0.125    原答 ['5602'] (✗) → 改后答 ['5602'] 目标 ['4003'] (✗)  value of queried record 0 changed 4376 -&gt; 4003
-  value      T1-2K-04   C@0.03125  原答 ['5602'] (✗) → 改后答 ['5602'] 目标 ['4003'] (✗)  value of queried record 0 changed 4376 -&gt; 4003
-  value      T1-2K-04   C@0.125    原答 ['5602'] (✗) → 改后答 ['5602'] 目标 ['4003'] (✗)  value of queried record 0 changed 4376 -&gt; 4003
-  value      T1-2K-04   D0@0.03125 原答 ['5602'] (✗) → 改后答 ['5602'] 目标 ['4003'] (✗)  value of queried record 0 changed 4376 -&gt; 4003
-  value      T1-2K-04   D0@0.125   原答 ['5602'] (✗) → 改后答 ['5602'] 目标 ['4003'] (✗)  value of queried record 0 changed 4376 -&gt; 4003
-  irrelevant T1-2K-04   A          原答 ['4376'] (✓) → 改后答 ['4376'] 目标 ['4376'] (✓)  value of non-target record 12 changed 8156 -&gt; 5324
-  irrelevant T1-2K-04   B@0.03125  原答 ['5602'] (✗) → 改后答 ['5602'] 目标 ['4376'] (✗)  value of non-target record 12 changed 8156 -&gt; 5324
-  irrelevant T1-2K-04   B@0.125    原答 ['5602'] (✗) → 改后答 ['5602'] 目标 ['4376'] (✗)  value of non-target record 12 changed 8156 -&gt; 5324
-  irrelevant T1-2K-04   C@0.03125  原答 ['5602'] (✗) → 改后答 ['5602'] 目标 ['4376'] (✗)  value of non-target record 12 changed 8156 -&gt; 5324
-  irrelevant T1-2K-04   C@0.125    原答 ['5602'] (✗) → 改后答 ['5602'] 目标 ['4376'] (✗)  value of non-target record 12 changed 8156 -&gt; 5324
-  irrelevant T1-2K-04   D0@0.03125 原答 ['5602'] (✗) → 改后答 ['5602'] 目标 ['4376'] (✗)  value of non-target record 12 changed 8156 -&gt; 5324
-  irrelevant T1-2K-04   D0@0.125   原答 ['5602'] (✗) → 改后答 ['5602'] 目标 ['4376'] (✗)  value of non-target record 12 changed 8156 -&gt; 5324
-  value      T1-8K-00   A          原答 ['6429'] (✓) → 改后答 ['6413'] 目标 ['6413'] (✓)  value of queried record 0 changed 6429 -&gt; 6413
-  value      T1-8K-00   B@0.03125  原答 ['1553'] (✗) → 改后答 ['1553'] 目标 ['6413'] (✗)  value of queried record 0 changed 6429 -&gt; 6413
-  value      T1-8K-00   B@0.125    原答 ['1553'] (✗) → 改后答 ['1553'] 目标 ['6413'] (✗)  value of queried record 0 changed 6429 -&gt; 6413
-  value      T1-8K-00   C@0.03125  原答 ['1553'] (✗) → 改后答 ['1553'] 目标 ['6413'] (✗)  value of queried record 0 changed 6429 -&gt; 6413
-  value      T1-8K-00   C@0.125    原答 ['1553'] (✗) → 改后答 ['1553'] 目标 ['6413'] (✗)  value of queried record 0 changed 6429 -&gt; 6413
-  value      T1-8K-00   D0@0.03125 原答 ['1553'] (✗) → 改后答 ['1553'] 目标 ['6413'] (✗)  value of queried record 0 changed 6429 -&gt; 6413
-  value      T1-8K-00   D0@0.125   原答 ['1553'] (✗) → 改后答 ['1553'] 目标 ['6413'] (✗)  value of queried record 0 changed 6429 -&gt; 6413
-  irrelevant T1-8K-00   A          原答 ['6429'] (✓) → 改后答 ['6429'] 目标 ['6429'] (✓)  value of non-target record 11 changed 5403 -&gt; 3033
-  irrelevant T1-8K-00   B@0.03125  原答 ['1553'] (✗) → 改后答 ['1553'] 目标 ['6429'] (✗)  value of non-target record 11 changed 5403 -&gt; 3033
-  irrelevant T1-8K-00   B@0.125    原答 ['1553'] (✗) → 改后答 ['1553'] 目标 ['6429'] (✗)  value of non-target record 11 changed 5403 -&gt; 3033
-  irrelevant T1-8K-00   C@0.03125  原答 ['1553'] (✗) → 改后答 ['1553'] 目标 ['6429'] (✗)  value of non-target record 11 changed 5403 -&gt; 3033
-  irrelevant T1-8K-00   C@0.125    原答 ['1553'] (✗) → 改后答 ['1553'] 目标 ['6429'] (✗)  value of non-target record 11 changed 5403 -&gt; 3033
-  irrelevant T1-8K-00   D0@0.03125 原答 ['1553'] (✗) → 改后答 ['1553'] 目标 ['6429'] (✗)  value of non-target record 11 changed 5403 -&gt; 3033
-  irrelevant T1-8K-00   D0@0.125   原答 ['1553'] (✗) → 改后答 ['1553'] 目标 ['6429'] (✗)  value of non-target record 11 changed 5403 -&gt; 3033
-  value      T1-8K-04   A          原答 ['6775'] (✗) → 改后答 ['6775'] 目标 ['7988'] (✗)  value of queried record 0 changed 3313 -&gt; 7988
-  value      T1-8K-04   B@0.03125  原答 ['2175'] (✗) → 改后答 ['2175'] 目标 ['7988'] (✗)  value of queried record 0 changed 3313 -&gt; 7988
-  value      T1-8K-04   B@0.125    原答 ['2175'] (✗) → 改后答 ['2175'] 目标 ['7988'] (✗)  value of queried record 0 changed 3313 -&gt; 7988
-  value      T1-8K-04   C@0.03125  原答 ['2175'] (✗) → 改后答 ['2175'] 目标 ['7988'] (✗)  value of queried record 0 changed 3313 -&gt; 7988
-  value      T1-8K-04   C@0.125    原答 ['2175'] (✗) → 改后答 ['2175'] 目标 ['7988'] (✗)  value of queried record 0 changed 3313 -&gt; 7988
-  value      T1-8K-04   D0@0.03125 原答 ['2175'] (✗) → 改后答 ['2175'] 目标 ['7988'] (✗)  value of queried record 0 changed 3313 -&gt; 7988
-  value      T1-8K-04   D0@0.125   原答 ['2175'] (✗) → 改后答 ['2175'] 目标 ['7988'] (✗)  value of queried record 0 changed 3313 -&gt; 7988
-  irrelevant T1-8K-04   A          原答 ['6775'] (✗) → 改后答 ['6775'] 目标 ['3313'] (✗)  value of non-target record 13 changed 4630 -&gt; 6578
-  irrelevant T1-8K-04   B@0.03125  原答 ['2175'] (✗) → 改后答 ['2175'] 目标 ['3313'] (✗)  value of non-target record 13 changed 4630 -&gt; 6578
-  irrelevant T1-8K-04   B@0.125    原答 ['2175'] (✗) → 改后答 ['2175'] 目标 ['3313'] (✗)  value of non-target record 13 changed 4630 -&gt; 6578
-  irrelevant T1-8K-04   C@0.03125  原答 ['2175'] (✗) → 改后答 ['2175'] 目标 ['3313'] (✗)  value of non-target record 13 changed 4630 -&gt; 6578
-  irrelevant T1-8K-04   C@0.125    原答 ['2175'] (✗) → 改后答 ['2175'] 目标 ['3313'] (✗)  value of non-target record 13 changed 4630 -&gt; 6578
-  irrelevant T1-8K-04   D0@0.03125 原答 ['2175'] (✗) → 改后答 ['2175'] 目标 ['3313'] (✗)  value of non-target record 13 changed 4630 -&gt; 6578
-  irrelevant T1-8K-04   D0@0.125   原答 ['2175'] (✗) → 改后答 ['2175'] 目标 ['3313'] (✗)  value of non-target record 13 changed 4630 -&gt; 6578
-  move       T1-2K-00   A          原答 ['8422'] (✓) → 改后答 ['8422'] 目标 ['8422'] (✓)  queried record 0 swapped from index 0 into the back_near slot 15
-  move       T1-2K-00   B@0.03125  原答 ['1563'] (✗) → 改后答 ['8422'] 目标 ['8422'] (✓)  queried record 0 swapped from index 0 into the back_near slot 15
-  move       T1-2K-00   B@0.125    原答 ['8340'] (✗) → 改后答 ['8422'] 目标 ['8422'] (✓)  queried record 0 swapped from index 0 into the back_near slot 15
-  move       T1-2K-00   C@0.03125  原答 ['1563'] (✗) → 改后答 ['1563'] 目标 ['8422'] (✗)  queried record 0 swapped from index 0 into the back_near slot 15
-  move       T1-2K-00   C@0.125    原答 ['1563'] (✗) → 改后答 ['1563'] 目标 ['8422'] (✗)  queried record 0 swapped from index 0 into the back_near slot 15
-  move       T1-2K-00   D0@0.03125 原答 ['1563'] (✗) → 改后答 ['1563'] 目标 ['8422'] (✗)  queried record 0 swapped from index 0 into the back_near slot 15
-  move       T1-2K-00   D0@0.125   原答 ['1563'] (✗) → 改后答 ['8263'] 目标 ['8422'] (✗)  queried record 0 swapped from index 0 into the back_near slot 15
-  move       T1-2K-01   A          原答 ['7745'] (✓) → 改后答 ['7745'] 目标 ['7745'] (✓)  queried record 0 swapped from index 1 into the back_near slot 15
-  move       T1-2K-01   B@0.03125  原答 ['1066'] (✗) → 改后答 ['1066'] 目标 ['7745'] (✗)  queried record 0 swapped from index 1 into the back_near slot 15
-  move       T1-2K-01   B@0.125    原答 ['1066'] (✗) → 改后答 ['1066'] 目标 ['7745'] (✗)  queried record 0 swapped from index 1 into the back_near slot 15
-  move       T1-2K-01   C@0.03125  原答 ['1066'] (✗) → 改后答 ['1066'] 目标 ['7745'] (✗)  queried record 0 swapped from index 1 into the back_near slot 15
-  move       T1-2K-01   C@0.125    原答 ['1066'] (✗) → 改后答 ['1066'] 目标 ['7745'] (✗)  queried record 0 swapped from index 1 into the back_near slot 15
-  move       T1-2K-01   D0@0.03125 原答 ['1066'] (✗) → 改后答 ['1066'] 目标 ['7745'] (✗)  queried record 0 swapped from index 1 into the back_near slot 15
-  move       T1-2K-01   D0@0.125   原答 ['1066'] (✗) → 改后答 ['1066'] 目标 ['7745'] (✗)  queried record 0 swapped from index 1 into the back_near slot 15
-  move       T1-8K-00   A          原答 ['6429'] (✓) → 改后答 ['6429'] 目标 ['6429'] (✓)  queried record 0 swapped from index 0 into the back_near slot 15
-  move       T1-8K-00   B@0.03125  原答 ['1553'] (✗) → 改后答 ['6429'] 目标 ['6429'] (✓)  queried record 0 swapped from index 0 into the back_near slot 15
-  move       T1-8K-00   B@0.125    原答 ['1553'] (✗) → 改后答 ['1553'] 目标 ['6429'] (✗)  queried record 0 swapped from index 0 into the back_near slot 15
-  move       T1-8K-00   C@0.03125  原答 ['1553'] (✗) → 改后答 ['1553'] 目标 ['6429'] (✗)  queried record 0 swapped from index 0 into the back_near slot 15
-  move       T1-8K-00   C@0.125    原答 ['1553'] (✗) → 改后答 ['1553'] 目标 ['6429'] (✗)  queried record 0 swapped from index 0 into the back_near slot 15
-  move       T1-8K-00   D0@0.03125 原答 ['1553'] (✗) → 改后答 ['1553'] 目标 ['6429'] (✗)  queried record 0 swapped from index 0 into the back_near slot 15
-  move       T1-8K-00   D0@0.125   原答 ['1553'] (✗) → 改后答 ['1553'] 目标 ['6429'] (✗)  queried record 0 swapped from index 0 into the back_near slot 15
-  move       T1-8K-01   A          原答 ['5498'] (✓) → 改后答 ['5498'] 目标 ['5498'] (✓)  queried record 0 swapped from index 1 into the back_near slot 15
-  move       T1-8K-01   B@0.03125  原答 ['3090'] (✗) → 改后答 ['4895'] 目标 ['5498'] (✗)  queried record 0 swapped from index 1 into the back_near slot 15
-  move       T1-8K-01   B@0.125    原答 ['3090'] (✗) → 改后答 ['5498'] 目标 ['5498'] (✓)  queried record 0 swapped from index 1 into the back_near slot 15
-  move       T1-8K-01   C@0.03125  原答 ['3090'] (✗) → 改后答 ['3090'] 目标 ['5498'] (✗)  queried record 0 swapped from index 1 into the back_near slot 15
-  move       T1-8K-01   C@0.125    原答 ['3090'] (✗) → 改后答 ['3090'] 目标 ['5498'] (✗)  queried record 0 swapped from index 1 into the back_near slot 15
-  move       T1-8K-01   D0@0.03125 原答 ['3090'] (✗) → 改后答 ['3090'] 目标 ['5498'] (✗)  queried record 0 swapped from index 1 into the back_near slot 15
-  move       T1-8K-01   D0@0.125   原答 ['3090'] (✗) → 改后答 ['3090'] 目标 ['5498'] (✗)  queried record 0 swapped from index 1 into the back_near slot 15
+The selector still keys its stream by (seed, request counter, step), so matching
+selections also requires matching candidate domains and k. D0 does not use this
+seed: it continues to score the changed inputs with its fixed indexer parameters.
+    """
+    identity = doc.get("parent_doc_id") or doc["doc_id"]
+    return int(cfg["seeds"]["uniform_base"]) + int(hashlib.sha256(identity.encode("utf-8")).hexdigest()[:8], 16) % (1 &lt;&lt; 20)
+
+base 86443
+value 86443
+irrelevant 86443
+种子相同只是第一步。tests/test_g2lite.py 还在相同候选域、k、请求计数、步号下核对逐层逐组的实际原位置名单。D0 不使用这条外部随机种子规则。
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c034">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [17]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">if</span> <span class="n">summary</span> <span class="ow">and</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"rewrites"</span><span class="p">]:</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="n">reporting</span><span class="o">.</span><span class="n">render_rewrite_observations</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s2">"rewrite_observations"</span><span class="p">])))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"回答改变但两次都错的 value 请求："</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"rewrites"</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"variant"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"value"</span> <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="s2">"answer_changed"</span><span class="p">]</span> <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="s2">"both_wrong"</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"parent_doc_id"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"method"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"rho"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"base_predicted"</span><span class="p">],</span> <span class="s2">"→"</span><span class="p">,</span> <span class="n">r</span><span class="p">[</span><span class="s2">"rewrite_predicted"</span><span class="p">],</span> <span class="s2">"| 改后编号回声:"</span><span class="p">,</span> <span class="n">r</span><span class="p">[</span><span class="s2">"rewrite_answered_with_ids"</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"其余逐题改写见 reports/g2lite_summary_mac_m4max.json 的 rewrites；原始回答和评分在 answers 文件中保持不变。"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output" data-mime-type="text/markdown" tabindex="0">
+<table>
+<thead>
+<tr>
+<th>改写</th>
+<th>方法</th>
+<th style="text-align:right">配对请求</th>
+<th style="text-align:right">回答不变</th>
+<th style="text-align:right">回答改变</th>
+<th style="text-align:right">正误改变</th>
+<th style="text-align:right">两次都错</th>
+<th style="text-align:right">改后答编号</th>
+<th style="text-align:right">从非编号变为编号</th>
+<th style="text-align:right">C 随机条件不同</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>value</td>
+<td>A</td>
+<td style="text-align:right">4</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td>value</td>
+<td>B</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">7</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td>value</td>
+<td>C</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">8</td>
+</tr>
+<tr>
+<td>value</td>
+<td>D0</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td>irrelevant</td>
+<td>A</td>
+<td style="text-align:right">4</td>
+<td style="text-align:right">4</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td>irrelevant</td>
+<td>B</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">7</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td>irrelevant</td>
+<td>C</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">8</td>
+</tr>
+<tr>
+<td>irrelevant</td>
+<td>D0</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td>move</td>
+<td>A</td>
+<td style="text-align:right">4</td>
+<td style="text-align:right">4</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td>move</td>
+<td>B</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">5</td>
+<td style="text-align:right">4</td>
+<td style="text-align:right">4</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td>move</td>
+<td>C</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">8</td>
+</tr>
+<tr>
+<td>move</td>
+<td>D0</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">7</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">7</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">0</td>
+</tr>
+</tbody>
+</table>
+<p>value 的 B/C/D0 合计：23/24 个解析后回答不变，1/24 个改变；24/24 个两次都错，改后 24/24 个答成编号。四个量不能互相替代。</p>
+<p>旧 C 改写的随机种子随资料 ID 后缀改变：这些记录是真实观察，但不是固定随机读取条件下的单变量证据。新代码控制父资料的外部随机性，没有重跑旧 C，也没有倒填旧 manifest。D0 仍按改变后的输入重新打分，不强制固定名单。</p>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>回答改变但两次都错的 value 请求：
+T1-2K-00 B 0.125 ['8340'] → ['1563'] | 改后编号回声: True
+其余逐题改写见 reports/g2lite_summary_mac_m4max.json 的 rewrites；原始回答和评分在 answers 文件中保持不变。
 </pre>
 </div>
 </div>
@@ -9251,8 +9927,15 @@ value       D0@0.125   答案跟着改                     0/4
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>观察。</strong> value：A 原本答对的 3 份全部跟着改成新值（T1-8K-04 原本答错，改后仍答同一条错误记录的值）；B / C / D0 的 24 个请求全部仍答编号——它们的输出与被查询记录的内容无关。irrelevant：A 4/4 不变；B 7/8、C 8/8、D0 8/8 不变（唯一变化是 T1-2K-00 的 B ρ = 1/8 从窗口内另一条记录的值 8340 变成编号 1563，同样错）。move：A 4/4 仍对；B 按资料 3/4、按（资料, ρ）4/8 变对；C / D0 16 个请求 15 个仍答编号。</p>
-<p><strong>解释。</strong> 三种改写把「答对」和「读到」绑在一起：A 的答案随被查询的值变、不随无关值变，说明 A 的检索是对那条记录的；B 只有在记录进入窗口后答案才可能改变；C / D0 的答案对资料内容不敏感。<strong>不能推出什么。</strong> C / D0 在 irrelevant 上的「不变」没有信息量——它们本来就只会回声编号。</p>
+<p><strong>观察。</strong> 上表把“回答不变”“正误改变”“两次都错”“改后答编号”分开计算，没有用一个指标替代另一个。A 的改值／无关改写结果支持本批请求依赖资料；旧 C 的配对结果因外部随机条件不同不能判断固定随机读取下的单变量效应。D0 仍按完整的内容响应规则观察。</p>
+<p><strong>可能的信息通路（机制假设，尚未定位具体层与位置）：</strong></p>
+<div class="highlight"><pre><span></span>前方记录被改动
+    ↓ 资料 Prefill 使用完整注意力
+后方位置的深层表示与 K/V 可能变化
+    ↓ 问题阶段继续读取这些位置
+问题表示或最终回答可能变化
+</pre></div>
+<p>窗口外改值仍改变回答的例外，足以否定“窗口外必不变”。它没有证明上图某条具体通路已经被定位，也没有证明答案不变时完全不存在内部变化。本轮仅修正解释，不追加跨层干预。</p>
 </div>
 </div>
 </div>
@@ -9272,7 +9955,7 @@ value       D0@0.125   答案跟着改                     0/4
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [17]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [18]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="k">if</span> <span class="n">summary</span><span class="p">:</span>
@@ -9386,9 +10069,9 @@ rewrites[1] | prefill ms 中位: {'2K': 369.0802920027636, '8K': 1916.1310414783
 </tr>
 <tr>
 <td>反事实签名</td>
-<td>A 跟着改 / 不变；B 窗口外改值不变</td>
-<td>3/3、4/4；24/24</td>
-<td>成立</td>
+<td>原预测见卡片</td>
+<td>逐题动态计数见第 6 节</td>
+<td>A 在本批支持；B“窗口外必不变”被反例否定；旧 C 因混杂不能判断</td>
 </tr>
 <tr>
 <td>成本 ≤ 40 min，峰值 &lt; 8 GB</td>
@@ -9398,7 +10081,8 @@ rewrites[1] | prefill ms 中位: {'2K': 369.0802920027636, '8K': 1916.1310414783
 </tr>
 </tbody>
 </table>
-<p><strong>结论（限 Qwen3-0.6B、bf16、MPS、本任务格式、48 份探索样本）。</strong> 当模型只能读 3% 到 13% 的历史时，丢掉的不是「答错的记录」而是「检索本身」：未训练索引 D0 与均匀随机 C 一样为零，窗口 B 只在被查询记录落入窗口时可能答对（窗口内 9/14、窗口外 0/34），所有失败几乎都退化为复述问题里的编号。D0 的名单确实偏向目标记录的 token（1.2 到 2.2 倍于均匀），但远不足以抄出值——这给 G3 留下了一个清楚的量化目标（层组完整覆盖比例从 0–2% 升到多少才够），而不是一个承诺。T2 在本模型上基线不可用，没有稀疏读取结论。<code>03_G2_TO_G5.md</code> 保持 BLOCKED；下一步（单变量重放 B 的窗口内失败、更大模型复测 T2、训练索引器）都需要用户另行授权。</p>
+<p><strong>结论（限 Qwen3-0.6B、bf16、MPS、本提示与评分协议、探索样本）。</strong> 当前读取预算下，B/C/D0 的成绩很差，且错误多为复述问题中的编号。我们已经区分了三件事：直接选中哪些位置、资料可能怎样影响深层状态、最终回答是否正确。现有覆盖指标没有证明检索的必要或充分条件，也没有给训练索引器提供保证。</p>
+<p>T2 在当前提示、生成和评分协议下未过基线门槛，没有进入稀疏对照。PR #6–#9 是同一批案例的后续诊断，不进入本课冻结主表，也不作为独立验证集。<code>03_G2_TO_G5.md</code> 保持 BLOCKED；本轮止于 PR #5 收尾与复审，不启动 G3、性能优化或新任务变式。</p>
 </div>
 </div>
 </div>

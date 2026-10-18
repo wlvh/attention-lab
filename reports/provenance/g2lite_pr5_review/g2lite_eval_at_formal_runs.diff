@@ -1,9 +1,6 @@
 --- reports/provenance/g2lite_pr5_review/g2lite_eval_at_formal_runs.py
 +++ src/attention_lab/g2lite_eval.py
-@@ -138,6 +138,23 @@
-                "base_predicted": b["predicted"] if b else None, "base_exact": b["exact_match"] if b else None,
-                "rewrite_predicted": r["predicted"], "rewrite_exact": r["exact_match"], "base_targets": b["targets"] if b else None, "rewrite_targets": r["targets"],
-                "changed_record_index": r.get("changed_record_index"), "note": r.get("note")}
+@@ -140,0 +141,17 @@
 +        rec.update({"paired": b is not None,
 +                    "answer_unchanged": b is not None and r["predicted"] == b["predicted"],
 +                    "answer_changed": b is not None and r["predicted"] != b["predicted"],
@@ -21,13 +18,7 @@
 +                        "counterfactual_control": "matched_uniform_conditions" if comparable else "confounded_uniform_conditions"})
 +        else:
 +            rec["counterfactual_control"] = "content_responsive_indexer" if r["method"] == "D0" else "deterministic_read_rule"
-         if v == "value":
-             rec["answer_followed_change"] = (b is not None) and r["exact_match"] and r["targets"] != b["targets"]
-             rec["answer_stuck_to_old_value"] = (b is not None) and (r["predicted"] == b["targets"])
-@@ -146,6 +163,56 @@
-         elif v == "move":
-             rec["became_right"] = (b is not None) and (not b["exact_match"]) and r["exact_match"]
-         out.append(rec)
+@@ -148,0 +166,50 @@
 +    return out
 +
 +
@@ -78,6 +69,3 @@
 +                            "legal": [min(legal), max(legal)], "candidate_count": [min(candidate), max(candidate)],
 +                            "candidate_fraction": [min(fractions), max(fractions)], "candidate_fraction_mean": statistics.mean(fractions),
 +                            "total_read_fraction": [min(total), max(total)]}
-     return out
- 
- 

@@ -846,6 +846,15 @@
    ],
    "changed_record_index": 0,
    "note": "value of queried record 0 changed 8422 -> 4122",
+   "paired": true,
+   "answer_unchanged": false,
+   "answer_changed": true,
+   "correctness_changed": false,
+   "both_wrong": false,
+   "base_answered_with_ids": false,
+   "rewrite_answered_with_ids": false,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "answer_followed_change": true,
    "answer_stuck_to_old_value": false
   },
@@ -873,6 +882,15 @@
    ],
    "changed_record_index": 0,
    "note": "value of queried record 0 changed 8422 -> 4122",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -900,6 +918,15 @@
    ],
    "changed_record_index": 0,
    "note": "value of queried record 0 changed 8422 -> 4122",
+   "paired": true,
+   "answer_unchanged": false,
+   "answer_changed": true,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": false,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": true,
+   "counterfactual_control": "deterministic_read_rule",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -927,6 +954,18 @@
    ],
    "changed_record_index": 0,
    "note": "value of queried record 0 changed 8422 -> 4122",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 86443,
+   "rewrite_uniform_seed": 617678,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -954,6 +993,18 @@
    ],
    "changed_record_index": 0,
    "note": "value of queried record 0 changed 8422 -> 4122",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 86443,
+   "rewrite_uniform_seed": 617678,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -981,6 +1032,15 @@
    ],
    "changed_record_index": 0,
    "note": "value of queried record 0 changed 8422 -> 4122",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -1008,6 +1068,15 @@
    ],
    "changed_record_index": 0,
    "note": "value of queried record 0 changed 8422 -> 4122",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -1035,7 +1104,15 @@
    ],
    "changed_record_index": 15,
    "note": "value of non-target record 15 changed 8859 -> 4205",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": false,
+   "base_answered_with_ids": false,
+   "rewrite_answered_with_ids": false,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule"
   },
   {
    "doc_id": "T1-2K-00-irrelevant",
@@ -1061,7 +1138,15 @@
    ],
    "changed_record_index": 15,
    "note": "value of non-target record 15 changed 8859 -> 4205",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule"
   },
   {
    "doc_id": "T1-2K-00-irrelevant",
@@ -1087,7 +1172,15 @@
    ],
    "changed_record_index": 15,
    "note": "value of non-target record 15 changed 8859 -> 4205",
-   "answer_unchanged": false
+   "paired": true,
+   "answer_unchanged": false,
+   "answer_changed": true,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": false,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": true,
+   "counterfactual_control": "deterministic_read_rule"
   },
   {
    "doc_id": "T1-2K-00-irrelevant",
@@ -1113,7 +1206,18 @@
    ],
    "changed_record_index": 15,
    "note": "value of non-target record 15 changed 8859 -> 4205",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 86443,
+   "rewrite_uniform_seed": 893781,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions"
   },
   {
    "doc_id": "T1-2K-00-irrelevant",
@@ -1139,7 +1243,18 @@
    ],
    "changed_record_index": 15,
    "note": "value of non-target record 15 changed 8859 -> 4205",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 86443,
+   "rewrite_uniform_seed": 893781,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions"
   },
   {
    "doc_id": "T1-2K-00-irrelevant",
@@ -1165,7 +1280,15 @@
    ],
    "changed_record_index": 15,
    "note": "value of non-target record 15 changed 8859 -> 4205",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer"
   },
   {
    "doc_id": "T1-2K-00-irrelevant",
@@ -1191,7 +1314,15 @@
    ],
    "changed_record_index": 15,
    "note": "value of non-target record 15 changed 8859 -> 4205",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer"
   },
   {
    "doc_id": "T1-2K-04-value",
@@ -1217,6 +1348,15 @@
    ],
    "changed_record_index": 5,
    "note": "value of queried record 0 changed 4376 -> 4003",
+   "paired": true,
+   "answer_unchanged": false,
+   "answer_changed": true,
+   "correctness_changed": false,
+   "both_wrong": false,
+   "base_answered_with_ids": false,
+   "rewrite_answered_with_ids": false,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "answer_followed_change": true,
    "answer_stuck_to_old_value": false
   },
@@ -1244,6 +1384,15 @@
    ],
    "changed_record_index": 5,
    "note": "value of queried record 0 changed 4376 -> 4003",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -1271,6 +1420,15 @@
    ],
    "changed_record_index": 5,
    "note": "value of queried record 0 changed 4376 -> 4003",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -1298,6 +1456,18 @@
    ],
    "changed_record_index": 5,
    "note": "value of queried record 0 changed 4376 -> 4003",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 89196,
+   "rewrite_uniform_seed": 415019,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -1325,6 +1495,18 @@
    ],
    "changed_record_index": 5,
    "note": "value of queried record 0 changed 4376 -> 4003",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 89196,
+   "rewrite_uniform_seed": 415019,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -1352,6 +1534,15 @@
    ],
    "changed_record_index": 5,
    "note": "value of queried record 0 changed 4376 -> 4003",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -1379,6 +1570,15 @@
    ],
    "changed_record_index": 5,
    "note": "value of queried record 0 changed 4376 -> 4003",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -1406,7 +1606,15 @@
    ],
    "changed_record_index": 12,
    "note": "value of non-target record 12 changed 8156 -> 5324",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": false,
+   "base_answered_with_ids": false,
+   "rewrite_answered_with_ids": false,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule"
   },
   {
    "doc_id": "T1-2K-04-irrelevant",
@@ -1432,7 +1640,15 @@
    ],
    "changed_record_index": 12,
    "note": "value of non-target record 12 changed 8156 -> 5324",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule"
   },
   {
    "doc_id": "T1-2K-04-irrelevant",
@@ -1458,7 +1674,15 @@
    ],
    "changed_record_index": 12,
    "note": "value of non-target record 12 changed 8156 -> 5324",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule"
   },
   {
    "doc_id": "T1-2K-04-irrelevant",
@@ -1484,7 +1708,18 @@
    ],
    "changed_record_index": 12,
    "note": "value of non-target record 12 changed 8156 -> 5324",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 89196,
+   "rewrite_uniform_seed": 811031,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions"
   },
   {
    "doc_id": "T1-2K-04-irrelevant",
@@ -1510,7 +1745,18 @@
    ],
    "changed_record_index": 12,
    "note": "value of non-target record 12 changed 8156 -> 5324",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 89196,
+   "rewrite_uniform_seed": 811031,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions"
   },
   {
    "doc_id": "T1-2K-04-irrelevant",
@@ -1536,7 +1782,15 @@
    ],
    "changed_record_index": 12,
    "note": "value of non-target record 12 changed 8156 -> 5324",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer"
   },
   {
    "doc_id": "T1-2K-04-irrelevant",
@@ -1562,7 +1816,15 @@
    ],
    "changed_record_index": 12,
    "note": "value of non-target record 12 changed 8156 -> 5324",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer"
   },
   {
    "doc_id": "T1-8K-00-value",
@@ -1588,6 +1850,15 @@
    ],
    "changed_record_index": 0,
    "note": "value of queried record 0 changed 6429 -> 6413",
+   "paired": true,
+   "answer_unchanged": false,
+   "answer_changed": true,
+   "correctness_changed": false,
+   "both_wrong": false,
+   "base_answered_with_ids": false,
+   "rewrite_answered_with_ids": false,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "answer_followed_change": true,
    "answer_stuck_to_old_value": false
   },
@@ -1615,6 +1886,15 @@
    ],
    "changed_record_index": 0,
    "note": "value of queried record 0 changed 6429 -> 6413",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -1642,6 +1922,15 @@
    ],
    "changed_record_index": 0,
    "note": "value of queried record 0 changed 6429 -> 6413",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -1669,6 +1958,18 @@
    ],
    "changed_record_index": 0,
    "note": "value of queried record 0 changed 6429 -> 6413",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 27598,
+   "rewrite_uniform_seed": 782406,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -1696,6 +1997,18 @@
    ],
    "changed_record_index": 0,
    "note": "value of queried record 0 changed 6429 -> 6413",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 27598,
+   "rewrite_uniform_seed": 782406,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -1723,6 +2036,15 @@
    ],
    "changed_record_index": 0,
    "note": "value of queried record 0 changed 6429 -> 6413",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -1750,6 +2072,15 @@
    ],
    "changed_record_index": 0,
    "note": "value of queried record 0 changed 6429 -> 6413",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -1777,7 +2108,15 @@
    ],
    "changed_record_index": 11,
    "note": "value of non-target record 11 changed 5403 -> 3033",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": false,
+   "base_answered_with_ids": false,
+   "rewrite_answered_with_ids": false,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule"
   },
   {
    "doc_id": "T1-8K-00-irrelevant",
@@ -1803,7 +2142,15 @@
    ],
    "changed_record_index": 11,
    "note": "value of non-target record 11 changed 5403 -> 3033",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule"
   },
   {
    "doc_id": "T1-8K-00-irrelevant",
@@ -1829,7 +2176,15 @@
    ],
    "changed_record_index": 11,
    "note": "value of non-target record 11 changed 5403 -> 3033",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule"
   },
   {
    "doc_id": "T1-8K-00-irrelevant",
@@ -1855,7 +2210,18 @@
    ],
    "changed_record_index": 11,
    "note": "value of non-target record 11 changed 5403 -> 3033",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 27598,
+   "rewrite_uniform_seed": 926422,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions"
   },
   {
    "doc_id": "T1-8K-00-irrelevant",
@@ -1881,7 +2247,18 @@
    ],
    "changed_record_index": 11,
    "note": "value of non-target record 11 changed 5403 -> 3033",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 27598,
+   "rewrite_uniform_seed": 926422,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions"
   },
   {
    "doc_id": "T1-8K-00-irrelevant",
@@ -1907,7 +2284,15 @@
    ],
    "changed_record_index": 11,
    "note": "value of non-target record 11 changed 5403 -> 3033",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer"
   },
   {
    "doc_id": "T1-8K-00-irrelevant",
@@ -1933,7 +2318,15 @@
    ],
    "changed_record_index": 11,
    "note": "value of non-target record 11 changed 5403 -> 3033",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer"
   },
   {
    "doc_id": "T1-8K-04-value",
@@ -1959,6 +2352,15 @@
    ],
    "changed_record_index": 5,
    "note": "value of queried record 0 changed 3313 -> 7988",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": false,
+   "rewrite_answered_with_ids": false,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -1986,6 +2388,15 @@
    ],
    "changed_record_index": 5,
    "note": "value of queried record 0 changed 3313 -> 7988",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -2013,6 +2424,15 @@
    ],
    "changed_record_index": 5,
    "note": "value of queried record 0 changed 3313 -> 7988",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -2040,6 +2460,18 @@
    ],
    "changed_record_index": 5,
    "note": "value of queried record 0 changed 3313 -> 7988",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 610025,
+   "rewrite_uniform_seed": 1046003,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -2067,6 +2499,18 @@
    ],
    "changed_record_index": 5,
    "note": "value of queried record 0 changed 3313 -> 7988",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 610025,
+   "rewrite_uniform_seed": 1046003,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -2094,6 +2538,15 @@
    ],
    "changed_record_index": 5,
    "note": "value of queried record 0 changed 3313 -> 7988",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -2121,6 +2574,15 @@
    ],
    "changed_record_index": 5,
    "note": "value of queried record 0 changed 3313 -> 7988",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer",
    "answer_followed_change": false,
    "answer_stuck_to_old_value": false
   },
@@ -2148,7 +2610,15 @@
    ],
    "changed_record_index": 13,
    "note": "value of non-target record 13 changed 4630 -> 6578",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": false,
+   "rewrite_answered_with_ids": false,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule"
   },
   {
    "doc_id": "T1-8K-04-irrelevant",
@@ -2174,7 +2644,15 @@
    ],
    "changed_record_index": 13,
    "note": "value of non-target record 13 changed 4630 -> 6578",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule"
   },
   {
    "doc_id": "T1-8K-04-irrelevant",
@@ -2200,7 +2678,15 @@
    ],
    "changed_record_index": 13,
    "note": "value of non-target record 13 changed 4630 -> 6578",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule"
   },
   {
    "doc_id": "T1-8K-04-irrelevant",
@@ -2226,7 +2712,18 @@
    ],
    "changed_record_index": 13,
    "note": "value of non-target record 13 changed 4630 -> 6578",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 610025,
+   "rewrite_uniform_seed": 694872,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions"
   },
   {
    "doc_id": "T1-8K-04-irrelevant",
@@ -2252,7 +2749,18 @@
    ],
    "changed_record_index": 13,
    "note": "value of non-target record 13 changed 4630 -> 6578",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 610025,
+   "rewrite_uniform_seed": 694872,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions"
   },
   {
    "doc_id": "T1-8K-04-irrelevant",
@@ -2278,7 +2786,15 @@
    ],
    "changed_record_index": 13,
    "note": "value of non-target record 13 changed 4630 -> 6578",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer"
   },
   {
    "doc_id": "T1-8K-04-irrelevant",
@@ -2304,7 +2820,15 @@
    ],
    "changed_record_index": 13,
    "note": "value of non-target record 13 changed 4630 -> 6578",
-   "answer_unchanged": true
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer"
   },
   {
    "doc_id": "T1-2K-00-move",
@@ -2330,6 +2854,15 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 0 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": false,
+   "base_answered_with_ids": false,
+   "rewrite_answered_with_ids": false,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "became_right": false
   },
   {
@@ -2356,6 +2889,15 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 0 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": false,
+   "answer_changed": true,
+   "correctness_changed": true,
+   "both_wrong": false,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": false,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "became_right": true
   },
   {
@@ -2382,6 +2924,15 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 0 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": false,
+   "answer_changed": true,
+   "correctness_changed": true,
+   "both_wrong": false,
+   "base_answered_with_ids": false,
+   "rewrite_answered_with_ids": false,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "became_right": true
   },
   {
@@ -2408,6 +2959,18 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 0 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 86443,
+   "rewrite_uniform_seed": 172230,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions",
    "became_right": false
   },
   {
@@ -2434,6 +2997,18 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 0 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 86443,
+   "rewrite_uniform_seed": 172230,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions",
    "became_right": false
   },
   {
@@ -2460,6 +3035,15 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 0 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer",
    "became_right": false
   },
   {
@@ -2486,6 +3070,15 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 0 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": false,
+   "answer_changed": true,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": false,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer",
    "became_right": false
   },
   {
@@ -2512,6 +3105,15 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 1 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": false,
+   "base_answered_with_ids": false,
+   "rewrite_answered_with_ids": false,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "became_right": false
   },
   {
@@ -2538,6 +3140,15 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 1 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "became_right": false
   },
   {
@@ -2564,6 +3175,15 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 1 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "became_right": false
   },
   {
@@ -2590,6 +3210,18 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 1 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 507588,
+   "rewrite_uniform_seed": 194635,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions",
    "became_right": false
   },
   {
@@ -2616,6 +3248,18 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 1 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 507588,
+   "rewrite_uniform_seed": 194635,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions",
    "became_right": false
   },
   {
@@ -2642,6 +3286,15 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 1 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer",
    "became_right": false
   },
   {
@@ -2668,6 +3321,15 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 1 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer",
    "became_right": false
   },
   {
@@ -2694,6 +3356,15 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 0 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": false,
+   "base_answered_with_ids": false,
+   "rewrite_answered_with_ids": false,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "became_right": false
   },
   {
@@ -2720,6 +3391,15 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 0 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": false,
+   "answer_changed": true,
+   "correctness_changed": true,
+   "both_wrong": false,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": false,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "became_right": true
   },
   {
@@ -2746,6 +3426,15 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 0 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "became_right": false
   },
   {
@@ -2772,6 +3461,18 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 0 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 27598,
+   "rewrite_uniform_seed": 45131,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions",
    "became_right": false
   },
   {
@@ -2798,6 +3499,18 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 0 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 27598,
+   "rewrite_uniform_seed": 45131,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions",
    "became_right": false
   },
   {
@@ -2824,6 +3537,15 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 0 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer",
    "became_right": false
   },
   {
@@ -2850,6 +3572,15 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 0 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer",
    "became_right": false
   },
   {
@@ -2876,6 +3607,15 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 1 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": false,
+   "base_answered_with_ids": false,
+   "rewrite_answered_with_ids": false,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "became_right": false
   },
   {
@@ -2902,6 +3642,15 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 1 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": false,
+   "answer_changed": true,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": false,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "became_right": false
   },
   {
@@ -2928,6 +3677,15 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 1 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": false,
+   "answer_changed": true,
+   "correctness_changed": true,
+   "both_wrong": false,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": false,
+   "became_id_echo": false,
+   "counterfactual_control": "deterministic_read_rule",
    "became_right": true
   },
   {
@@ -2954,6 +3712,18 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 1 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 1046957,
+   "rewrite_uniform_seed": 535721,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions",
    "became_right": false
   },
   {
@@ -2980,6 +3750,18 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 1 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "base_uniform_seed": 1046957,
+   "rewrite_uniform_seed": 535721,
+   "uniform_conditions_equal": false,
+   "counterfactual_control": "confounded_uniform_conditions",
    "became_right": false
   },
   {
@@ -3006,6 +3788,15 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 1 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer",
    "became_right": false
   },
   {
@@ -3032,9 +3823,548 @@
    ],
    "changed_record_index": 15,
    "note": "queried record 0 swapped from index 1 into the back_near slot 15",
+   "paired": true,
+   "answer_unchanged": true,
+   "answer_changed": false,
+   "correctness_changed": false,
+   "both_wrong": true,
+   "base_answered_with_ids": true,
+   "rewrite_answered_with_ids": true,
+   "became_id_echo": false,
+   "counterfactual_control": "content_responsive_indexer",
    "became_right": false
   }
  ],
+ "rewrite_observations": {
+  "value": {
+   "A": {
+    "n": 4,
+    "answer_unchanged": 1,
+    "answer_changed": 3,
+    "correctness_changed": 0,
+    "both_wrong": 1,
+    "rewrite_answered_with_ids": 0,
+    "became_id_echo": 0,
+    "answer_followed_change": 3,
+    "base_exact": 3,
+    "confounded_uniform_conditions": 0
+   },
+   "B": {
+    "n": 8,
+    "answer_unchanged": 7,
+    "answer_changed": 1,
+    "correctness_changed": 0,
+    "both_wrong": 8,
+    "rewrite_answered_with_ids": 8,
+    "became_id_echo": 1,
+    "answer_followed_change": 0,
+    "base_exact": 0,
+    "confounded_uniform_conditions": 0
+   },
+   "C": {
+    "n": 8,
+    "answer_unchanged": 8,
+    "answer_changed": 0,
+    "correctness_changed": 0,
+    "both_wrong": 8,
+    "rewrite_answered_with_ids": 8,
+    "became_id_echo": 0,
+    "answer_followed_change": 0,
+    "base_exact": 0,
+    "confounded_uniform_conditions": 8
+   },
+   "D0": {
+    "n": 8,
+    "answer_unchanged": 8,
+    "answer_changed": 0,
+    "correctness_changed": 0,
+    "both_wrong": 8,
+    "rewrite_answered_with_ids": 8,
+    "became_id_echo": 0,
+    "answer_followed_change": 0,
+    "base_exact": 0,
+    "confounded_uniform_conditions": 0
+   }
+  },
+  "irrelevant": {
+   "A": {
+    "n": 4,
+    "answer_unchanged": 4,
+    "answer_changed": 0,
+    "correctness_changed": 0,
+    "both_wrong": 1,
+    "rewrite_answered_with_ids": 0,
+    "became_id_echo": 0,
+    "answer_followed_change": 0,
+    "base_exact": 3,
+    "confounded_uniform_conditions": 0
+   },
+   "B": {
+    "n": 8,
+    "answer_unchanged": 7,
+    "answer_changed": 1,
+    "correctness_changed": 0,
+    "both_wrong": 8,
+    "rewrite_answered_with_ids": 8,
+    "became_id_echo": 1,
+    "answer_followed_change": 0,
+    "base_exact": 0,
+    "confounded_uniform_conditions": 0
+   },
+   "C": {
+    "n": 8,
+    "answer_unchanged": 8,
+    "answer_changed": 0,
+    "correctness_changed": 0,
+    "both_wrong": 8,
+    "rewrite_answered_with_ids": 8,
+    "became_id_echo": 0,
+    "answer_followed_change": 0,
+    "base_exact": 0,
+    "confounded_uniform_conditions": 8
+   },
+   "D0": {
+    "n": 8,
+    "answer_unchanged": 8,
+    "answer_changed": 0,
+    "correctness_changed": 0,
+    "both_wrong": 8,
+    "rewrite_answered_with_ids": 8,
+    "became_id_echo": 0,
+    "answer_followed_change": 0,
+    "base_exact": 0,
+    "confounded_uniform_conditions": 0
+   }
+  },
+  "move": {
+   "A": {
+    "n": 4,
+    "answer_unchanged": 4,
+    "answer_changed": 0,
+    "correctness_changed": 0,
+    "both_wrong": 0,
+    "rewrite_answered_with_ids": 0,
+    "became_id_echo": 0,
+    "answer_followed_change": 0,
+    "base_exact": 4,
+    "confounded_uniform_conditions": 0
+   },
+   "B": {
+    "n": 8,
+    "answer_unchanged": 3,
+    "answer_changed": 5,
+    "correctness_changed": 4,
+    "both_wrong": 4,
+    "rewrite_answered_with_ids": 3,
+    "became_id_echo": 0,
+    "answer_followed_change": 0,
+    "base_exact": 0,
+    "confounded_uniform_conditions": 0
+   },
+   "C": {
+    "n": 8,
+    "answer_unchanged": 8,
+    "answer_changed": 0,
+    "correctness_changed": 0,
+    "both_wrong": 8,
+    "rewrite_answered_with_ids": 8,
+    "became_id_echo": 0,
+    "answer_followed_change": 0,
+    "base_exact": 0,
+    "confounded_uniform_conditions": 8
+   },
+   "D0": {
+    "n": 8,
+    "answer_unchanged": 7,
+    "answer_changed": 1,
+    "correctness_changed": 0,
+    "both_wrong": 8,
+    "rewrite_answered_with_ids": 7,
+    "became_id_echo": 0,
+    "answer_followed_change": 0,
+    "base_exact": 0,
+    "confounded_uniform_conditions": 0
+   }
+  }
+ },
+ "read_budgets": {
+  "T1/2K": {
+   "B@0.03125": {
+    "step": "first_generated_token_prediction",
+    "n": 12,
+    "rho": 0.03125,
+    "k0": [
+     64
+    ],
+    "selected": [
+     132
+    ],
+    "legal": [
+     2072,
+     2095
+    ],
+    "candidate_count": [
+     2004,
+     2027
+    ],
+    "candidate_fraction": [
+     0.031573754316724226,
+     0.031936127744510975
+    ],
+    "candidate_fraction_mean": 0.0317766574793858,
+    "total_read_fraction": [
+     0.06300715990453461,
+     0.0637065637065637
+    ]
+   },
+   "B@0.125": {
+    "step": "first_generated_token_prediction",
+    "n": 12,
+    "rho": 0.125,
+    "k0": [
+     255,
+     256,
+     257,
+     258
+    ],
+    "selected": [
+     323,
+     324,
+     325,
+     326
+    ],
+    "legal": [
+     2072,
+     2095
+    ],
+    "candidate_count": [
+     2004,
+     2027
+    ],
+    "candidate_fraction": [
+     0.12685827552031714,
+     0.12736318407960198
+    ],
+    "candidate_fraction_mean": 0.1271050919111305,
+    "total_read_fraction": [
+     0.15532118887823587,
+     0.15591915303176132
+    ]
+   },
+   "C@0.03125": {
+    "step": "first_generated_token_prediction",
+    "n": 12,
+    "rho": 0.03125,
+    "k0": [
+     64
+    ],
+    "selected": [
+     132
+    ],
+    "legal": [
+     2072,
+     2095
+    ],
+    "candidate_count": [
+     2004,
+     2027
+    ],
+    "candidate_fraction": [
+     0.031573754316724226,
+     0.031936127744510975
+    ],
+    "candidate_fraction_mean": 0.0317766574793858,
+    "total_read_fraction": [
+     0.06300715990453461,
+     0.0637065637065637
+    ]
+   },
+   "C@0.125": {
+    "step": "first_generated_token_prediction",
+    "n": 12,
+    "rho": 0.125,
+    "k0": [
+     255,
+     256,
+     257,
+     258
+    ],
+    "selected": [
+     323,
+     324,
+     325,
+     326
+    ],
+    "legal": [
+     2072,
+     2095
+    ],
+    "candidate_count": [
+     2004,
+     2027
+    ],
+    "candidate_fraction": [
+     0.12685827552031714,
+     0.12736318407960198
+    ],
+    "candidate_fraction_mean": 0.1271050919111305,
+    "total_read_fraction": [
+     0.15532118887823587,
+     0.15591915303176132
+    ]
+   },
+   "D0@0.03125": {
+    "step": "first_generated_token_prediction",
+    "n": 12,
+    "rho": 0.03125,
+    "k0": [
+     64
+    ],
+    "selected": [
+     132
+    ],
+    "legal": [
+     2072,
+     2095
+    ],
+    "candidate_count": [
+     2004,
+     2027
+    ],
+    "candidate_fraction": [
+     0.031573754316724226,
+     0.031936127744510975
+    ],
+    "candidate_fraction_mean": 0.0317766574793858,
+    "total_read_fraction": [
+     0.06300715990453461,
+     0.0637065637065637
+    ]
+   },
+   "D0@0.125": {
+    "step": "first_generated_token_prediction",
+    "n": 12,
+    "rho": 0.125,
+    "k0": [
+     255,
+     256,
+     257,
+     258
+    ],
+    "selected": [
+     323,
+     324,
+     325,
+     326
+    ],
+    "legal": [
+     2072,
+     2095
+    ],
+    "candidate_count": [
+     2004,
+     2027
+    ],
+    "candidate_fraction": [
+     0.12685827552031714,
+     0.12736318407960198
+    ],
+    "candidate_fraction_mean": 0.1271050919111305,
+    "total_read_fraction": [
+     0.15532118887823587,
+     0.15591915303176132
+    ]
+   }
+  },
+  "T1/8K": {
+   "B@0.03125": {
+    "step": "first_generated_token_prediction",
+    "n": 12,
+    "rho": 0.03125,
+    "k0": [
+     256
+    ],
+    "selected": [
+     324
+    ],
+    "legal": [
+     8216,
+     8239
+    ],
+    "candidate_count": [
+     8148,
+     8171
+    ],
+    "candidate_fraction": [
+     0.03133031452698568,
+     0.031418753068237604
+    ],
+    "candidate_fraction_mean": 0.03137257288903619,
+    "total_read_fraction": [
+     0.039325160820487925,
+     0.03943524829600779
+    ]
+   },
+   "B@0.125": {
+    "step": "first_generated_token_prediction",
+    "n": 12,
+    "rho": 0.125,
+    "k0": [
+     1023,
+     1024,
+     1025,
+     1026
+    ],
+    "selected": [
+     1091,
+     1092,
+     1093,
+     1094
+    ],
+    "legal": [
+     8216,
+     8239
+    ],
+    "candidate_count": [
+     8148,
+     8171
+    ],
+    "candidate_fraction": [
+     0.12547435426612805,
+     0.12558139534883722
+    ],
+    "candidate_fraction_mean": 0.12553103614829567,
+    "total_read_fraction": [
+     0.13269394196916354,
+     0.1327992231124059
+    ]
+   },
+   "C@0.03125": {
+    "step": "first_generated_token_prediction",
+    "n": 12,
+    "rho": 0.03125,
+    "k0": [
+     256
+    ],
+    "selected": [
+     324
+    ],
+    "legal": [
+     8216,
+     8239
+    ],
+    "candidate_count": [
+     8148,
+     8171
+    ],
+    "candidate_fraction": [
+     0.03133031452698568,
+     0.031418753068237604
+    ],
+    "candidate_fraction_mean": 0.03137257288903619,
+    "total_read_fraction": [
+     0.039325160820487925,
+     0.03943524829600779
+    ]
+   },
+   "C@0.125": {
+    "step": "first_generated_token_prediction",
+    "n": 12,
+    "rho": 0.125,
+    "k0": [
+     1023,
+     1024,
+     1025,
+     1026
+    ],
+    "selected": [
+     1091,
+     1092,
+     1093,
+     1094
+    ],
+    "legal": [
+     8216,
+     8239
+    ],
+    "candidate_count": [
+     8148,
+     8171
+    ],
+    "candidate_fraction": [
+     0.12547435426612805,
+     0.12558139534883722
+    ],
+    "candidate_fraction_mean": 0.12553103614829567,
+    "total_read_fraction": [
+     0.13269394196916354,
+     0.1327992231124059
+    ]
+   },
+   "D0@0.03125": {
+    "step": "first_generated_token_prediction",
+    "n": 12,
+    "rho": 0.03125,
+    "k0": [
+     256
+    ],
+    "selected": [
+     324
+    ],
+    "legal": [
+     8216,
+     8239
+    ],
+    "candidate_count": [
+     8148,
+     8171
+    ],
+    "candidate_fraction": [
+     0.03133031452698568,
+     0.031418753068237604
+    ],
+    "candidate_fraction_mean": 0.03137257288903619,
+    "total_read_fraction": [
+     0.039325160820487925,
+     0.03943524829600779
+    ]
+   },
+   "D0@0.125": {
+    "step": "first_generated_token_prediction",
+    "n": 12,
+    "rho": 0.125,
+    "k0": [
+     1023,
+     1024,
+     1025,
+     1026
+    ],
+    "selected": [
+     1091,
+     1092,
+     1093,
+     1094
+    ],
+    "legal": [
+     8216,
+     8239
+    ],
+    "candidate_count": [
+     8148,
+     8171
+    ],
+    "candidate_fraction": [
+     0.12547435426612805,
+     0.12558139534883722
+    ],
+    "candidate_fraction_mean": 0.12553103614829567,
+    "total_read_fraction": [
+     0.13269394196916354,
+     0.1327992231124059
+    ]
+   }
+  }
+ },
  "move_cases": [
   [],
   [
@@ -3203,6 +4533,14 @@
    },
    "records_around_targets": {
     "0": [
+     "1563",
+     "8422"
+    ],
+    "1": [
+     "3619",
+     "6096"
+    ],
+    "2": [
      "7303",
      "8080"
     ]
@@ -9224,7 +10562,19 @@
     ]
    },
    "records_around_targets": {
+    "0": [
+     "8395",
+     "6235"
+    ],
     "1": [
+     "1066",
+     "7745"
+    ],
+    "2": [
+     "7348",
+     "3658"
+    ],
+    "3": [
      "3449",
      "2603"
     ]
@@ -15048,6 +16398,14 @@
     ]
    },
    "records_around_targets": {
+    "13": [
+     "2880",
+     "8834"
+    ],
+    "14": [
+     "2023",
+     "9671"
+    ],
     "15": [
      "8233",
      "1168"
@@ -20798,6 +22156,14 @@
     ]
    },
    "records_around_targets": {
+    "13": [
+     "4985",
+     "5508"
+    ],
+    "14": [
+     "5709",
+     "9839"
+    ],
     "15": [
      "2318",
      "1933"
@@ -26540,7 +27906,19 @@
     ]
    },
    "records_around_targets": {
+    "12": [
+     "7399",
+     "8785"
+    ],
+    "13": [
+     "6264",
+     "4817"
+    ],
     "14": [
+     "1381",
+     "1809"
+    ],
+    "15": [
      "2826",
      "4450"
     ]
@@ -32279,6 +33657,14 @@
    },
    "records_around_targets": {
     "0": [
+     "1553",
+     "6429"
+    ],
+    "1": [
+     "3989",
+     "6658"
+    ],
+    "2": [
      "4738",
      "7258"
     ]
@@ -38756,7 +40142,19 @@
     ]
    },
    "records_around_targets": {
+    "0": [
+     "5171",
+     "1706"
+    ],
     "1": [
+     "3090",
+     "5498"
+    ],
+    "2": [
+     "3039",
+     "2293"
+    ],
+    "3": [
      "9862",
      "6912"
     ]
@@ -45024,6 +46422,14 @@
     ]
    },
    "records_around_targets": {
+    "13": [
+     "5129",
+     "9689"
+    ],
+    "14": [
+     "6359",
+     "6343"
+    ],
     "15": [
      "9712",
      "7581"
@@ -51186,6 +52592,14 @@
     ]
    },
    "records_around_targets": {
+    "13": [
+     "5929",
+     "9032"
+    ],
+    "14": [
+     "9370",
+     "5781"
+    ],
     "15": [
      "2961",
      "7635"
@@ -57348,7 +58762,19 @@
     ]
    },
    "records_around_targets": {
+    "12": [
+     "8680",
+     "3760"
+    ],
+    "13": [
+     "5800",
+     "8858"
+    ],
     "14": [
+     "2198",
+     "9339"
+    ],
+    "15": [
      "3784",
      "6708"
     ]

@@ -166,7 +166,7 @@ def main() -> int:
                 if item.get("diff"):
                     actual = "".join(difflib.unified_diff(snapshot.read_text(encoding="utf-8").splitlines(True),
                                                         (ROOT / source).read_text(encoding="utf-8").splitlines(True),
-                                                        fromfile=item["snapshot"], tofile=source))
+                                                        fromfile=item["snapshot"], tofile=source, n=0))
                     if actual != (ROOT / item["diff"]).read_text(encoding="utf-8"):
                         errors.append(f"unrecorded post-run G2-lite edits: {source}")
         for run in g2.get("runs", []):
