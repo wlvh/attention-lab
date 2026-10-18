@@ -94,6 +94,11 @@ def read_evidence():
 def summarize(evidence):
     docs, records = evidence["docs"], evidence["records"]
     cfg = evidence["manifest"]["config"]
+    if len({d["doc_id"] for d in docs}) != len(docs) or any(
+        sum(d["split"] == split for d in docs) != cfg[key]
+        for split, key in (("train", "train_docs"), ("heldout", "heldout_docs"))
+    ):
+        raise ValueError("document split/count mismatch")
     expected = {(d["doc_id"], qi, m) for d in docs for qi in range(len(cfg["query_offsets_from_suffix_end"])) for m in METHODS}
     actual = [(r["doc_id"], r["query_index"], r["method"]) for r in records]
     if set(actual) != expected or len(actual) != len(expected):
