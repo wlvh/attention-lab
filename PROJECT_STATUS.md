@@ -30,6 +30,12 @@ G3b [PR #16](https://github.com/wlvh/attention-lab/pull/16)已提交，两项CI�
 
 下一步：提交G3c待审PR后从固定提交建立G4分支；仅32份预登记新T1自由生成与前4份同token成本，保留全部成绩、不调参、不增加训练。只读复核：`python scripts/g3c_report.py`。
 
+## G4-lite 执行前登记
+
+G3c [PR #17](https://github.com/wlvh/attention-lab/pull/17)待审；当前分支`task/g4-lite`固定基于`1b54be8`。32份新测试仍未评分，新增脚本只做已登记的160条自由生成和4份×6方法×4轮成本（1预热、3测量），共用原设备账。细化计时与顺序见`configs/g4lite_execution.json`，不改变数据、模型、ρ、种子、评分或训练参数。
+
+下一条命令（CPU协议检查、提交后）：`.venv/bin/python bench/g4lite_quality_cost.py`。结果差仍照实交付，不重新训练或挑题。
+
 ## 2026-10-18 PR #12 复审补丁：预检绑定执行源码
 
 本轮只修 P2 预检复用条件，未运行模型或训练，未合并 PR。`bench/g3a_train.py` 现在同时读取预检 summary/manifest，检查完成状态、记录配对、G3a 配置与基础数据配置的 SHA-256，以及 12 个本地执行源文件（运行器、特征/教师/索引训练、数据生成、完整注意力及依赖）。缺失或不一致拒绝；Git 提交号不作为门槛，文档、Notebook、报告和无关实验文件的提交不影响有效预检。
