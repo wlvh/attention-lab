@@ -86,3 +86,5 @@ cd attention-lab
 连续质量路线：[G3b任务](docs/tasks/07_G3B_LITE.md)已完成并待审，[结果](reports/g3b_mac_m4max.md)与[实验课05](reports/05_training_all_layer_indexers.html)。后续[G3c](docs/tasks/08_G3C_REAL_SPARSE.md)和[G4-lite](docs/tasks/09_G4_LITE.md)在共享4小时设备预算内接续；最新授权与进度以[接力状态](PROJECT_STATUS.md)为准。
 
 本轮连续目标结果：[G4-lite质量与成本](reports/g4lite_mac_m4max.md)、[实验课07](reports/07_trained_sparse_quality_and_cost.html)、[逐题原回答](reports/g4lite_answers_mac_m4max.json)。32份新T1：A 21/32、D0 0/32、训练后D 17/32；D未实现约2K速度收益。前序[实验课05](reports/05_training_all_layer_indexers.html)讲各层训练，[实验课06](reports/06_from_teacher_features_to_sparse_states.html)讲真实状态变化。全部默认读取已有证据，后续合并与实验扩展需另行授权。
+
+待审增量顺序：[PR #16（各层训练）](https://github.com/wlvh/attention-lab/pull/16) → [PR #17（真实推理）](https://github.com/wlvh/attention-lab/pull/17) → [PR #18（质量与成本）](https://github.com/wlvh/attention-lab/pull/18)。仅PR #12已获授权合并，后续保持待审。

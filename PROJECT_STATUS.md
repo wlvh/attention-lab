@@ -6,13 +6,13 @@
 
 - G3b [PR #16](https://github.com/wlvh/attention-lab/pull/16)，head `c8b5dd6`，base main `0dd6b73`，两项CI成功。27层新训练、第14层复用，28层开发指标均优于D0；旧开发资料不算新验证。[第五课](reports/05_training_all_layer_indexers.html)、[报告](reports/g3b_mac_m4max.md)。
 - G3c [PR #17](https://github.com/wlvh/attention-lab/pull/17)，head `1b54be8`，base `task/g3b-lite`固定`c8b5dd6`，两项CI成功。4份旧开发资料、612条控制步记录；成功和一次失败都保留。排序修复不改入选集合/预算，修后单层/全层全选51步logits逐位一致。[第六课](reports/06_from_teacher_features_to_sparse_states.html)、[报告](reports/g3c_mac_m4max.md)。
-- G4-lite在`task/g4-lite`完成，base `task/g3c-real-sparse`固定`1b54be8`，待提交PR。run `g4lite-20261018T155038Z`，源码 `27e787f`。32份新约2K T1、160条独立自由回答：A 21/32，B 1/32，C 0/32，D0 0/32，D 17/32。D与A同对15题、A对/D错6题、A错/D对2题、同错9题；保留所有A错误。[第七课](reports/07_trained_sparse_quality_and_cost.html)、[报告](reports/g4lite_mac_m4max.md)、[逐题原文](reports/g4lite_answers_mac_m4max.json)。
+- G4-lite [PR #18](https://github.com/wlvh/attention-lab/pull/18)已提交待审，分支`task/g4-lite`，base `task/g3c-real-sparse`固定`1b54be8`。run `g4lite-20261018T155038Z`，源码 `27e787f`。32份新约2K T1、160条独立自由回答：A 21/32，B 1/32，C 0/32，D0 0/32，D 17/32。D与A同对15题、A对/D错6题、A错/D对2题、同错9题；保留所有A错误。[第七课](reports/07_trained_sparse_quality_and_cost.html)、[报告](reports/g4lite_mac_m4max.md)、[逐题原文](reports/g4lite_answers_mac_m4max.json)。
 
 成本是4份预定资料、每方法1轮预热+3轮测量的同token输入对照，96条记录完整。32次控制前向中位A 0.366s、D 0.581s，配对D/A中位1.579；新缓存请求中位A 1.085s、A-best 0.759s、D 1.549s。主模型bf16/MPS/eager、索引fp32，输入搬运/日志/保护检查在成本计时外；自由生成时间另存且有不同长度/argmax开销，不混用。精确KV+z分配中位A 231.4MiB、D 289.3MiB；RSS/MPS仅采样，不冒充峰值。支持本轮训练收益，未获得约2K速度收益，也未完全保住A逐题能力。
 
 共享新增设备账：`runs/g3bg4lite-20261018-budget.json`，3897.345/14400秒（约65分钟，含预检、失败、27层训练与全部推理），现金0，无活动PID；旧G3a 313.801秒账单未改。成功run、失败run、参数、数据、源码/config hash归档在`reports/provenance/g3b_*`、`g3c_*`、`g4lite_*`。G3b完整特征按运行前磁盘政策只保留每层0/48审计资料，其余hash后释放；不声称远端精简归档支持全部特征级再审计。旧run、manifest、模型缓存、环境和worktree未删。
 
-本机验证：15项G4/推理相关CPU检查通过，包括160条原回答冻结重判、同预算/固定集合/合法位置名单位图、现有本地tokenizer对全部160条token解码核对。G3c/G3b的额外CPU与真实数值证据在各报告。报告可在禁用site-packages的Python重建；Notebook05/06/07从新内核执行（6/6/8代码单元），默认只读数据和小规模CPU。05/06/07的PNG均实际查看过：逐层指标、状态差异、选位目标带、质量与成本图的坐标/图例/标注可读。整页入口仍返回queued，整页与窄屏布局未验；PNG与单元执行不代替整页验收。
+本机验证：最终25项三阶段相关CPU检查通过，其中15项G4/推理检查，包括160条原回答冻结重判、同预算/固定集合/合法位置名单位图、现有本地tokenizer对全部160条token解码核对。G3c/G3b的额外CPU与真实数值证据在各报告。报告可在禁用site-packages的Python重建；Notebook05/06/07从新内核执行（6/6/8代码单元），默认只读数据和小规模CPU。05/06/07的PNG均实际查看过：逐层指标、状态差异、选位目标带、质量与成本图的坐标/图例/标注可读。整页入口仍返回queued，整页与窄屏布局未验；PNG与单元执行不代替整页验收。
 
 下一条只读命令：`python scripts/check_provenance.py`，或打开第七课。PR #6—#10保持原状，旧交接中的未授权/停止段保留历史时间点，不覆盖本节。停止本轮设备运行，不追加训练、ρ、T2、长上下文、Metal/CUDA、云或付费API。后续PR合并必须另有明确授权，采用merge commit并保留分支。
 
