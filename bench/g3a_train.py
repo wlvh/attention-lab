@@ -25,6 +25,12 @@ def completion_status(planned, completed, reason=None):
     return "done" if reason is None and planned == completed else "incomplete"
 
 
+def parameter_changes(current, initial):
+    """Compare tensor values; compressed-file hashes alone do not prove learning."""
+    before = dict(initial.named_parameters())
+    return {name: float((p.detach().cpu() - before[name].detach().cpu()).norm()) for name, p in current.named_parameters()}
+
+
 def new_documents(tok, cfg, count):
     from attention_lab.g2lite_data import build_document
     base = copy.deepcopy(json.loads((ROOT / cfg["base_config"]).read_text()))
@@ -214,7 +220,8 @@ def main():
         train_seconds = time.monotonic() - train_start
         trained.save(out / "index_final.npz")
         manifest["final_checkpoint_sha256"] = runinfo.sha256_file(out / "index_final.npz")
-        if manifest["final_checkpoint_sha256"] == runinfo.sha256_file(out / "index_initial.npz"):
+        manifest["parameter_change_l2"] = parameter_changes(trained, initial)
+        if min(manifest["parameter_change_l2"].values()) <= 0:
             raise RuntimeError("index_parameters_unchanged")
         # Freeze final checkpoint BEFORE any heldout metric is computed.
         manifest["checkpoint_frozen_utc"] = runinfo.utc_now()

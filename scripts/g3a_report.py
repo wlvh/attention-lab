@@ -152,11 +152,33 @@ def summarize(evidence):
                       "group": 0, "delta_coverage": gains[doc_id], "records": [r for r in held if r["doc_id"] == doc_id]})
     h = aggregate["heldout"]
     support = h["D"]["kl"] < min(h["D0"]["kl"], h["C"]["kl"]) and h["D"]["coverage"] > max(h["D0"]["coverage"], h["C"]["coverage"])
+    held_rows = [r for r in records if r["split"] == "heldout"]
+    by_group = []
+    for group in range(8):
+        item = {"group": group, "methods": {}}
+        for method in METHODS:
+            item["methods"][method] = {}
+            for metric in METRICS:
+                values = [r[metric][group] for r in held_rows if r["method"] == method and r[metric] is not None
+                          and (metric not in ("kl", "coverage", "teacher_entropy") or r["eligible"][group])]
+                item["methods"][method][metric] = statistics.mean(values) if values else None
+        by_group.append(item)
+    dr = [r for r in held_rows if r["method"] == "D"]
+    _, residual_row, group = max((r["output_relative_l2"][g], i, g) for i, r in enumerate(dr) for g in range(8))
+    worst = dr[residual_row]
+    residual = {"doc_id": worst["doc_id"], "query_index": worst["query_index"], "group": group,
+                "selection_rule": "事后展示留出集中 D 的相对输出误差最大行；没有据此调整训练",
+                "records": [r for r in held_rows if r["doc_id"] == worst["doc_id"] and r["query_index"] == worst["query_index"]]}
+    paired_rows = {(r["doc_id"], r["query_index"]): r for r in held_rows if r["method"] == "D0"}
+    regressions = {metric: sum((r[metric][g] < paired_rows[r["doc_id"], r["query_index"]][metric][g]) if metric == "coverage"
+                              else (r[metric][g] > paired_rows[r["doc_id"], r["query_index"]][metric][g])
+                              for r in dr for g in range(8)) for metric in ("coverage", "output_relative_l2")}
     return {"run_id": evidence["status"]["run_id"], "run_commit": evidence["manifest"]["git"]["commit"],
             "report_source_sha256": sha(Path(__file__).read_bytes()), "archive_sha256": evidence["index"]["sha256"],
             "status": "single_layer_descriptive_support" if support else "insufficient_evidence",
             "scope": "full-path frozen features, one layer; not task accuracy, sparse trajectory or speed",
             "aggregate": aggregate, "by_document": document_results, "paired": paired, "cases": cases,
+            "heldout_by_group": by_group, "residual_case": residual, "query_group_regressions_vs_D0": regressions,
             "training": evidence["training"], "budget": evidence["budget"],
             "range": {k: [min(r[k] for r in records), max(r[k] for r in records)] for k in ("k0", "k", "selected_count", "candidate_count", "legal")},
             "prefix_tokens_range": [min(d["prefix_token_count"] for d in docs), max(d["prefix_token_count"] for d in docs)],
@@ -176,6 +198,9 @@ def table(summary, split):
 def markdown(summary, evidence):
     m = evidence["manifest"]
     paired = [r for r in summary["paired"] if r["split"] == "heldout"]
+    residual = summary["residual_case"]
+    residual_d = next(r for r in residual["records"] if r["method"] == "D")
+    g = residual["group"]
     return f'''# G3a：单层索引器是否学会了选择
 
 判定：**{summary['status']}**。这是预登记条件下的描述性检查，不是总体泛化保证。只训练第 14 层的 98,304 个索引参数，主体、其他层和旧实验未改变。没有生成新答案，没有部署全层稀疏读取，也没有测加速。
@@ -189,6 +214,8 @@ def markdown(summary, evidence):
 每份先对查询/组求均值，再对资料求均值。KL、条件覆盖率和熵排除 m_C<1e-4 的行，其他指标保留全部行。C 的 KL 是均匀全候选分布的 KL，coverage 来自实际随机名单；R 只有选位诊断。误差在注意力输出 o_proj 前计算，不能替代任务分数。
 
 相对 D0，留出资料中 KL 下降 {sum(r['delta_kl'] < 0 for r in paired)}/16；coverage 上升 {sum(r['delta_coverage'] > 0 for r in paired)}/16；相对输出误差下降 {sum(r['delta_output_error'] < 0 for r in paired)}/16。完整逐资料差异见 JSON，不把这些相关行当独立验证样本。
+
+完整权重口径下，固定集合平均已占 {1-summary['aggregate']['heldout']['D']['candidate_mass']:.5f}；D 的平均遗漏完整权重为 {summary['aggregate']['heldout']['D']['missed_full_mass']:.5f}。条件 coverage 不等于全部注意力覆盖率，更不是答案准确率。m_C×(1−coverage) 必须逐行计算再平均，不能用两个均值相乘代替。
 
 ## 训练：48 份完整资料
 
@@ -208,6 +235,10 @@ def markdown(summary, evidence):
 
 案例按留出最终查询、8组平均 coverage 的 D-D0 最大/最小变化选取；展示组固定为0，极值不是典型样本。具体题目、目标记录、原位置名单与指标见 JSON 和 Notebook。目标位置覆盖、教师注意力覆盖、局部输出误差与答题正确性不是同一指标；R 覆盖最优也不保证输出误差最小。
 
+本轮留出的 512 个查询/组中，D 相对 D0 的 coverage 退化 {summary['query_group_regressions_vs_D0']['coverage']} 行，相对输出误差退化 {summary['query_group_regressions_vs_D0']['output_relative_l2']} 行；没有生成答案，因此不能制造“答题失败案例”。保留残余误差最大的现有行：`{residual['doc_id']}`、查询 {residual['query_index']}、KV 组 {g}，D 的条件 coverage {residual_d['coverage'][g]:.5f}、m_C {residual_d['candidate_mass'][g]:.5f}、相对输出误差 {residual_d['output_relative_l2'][g]:.5f}。这是事后解释用例，未用于调参。8 组完整汇总在 JSON 的 heldout_by_group 中。
+
+留出资料仍来自同一生成器、提示和填充句库；学到稳定的读取模式与学会寻找答案不能等同。改善不保证迁移到别的模板、长度、层或自由生成轨迹。
+
 运行前预测保留在 `docs/tasks/06_G3A_SINGLE_LAYER.md`（首次提交 ee7e2f1）。全层稀疏轨迹、任务分数、训练种子稳定性、T2、速度与从资料开始稀疏均未检查。停止等待复审，不自动扩展。
 
 ## 复现与展示
@@ -225,7 +256,7 @@ def plot_overview(summary):
     axes[0].plot([x["epoch"] for x in trace], [x["online_train_kl"] for x in trace], color="#0072b2")
     axes[0].set(xlabel="Epoch (fixed 50)", ylabel="Online train KL (nats)", title="Training updates; no heldout tuning")
     colors = ["#999999", "#e69f00", "#0072b2", "#009e73"]
-    for ax, key, title in zip(axes[1:], ("coverage", "output_relative_l2"), ("Heldout teacher coverage (higher)", "Heldout local output error (lower)")):
+    for ax, key, title in zip(axes[1:], ("coverage", "output_relative_l2"), ("Heldout teacher coverage (higher)", "Heldout output relative L2 (lower)")):
         ax.bar(METHODS, [summary["aggregate"]["heldout"][m][key] for m in METHODS], color=colors)
         for i, method in enumerate(METHODS):
             values = [r[key] for r in summary["by_document"] if r["split"] == "heldout" and r["method"] == method]
@@ -237,9 +268,10 @@ def plot_overview(summary):
 def plot_case(case):
     import matplotlib.pyplot as plt
     fig, ax = plt.subplots(figsize=(12, 3.3), layout="constrained")
+    colors = {"C": "#999999", "D0": "#e69f00", "D": "#0072b2", "R": "#009e73"}
     for i, row in enumerate(case["records"]):
         positions = row["positions"][case["group"]]
-        ax.plot(positions, [i] * len(positions), "|", markersize=9, label=row["method"])
+        ax.plot(positions, [i] * len(positions), "|", markersize=9, label=row["method"], color=colors[row["method"]])
     for j, (start, end) in enumerate(case["target_spans"]):
         ax.axvspan(start, end, color="#cc79a7", alpha=.35, label="Target record" if j == 0 else None)
     ax.set(yticks=range(4), yticklabels=[r["method"] for r in case["records"]], xlabel="Original token position (no renumbering)",

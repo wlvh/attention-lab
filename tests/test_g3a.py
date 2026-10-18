@@ -151,3 +151,16 @@ def test_incomplete_never_done():
     assert runner.completion_status(p, p) == "done"
     assert runner.completion_status(p, dict(p, evaluated_documents=63)) == "incomplete"
     assert runner.completion_status(p, p, "budget_stop") == "incomplete"
+
+
+def test_parameter_update_check_uses_tensor_values():
+    spec = importlib.util.spec_from_file_location("g3a_runner", ROOT / "bench/g3a_train.py")
+    runner = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runner)
+    initial = TrainableIndexer(2, 2, 8, 4)
+    current = TrainableIndexer(2, 2, 8, 4)
+    assert runner.parameter_changes(current, initial) == {"wq": 0.0, "wk": 0.0}
+    with torch.no_grad():
+        current.wq.add_(.01)
+        current.wk.add_(.02)
+    assert min(runner.parameter_changes(current, initial).values()) > 0
