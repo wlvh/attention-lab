@@ -1,5 +1,11 @@
 # 接力状态
 
+## 2026-10-18 当前增量：G3a（运行前）
+
+基于已合并 PR #5 的 main `d2fc4ad` 开始独立缩减任务 [Issue #11](https://github.com/wlvh/attention-lab/issues/11)，分支 `task/g3a-single-layer`。任务书 `docs/tasks/06_G3A_SINGLE_LAYER.md`、配置 `configs/mac_g3a.json`、预测首次提交 `ee7e2f1`。只训练第 14 层 P0/r32 索引器，新 T1 48/16 划分，ρ=1/8，新增现金 0，累计真实运行预算 2 小时。完整 G3–G5 仍未解锁；PR #6–#10 保持开放，速度路线停止。
+
+当前已通过 8 项新增 CPU 契约；真实预检与正式训练尚未执行。下一条命令：`.venv/bin/python bench/g3a_train.py --mode preflight`。结果写入新的 `runs/g3a-*`，不改旧 run、manifest 或冻结成绩。
+
 更新日期：2026-10-18。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_DONE（工程完成；性能 `correct_but_not_faster`，收口速度主线）/ NOTEBOOK_02_DONE / P0_FUSED_SCORE_DONE（停止门通过）/ P1_FUSED_ATTEND_DONE（停止门未通过：比值 0.82 / 0.83 > 0.80）/ FUSED_KERNEL_LINE_STOPPED（用户决定，2026-10-17）/ PR2_MERGED（`e682e9b`）/ PR3_MERGED（`158bad9`）/ PR4_MERGED（`5f55729`）/ G2LITE_DONE / PR5_REVIEW_FIX_READY（旧结果保留，配置 v3 NOT_RUN，待复审）**。`task/p0-fused-score-kernel`（PR #3）是已合并归档的停止原型；可合并的记录不等于内核完成生产验收。
 
 ## 远端与发布
