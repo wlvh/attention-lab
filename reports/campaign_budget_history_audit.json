@@ -1,0 +1,109 @@
+{
+  "runs": [
+    {
+      "run_id": "g3b-20261018T142434Z-preflight",
+      "status": "done",
+      "utc_start": "2026-10-18T14:24:34+00:00",
+      "utc_end": "2026-10-18T14:24:45+00:00",
+      "ledger_seconds": 11.726313166960608,
+      "manifest_outer_seconds": 11.726901041984092,
+      "outer_minus_ledger_seconds": 0.00058787502348423,
+      "utc_whole_seconds": 11.0,
+      "conservative_gap_from_previous_seconds": null
+    },
+    {
+      "run_id": "g3b-20261018T142640Z-formal",
+      "status": "done",
+      "utc_start": "2026-10-18T14:26:40+00:00",
+      "utc_end": "2026-10-18T15:25:25+00:00",
+      "ledger_seconds": 3525.3468696249765,
+      "manifest_outer_seconds": 3525.3474462499726,
+      "outer_minus_ledger_seconds": 0.0005766249960288405,
+      "utc_whole_seconds": 3525.0,
+      "conservative_gap_from_previous_seconds": 114.0
+    },
+    {
+      "run_id": "g3c-20261018T153617Z",
+      "status": "incomplete",
+      "utc_start": "2026-10-18T15:36:17+00:00",
+      "utc_end": "2026-10-18T15:36:24+00:00",
+      "ledger_seconds": 6.598937832983211,
+      "manifest_outer_seconds": 6.599631082965061,
+      "outer_minus_ledger_seconds": 0.0006932499818503857,
+      "utc_whole_seconds": 7.0,
+      "conservative_gap_from_previous_seconds": 651.0
+    },
+    {
+      "run_id": "g3c-20261018T153929Z",
+      "status": "done",
+      "utc_start": "2026-10-18T15:39:29+00:00",
+      "utc_end": "2026-10-18T15:40:12+00:00",
+      "ledger_seconds": 42.93410362501163,
+      "manifest_outer_seconds": 42.934641709027346,
+      "outer_minus_ledger_seconds": 0.0005380840157158673,
+      "utc_whole_seconds": 43.0,
+      "conservative_gap_from_previous_seconds": 184.0
+    },
+    {
+      "run_id": "g4lite-20261018T155038Z",
+      "status": "done",
+      "utc_start": "2026-10-18T15:50:38+00:00",
+      "utc_end": "2026-10-18T15:55:48+00:00",
+      "ledger_seconds": 310.7387998329941,
+      "manifest_outer_seconds": 310.74022208398674,
+      "outer_minus_ledger_seconds": 0.0014222509926185012,
+      "utc_whole_seconds": 310.0,
+      "conservative_gap_from_previous_seconds": 625.0
+    }
+  ],
+  "ledger_total_seconds": 3897.345024082926,
+  "manifest_outer_total_seconds": 3897.348842167936,
+  "outer_minus_ledger_total_seconds": 0.0038180850096978247,
+  "minimum_conservative_gap_seconds": 114.0,
+  "no_recorded_overlap": true,
+  "status": "passed",
+  "scope": "five recorded campaign runs; no new model execution, no original ledger/manifest edits",
+  "utc_resolution": "whole seconds; conservative end = recorded end + 1 second",
+  "timing_scopes": "manifest outer timer brackets CampaignBudget context; ledger timer starts inside entry and ends before final bookkeeping",
+  "limit_seconds": 14400,
+  "prior_g3a_seconds": 313.80082804203266,
+  "historical_ledger_sha256": "7d8830fd2f0eb2384e821863640054835dc7dde64c956a60b9baf0ddccd3902f",
+  "archive_inputs": {
+    "reports/provenance/g3b_archive_manifest.json": "89173971b1ef46b887dadb92fa2bb221d0231aec7663ebe11990770d7583671b",
+    "reports/provenance/g3b_evidence_20261018.tar.gz": "139516a9df1a470a59e3f9d2658bd612ce15c52293f90a6b04063192bd50f26f",
+    "reports/provenance/g3c_archive_manifest.json": "aba8484fd281565e8fe99cca5219b565045224bd4c96ac4ddea57cf9d7a20e7b",
+    "reports/provenance/g3c_evidence_20261018.tar.gz": "0818904fb1e139a06418ecb6da9ba45b486503811f96a554f9e4e05e48e95a80",
+    "reports/provenance/g4lite_archive_manifest.json": "471a415ed2738fb2fe4fe25b05227377b280bea02ebdd240b6f86a7f557b8ba0",
+    "reports/provenance/g4lite_evidence_20261018.tar.gz": "8d9d6666e9e8fc150c1516047f0a250cd65d3130a205e219237f6074898d9cd3"
+  },
+  "as_run_sources": {
+    "g3b-20261018T142434Z-preflight": {
+      "commit": "748fed2aa212e12042c57d655f37dad78c9ab828",
+      "campaign_source_sha256": "9872ca481b09df4e1d6bb9e86ed85a135a2f33b13a875725d6c0fb5672297ab3",
+      "manifest_sha256": "d1944db90bf7f26654c246849e75c22abc0242f5eeef30d449897047178334ab"
+    },
+    "g3b-20261018T142640Z-formal": {
+      "commit": "2b6db0bc95641403ce5d728bcdbc4a16c209cf4a",
+      "campaign_source_sha256": "9872ca481b09df4e1d6bb9e86ed85a135a2f33b13a875725d6c0fb5672297ab3",
+      "manifest_sha256": "d13d7bb97faadc2eef0a9dc3041ed913c8e19aaf0dbe09c730f5e553ccab746c"
+    },
+    "g3c-20261018T153617Z": {
+      "commit": "043c97e8590daf6f82c6159e5ce8043f12cabee9",
+      "campaign_source_sha256": "9872ca481b09df4e1d6bb9e86ed85a135a2f33b13a875725d6c0fb5672297ab3",
+      "manifest_sha256": "ba12dd5645547af25d0c98015b6b23c0d8a740adb0da1eb827357f5e4b9bc829"
+    },
+    "g3c-20261018T153929Z": {
+      "commit": "514c8138d41c4001633e15f5ef4ab4250d44a4b0",
+      "campaign_source_sha256": "9872ca481b09df4e1d6bb9e86ed85a135a2f33b13a875725d6c0fb5672297ab3",
+      "manifest_sha256": "607bf0b1d4989ac3fd5b6f8b25e0e7ee5f2e05dfce3269ea424b3657faa14fb2"
+    },
+    "g4lite-20261018T155038Z": {
+      "commit": "27e787fd72b4aba5f8fe51c7e756b43825a10f61",
+      "campaign_source_sha256": "9872ca481b09df4e1d6bb9e86ed85a135a2f33b13a875725d6c0fb5672297ab3",
+      "manifest_sha256": "09de39b9d8ca831ea72e083cf1243d039c51a7d797c42818ced7264a0813a6ad"
+    }
+  },
+  "current_campaign_source_sha256": "4b596a40f1904ca73c709f0f0c751c609cdbebb038820263e0e7d96c39b5f97f",
+  "audit_source_sha256": "aecc1a21a4ebc3354e2e9ca397c86c8fa815f320bc69b3450cc605bbecd9f76f",
+  "limitation": "The existing records support serial execution and complete accounting for these five runs; they are not an independent OS process-monitoring trace."
+}

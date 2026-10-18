@@ -1,5 +1,17 @@
 # 接力状态
 
+## 2026-10-19 当前复审收尾：仅修未来预算互斥与计时说明
+
+PR #16追加预算独占修复 `d2353ae`；PR #17通过保留历史的依赖合入提交 `4c862e5`同步，PR #18再接续该提交。没有rebase、force push或GitHub PR合并。当前#18仅补全阶段历史核验及计时措辞；正式实验仍对应原执行提交和归档hash，未倒填版本。
+
+[历史账核对](reports/campaign_budget_history_audit.json)：5次运行均与归档逐字节对应，账本3897.345024秒等于逐项之和；按UTC整秒记录保守扩展结束边界1秒后，最小间隔114秒，没有记录到运行重叠。manifest外层计时总和比预算账多0.003818秒，来源是外层计时覆盖预算上下文前后的记账边界；保留原账，不将两个计时口径硬改成相同。原G3a账hash一致。结论针对这5份既有记录，不冒充独立OS进程监测。
+
+9项预算契约（包括真实双进程）通过；旧源码在新并发测试下的2项负对照失败，补丁后通过。强制终止会释放OS锁但保留未完成登记，下一运行必须先核清。完整核验说明见[收尾报告](reports/campaign_budget_closeout.md)。报告与第七课将“计时外的保护检查”明确为资源/预算检查；参数/缓存身份检查仍计入D/D0前向，没有据此归因性能。
+
+下一步仅独立复审三个更新PR；无活动模型作业，本轮新增真实设备运行0秒、现金0。CPU/CI与第七课导出完成情况在收尾报告；整页/窄屏仍未验。不恢复训练、测试采样或速度优化，不自动合并。只读复核：`python scripts/audit_campaign_budget.py --verify-local`（有本地旧run时）及`python scripts/check_provenance.py`。
+
+以下保留上一轮研究交付状态与对应旧head，最新修复以上段为准。
+
 ## 当前连续目标已完成：G3b-lite / G3c / G4-lite
 
 本轮按用户授权连续完成了三个缩减任务，下一步是独立复审，**不自动合并或扩展实验**。PR #12已按授权用merge commit合并为`0dd6b73`，Issue #11已关闭且分支保留。新任务Issue #13/#14/#15均已有交付；Issue保持OPEN直到关联PR按授权合并。
@@ -8,7 +20,7 @@
 - G3c [PR #17](https://github.com/wlvh/attention-lab/pull/17)，head `1b54be8`，base `task/g3b-lite`固定`c8b5dd6`，两项CI成功。4份旧开发资料、612条控制步记录；成功和一次失败都保留。排序修复不改入选集合/预算，修后单层/全层全选51步logits逐位一致。[第六课](reports/06_from_teacher_features_to_sparse_states.html)、[报告](reports/g3c_mac_m4max.md)。
 - G4-lite [PR #18](https://github.com/wlvh/attention-lab/pull/18)已提交待审，分支`task/g4-lite`，base `task/g3c-real-sparse`固定`1b54be8`。run `g4lite-20261018T155038Z`，源码 `27e787f`。32份新约2K T1、160条独立自由回答：A 21/32，B 1/32，C 0/32，D0 0/32，D 17/32。D与A同对15题、A对/D错6题、A错/D对2题、同错9题；保留所有A错误。[第七课](reports/07_trained_sparse_quality_and_cost.html)、[报告](reports/g4lite_mac_m4max.md)、[逐题原文](reports/g4lite_answers_mac_m4max.json)。
 
-成本是4份预定资料、每方法1轮预热+3轮测量的同token输入对照，96条记录完整。32次控制前向中位A 0.366s、D 0.581s，配对D/A中位1.579；新缓存请求中位A 1.085s、A-best 0.759s、D 1.549s。主模型bf16/MPS/eager、索引fp32，输入搬运/日志/保护检查在成本计时外；自由生成时间另存且有不同长度/argmax开销，不混用。精确KV+z分配中位A 231.4MiB、D 289.3MiB；RSS/MPS仅采样，不冒充峰值。支持本轮训练收益，未获得约2K速度收益，也未完全保住A逐题能力。
+成本是4份预定资料、每方法1轮预热+3轮测量的同token输入对照，96条记录完整。32次控制前向中位A 0.366s、D 0.581s，配对D/A中位1.579；新缓存请求中位A 1.085s、A-best 0.759s、D 1.549s。主模型bf16/MPS/eager、索引fp32，输入搬运/日志/资源与预算检查在成本计时外（D/D0参数及缓存身份检查仍在前向内计时）；自由生成时间另存且有不同长度/argmax开销，不混用。精确KV+z分配中位A 231.4MiB、D 289.3MiB；RSS/MPS仅采样，不冒充峰值。支持本轮训练收益，未获得约2K速度收益，也未完全保住A逐题能力。
 
 共享新增设备账：`runs/g3bg4lite-20261018-budget.json`，3897.345/14400秒（约65分钟，含预检、失败、27层训练与全部推理），现金0，无活动PID；旧G3a 313.801秒账单未改。成功run、失败run、参数、数据、源码/config hash归档在`reports/provenance/g3b_*`、`g3c_*`、`g4lite_*`。G3b完整特征按运行前磁盘政策只保留每层0/48审计资料，其余hash后释放；不声称远端精简归档支持全部特征级再审计。旧run、manifest、模型缓存、环境和worktree未删。
 

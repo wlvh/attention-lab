@@ -8360,7 +8360,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="6.-%E7%AD%94%E5%BE%97%E7%9F%AD%EF%BC%8C%E4%B8%8D%E8%87%AA%E5%8A%A8%E4%BB%A3%E8%A1%A8%E7%AE%97%E5%BE%97%E5%BF%AB">6. 答得短，不自动代表算得快<a class="anchor-link" href="#6.-%E7%AD%94%E5%BE%97%E7%9F%AD%EF%BC%8C%E4%B8%8D%E8%87%AA%E5%8A%A8%E4%BB%A3%E8%A1%A8%E7%AE%97%E5%BE%97%E5%BF%AB">¶</a></h2><p>自由回答遇EOS结束；不同长度的总耗时不能直接比较等工作量速度。成本部分另用4份预定资料、同一32-token输入序列，每方法1轮预热、3轮计量，并轮换顺序。</p>
-<p>32是实际输入步数，不是自然生成的32个输出；首个答案预测已归在问题阶段。A-best批量处理已知问题，其他逐步；两种A都保留。新缓存请求包含分配、完整资料处理、问题和32次前向，模型/分配器常驻。保护检查、日志、计分和输入搬运在成本计时外，阶段前后同步。</p>
+<p>32是实际输入步数，不是自然生成的32个输出；首个答案预测已归在问题阶段。A-best批量处理已知问题，其他逐步；两种A都保留。新缓存请求包含分配、完整资料处理、问题和32次前向，模型/分配器常驻。资源/预算检查、日志、计分和输入搬运在成本计时外，阶段前后同步。D/D0前向内部的参数与缓存身份检查仍包含在计时中；没有单独测量它的耗时，不能认定它就是变慢的主要原因。</p>
 </div>
 </div>
 </div>
