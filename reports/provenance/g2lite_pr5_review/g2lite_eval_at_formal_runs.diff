@@ -1,0 +1,83 @@
+--- reports/provenance/g2lite_pr5_review/g2lite_eval_at_formal_runs.py
++++ src/attention_lab/g2lite_eval.py
+@@ -138,6 +138,23 @@
+                "base_predicted": b["predicted"] if b else None, "base_exact": b["exact_match"] if b else None,
+                "rewrite_predicted": r["predicted"], "rewrite_exact": r["exact_match"], "base_targets": b["targets"] if b else None, "rewrite_targets": r["targets"],
+                "changed_record_index": r.get("changed_record_index"), "note": r.get("note")}
++        rec.update({"paired": b is not None,
++                    "answer_unchanged": b is not None and r["predicted"] == b["predicted"],
++                    "answer_changed": b is not None and r["predicted"] != b["predicted"],
++                    "correctness_changed": b is not None and r["exact_match"] != b["exact_match"],
++                    "both_wrong": b is not None and not b["exact_match"] and not r["exact_match"],
++                    "base_answered_with_ids": b.get("answered_with_ids") if b else None,
++                    "rewrite_answered_with_ids": r.get("answered_with_ids"),
++                    "became_id_echo": b is not None and not b.get("answered_with_ids") and bool(r.get("answered_with_ids"))})
++        if r["method"] == "C":
++            fields = ("uniform_seed", "uniform_request_counter", "legal_start", "k0", "suffix_tokens")
++            comparable = b is not None and all(b.get(k) is not None and b.get(k) == r.get(k) for k in fields)
++            rec.update({"base_uniform_seed": b.get("uniform_seed") if b else None,
++                        "rewrite_uniform_seed": r.get("uniform_seed"),
++                        "uniform_conditions_equal": comparable,
++                        "counterfactual_control": "matched_uniform_conditions" if comparable else "confounded_uniform_conditions"})
++        else:
++            rec["counterfactual_control"] = "content_responsive_indexer" if r["method"] == "D0" else "deterministic_read_rule"
+         if v == "value":
+             rec["answer_followed_change"] = (b is not None) and r["exact_match"] and r["targets"] != b["targets"]
+             rec["answer_stuck_to_old_value"] = (b is not None) and (r["predicted"] == b["targets"])
+@@ -146,6 +163,56 @@
+         elif v == "move":
+             rec["became_right"] = (b is not None) and (not b["exact_match"]) and r["exact_match"]
+         out.append(rec)
++    return out
++
++
++def rewrite_observations(rewrites: list) -> dict:
++    """Counts of distinct events, never equating 'still wrong' with 'unchanged'.
++
++Each unit is a paired (document, method, rho) request, not an independent document.
++The C control flag describes random-stream conditions, not a new model result.
++    """
++    out = {}
++    for r in rewrites:
++        if not r["paired"]:
++            continue
++        cell = out.setdefault(r["variant"], {}).setdefault(r["method"], {"n": 0, **{k: 0 for k in (
++            "answer_unchanged", "answer_changed", "correctness_changed", "both_wrong", "rewrite_answered_with_ids",
++            "became_id_echo", "answer_followed_change", "base_exact", "confounded_uniform_conditions")}})
++        cell["n"] += 1
++        for k in cell.keys() - {"n", "confounded_uniform_conditions"}:
++            cell[k] += int(bool(r.get(k)))
++        cell["confounded_uniform_conditions"] += int(r["counterfactual_control"] == "confounded_uniform_conditions")
++    return out
++
++
++def budget_tables(rows: list) -> dict:
++    """Actual budgets at the step predicting the first generated token.
++
++rho fixes k0 at N0=P+1; at this later step N=P+Q, M=N-|F|. Thus rho,
++k/M, and (|F|+k)/N are three different quantities. Compute ratios per request
++before averaging; don't use the first document as a proxy for the whole cell.
++    """
++    import statistics
++    groups = {}
++    for r in rows:
++        if r["method"] == "A" or r.get("variant", "base") != "base":
++            continue
++        groups.setdefault(cell_key(r["task"], r["length_tag"]), {}).setdefault(method_key(r["method"], r["rho"]), []).append(r)
++    out = {}
++    for cell, methods in groups.items():
++        out[cell] = {}
++        for mk, rs in methods.items():
++            legal = [r["prefix_tokens"] + r["suffix_tokens"] for r in rs]
++            fixed = [r["selected_count"] - r["k0"] for r in rs]
++            candidate = [n - f for n, f in zip(legal, fixed)]
++            fractions = [r["k0"] / m for r, m in zip(rs, candidate)]
++            total = [r["selected_count"] / n for r, n in zip(rs, legal)]
++            out[cell][mk] = {"step": "first_generated_token_prediction", "n": len(rs), "rho": rs[0]["rho"],
++                            "k0": sorted({r["k0"] for r in rs}), "selected": sorted({r["selected_count"] for r in rs}),
++                            "legal": [min(legal), max(legal)], "candidate_count": [min(candidate), max(candidate)],
++                            "candidate_fraction": [min(fractions), max(fractions)], "candidate_fraction_mean": statistics.mean(fractions),
++                            "total_read_fraction": [min(total), max(total)]}
+     return out
+ 
+ 

@@ -10,7 +10,7 @@
 
 - 模型：Qwen/Qwen3-0.6B，revision `c1899de289a04d12100db370d81485cdf75e47ca`，bf16，MPS，batch 1，主体冻结，索引器为 G1b 的未训练随机 GroupedIndexer（r = 32，种子登记在配置）。不训练主体或索引器，不换模型，不恢复 Metal 优化，不租云，不调用付费 API。
 - 任务：T1 返回指定编号的四位值；T2 按指定顺序返回两条相距较远记录的值。不加算术。
-- 数据：程序生成的记录资料（v2：每份 16 条「编号 X：Y」记录穿插在无数字填充句之间；v1 的密集表经校准证明超出 0.6B 的能力，见卡片附录），每份资料随机绑定编号与值；目标位置覆盖前、中、后段（后段两条记录放在受控的 token 距离上）；长度约 2K 与 8K token（记录实际 token 数）；每个任务每个长度 12 份，共 48 份。数据、抽样、均匀随机名单、索引参数的种子全部固定并写入配置与 manifest。
+- 数据：程序生成的记录资料（v2：每份 16 条「编号 X：Y」记录穿插在无数字填充句之间；v1 的密集表在已试的校准提示与评分协议下未达到可用门槛，见卡片附录），每份资料随机绑定编号与值；目标位置覆盖前、中、后段（后段两条记录放在受控的 token 距离上）；长度约 2K 与 8K token（记录实际 token 数）；每个任务每个长度 12 份，共 48 份。数据、抽样、均匀随机名单、索引参数的种子全部固定并写入配置与 manifest。
 - 提示：Qwen3 聊天模板，关闭 thinking，贪心解码，最多 64 个新 token。答案解析与终止规则在任何对照运行之前冻结在 `configs/mac_g2lite.json`。
 - 读取预算 ρ ∈ {1/32, 1/8}，请求内 k0 固定（由请求起始合法长度决定）。
 
@@ -55,3 +55,7 @@ B、C、D0 在同一 ρ 档位拥有**相同的固定集合 F（首 4 加近 64�
 ## 交付
 
 `src/attention_lab/decode.py`（B、C 的名单生成函数与共用取行核）、`src/attention_lab/qwen_wrap.py`（选择器）、`src/attention_lab/g2lite_data.py`（数据生成）、`src/attention_lab/g2lite_eval.py`（解析与判分）、`tests/test_g2lite.py`、`configs/mac_g2lite.json`、`bench/g2lite_quality.py`、`scripts/g2lite_report.py`、`reports/g2lite_*.{md,json}`、`reports/cards/G2lite_mac_m4max.md`（预测写于运行前）、`notebooks/03_what_is_lost_when_reading_less.ipynb` 与已执行 HTML、`reports/provenance/` 归档并纳入 `check_provenance.py`、`PROJECT_STATUS.md`。原始 run 在 `runs/g2lite-*/`（本地）。每次正式运行前提交代码；manifest 含模型与 tokenizer revision。开 PR，不合并。
+
+## 2026-10-18 收尾修复范围
+
+用户授权只修 PR #5 的控制规则、展示、解释和提前停止记账；不重跑模型。旧正式配置为 v2；当前 v3 只修 C 的外部随机条件，NOT_RUN。D0 仍对输入变化重新打分。历史预测、原始 run、旧 manifest 不改；新生成报告标记旧数据与新生成源码。详情见 [收尾修复说明](../PR5_REVIEW_FIXES_2026-10-18.md)。完成报告、卡片、状态及实验课 03 的回归验收后等待复审，不自动合并或进入 G3。

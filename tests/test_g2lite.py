@@ -45,7 +45,7 @@ if HAVE_TRANSFORMERS:
 
 CONFIG = json.loads((ROOT / "configs/mac_g2lite.json").read_text(encoding="utf-8"))
 TOL = {"float64": {"atol": 1e-10, "rel_norm": 1e-12}, "float32": {"atol": 1e-4, "rel_norm": 1e-5}, "bfloat16": {"atol": 5e-2, "rel_norm": 2e-2}}
-MPS = torch is not None and torch.backends.mps.is_available()
+MPS = torch is not None and os.environ.get("ATTENTION_LAB_TEST_CPU_ONLY") != "1" and torch.backends.mps.is_available()
 CASES = [("cpu", "float64")] + ([("mps", "float32"), ("mps", "bfloat16")] if MPS else [])
 SKIP_NO_TF = "transformers not installed (or torch not installed)"
 SELECTOR_OF = {"B": "recent", "C": "uniform", "D0": "index"}
@@ -392,6 +392,44 @@ class DataGeneratorTests(unittest.TestCase):
             self.gd.rewrite_document(self.tok, CONFIG, tail, "move")
         with self.assertRaises(ValueError):
             self.gd.rewrite_document(self.tok, CONFIG, base, "base")
+
+    def test_c_rewrites_replay_actual_original_positions_on_cpu(self):
+        """Same seed alone is insufficient: replay the real per-step/layer draws."""
+        from attention_lab.g2lite_control import uniform_seed_for
+        from attention_lab.decode import select_rows_uniform
+        from attention_lab.qwen_wrap import build_step_plan
+        base = self.gd.build_document(self.tok, CONFIG, "T1", "2K", 0)
+        docs = [base] + [self.gd.rewrite_document(self.tok, CONFIG, base, v) for v in ("value", "irrelevant")]
+        m = tiny("cpu", "float64")
+        states = []
+        for doc in docs:
+            self.assertEqual((doc["prefix_token_count"], doc["suffix_token_count"]), (base["prefix_token_count"], base["suffix_token_count"]))
+            st = LabState(make_cache(m, doc["prompt_token_count"] + 16, with_index=False), mode="sparse", selector="uniform", uniform_seed=uniform_seed_for(CONFIG, doc))
+            st.cache.valid_length = doc["prefix_token_count"]
+            states.append(st)
+        first_stream = None
+        for request_counter in (1, 2):
+            for st in states:
+                st.begin_request(1 / 8)
+                self.assertEqual(st.request_counter, request_counter)
+            for step in (0, base["suffix_token_count"] - 1, base["suffix_token_count"] + 2):
+                draws = []
+                for st in states:
+                    p = build_step_plan(st.cache, st.request_start_length + step, st.k0)
+                    rng = st.uniform_rng(step)
+                    per_layer = []
+                    for _ in range(st.cache.layers):
+                        rows = select_rows_uniform(p.fixed_rows, p.off_lo, p.lo, p.hi, p.k, rng=rng)
+                        pos = rows.view(st.cache.groups, -1) - st.cache.offsets.view(st.cache.groups, 1)
+                        per_layer.append(pos.sort(dim=-1).values)
+                    draws.append(torch.stack(per_layer))
+                self.assertTrue(torch.equal(draws[0], draws[1]))
+                self.assertTrue(torch.equal(draws[0], draws[2]))
+                if step == 0:
+                    if first_stream is None:
+                        first_stream = draws[0]
+                    else:
+                        self.assertFalse(torch.equal(first_stream, draws[0]), "a genuinely new request uses a new stream")
 
 
 if __name__ == "__main__":

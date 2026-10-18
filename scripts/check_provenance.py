@@ -133,17 +133,46 @@ def main() -> int:
                     p0p1_checked += 1
         if p0p1_checked != 4:
             errors.append(f"expected 4 formal P0/P1 run manifests in the archive, found {p0p1_checked}")
-    # ---- G2-lite (PR #5): formal quality runs on committed code ----
+    # ---- G2-lite (PR #5): immutable as-run sources, plus explicit post-run repairs ----
     g2_path = ROOT / "reports/g2lite_manifest_mac_m4max.json"
     g2_checked = 0
     if g2_path.is_file():
         g2 = json.loads(g2_path.read_text(encoding="utf-8"))
         g2_files = ["src/attention_lab/decode.py", "src/attention_lab/qwen_wrap.py", "src/attention_lab/g2lite_data.py", "src/attention_lab/g2lite_eval.py", "bench/g2lite_quality.py"]
         g2_committed = {f_: sha256(ROOT / f_) for f_ in g2_files}
+        review_meta = PROV / "g2lite_pr5_review_manifest.json"
+        if review_meta.exists():
+            review = json.loads(review_meta.read_text(encoding="utf-8"))
+            for path, expected in review.get("immutable_files", {}).items():
+                if sha256(ROOT / path) != expected:
+                    errors.append(f"changed immutable G2-lite evidence: {path}")
+            if review.get("prediction_sha256"):
+                prediction = (ROOT / "reports/cards/G2lite_mac_m4max.md").read_text(encoding="utf-8").split("## 实际执行", 1)[0]
+                if hashlib.sha256(prediction.encode("utf-8")).hexdigest() != review["prediction_sha256"]:
+                    errors.append("G2-lite preregistered prediction text changed")
+            if review.get("frozen_tables_sha256"):
+                condensed = json.loads((ROOT / "reports/g2lite_summary_mac_m4max.json").read_text(encoding="utf-8"))
+                frozen = {k: condensed[k] for k in review["frozen_table_fields"]}
+                if hashlib.sha256(json.dumps(frozen, sort_keys=True, ensure_ascii=False).encode()).hexdigest() != review["frozen_tables_sha256"]:
+                    errors.append("G2-lite frozen accuracy, gate or paired tables changed")
+            for item in review["snapshots"]:
+                source, snapshot = item["source"], ROOT / item["snapshot"]
+                if sha256(snapshot) != item["sha256"]:
+                    errors.append(f"changed G2-lite as-run snapshot: {item['snapshot']}")
+                if source in g2_committed:
+                    g2_committed[source] = item["sha256"]
+                if source == "configs/mac_g2lite.json" and any(run["config_sha256"] != item["sha256"] for run in g2["runs"]):
+                    errors.append("G2-lite run config hash differs from v2 snapshot")
+                if item.get("diff"):
+                    actual = "".join(difflib.unified_diff(snapshot.read_text(encoding="utf-8").splitlines(True),
+                                                        (ROOT / source).read_text(encoding="utf-8").splitlines(True),
+                                                        fromfile=item["snapshot"], tofile=source))
+                    if actual != (ROOT / item["diff"]).read_text(encoding="utf-8"):
+                        errors.append(f"unrecorded post-run G2-lite edits: {source}")
         for run in g2.get("runs", []):
             for f_, h in g2_committed.items():
                 if run.get("source_hashes", {}).get(f_) != h:
-                    errors.append(f"{run.get('run_id')}: {f_} hash != committed file (G2-lite runs must be on committed code)")
+                    errors.append(f"{run.get('run_id')}: {f_} hash != as-run source (old manifests must not be rewritten)")
             g2_checked += 1
     if errors:
         print("\n".join(errors))
@@ -152,7 +181,7 @@ def main() -> int:
           f"{len(g1b['benchmarks'])} manifest(s), {len(g1b.get('appendix_benchmarks', []))} appendix + {len(g1b.get('numerics', []))} numerics run(s) on committed code, "
           f"{len(seen)} archived numerics runs on their snapshots; {len(am['files'])} archived files verified; post-run edits limited to the recorded diffs"
           + (f"; {p0p1_checked} archived P0/P1 manifests name the committed kernels" if p0p1_checked else "")
-          + (f"; {g2_checked} G2-lite run manifest(s) on committed code." if g2_checked else "."))
+          + (f"; {g2_checked} G2-lite run manifest(s) match as-run source hashes." if g2_checked else "."))
     return 0
 
 

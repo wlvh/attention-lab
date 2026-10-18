@@ -13,14 +13,21 @@ from __future__ import annotations
 
 import argparse
 import glob
+import hashlib
+import importlib.util
 import json
 import statistics
+import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
-from attention_lab.g2lite_eval import aggregate, cell_key, method_key, paired_table  # noqa: E402
+# The scorer is pure Python, but importing its package would eagerly import torch.
+# Keep this report-only entry local and explicit; don't change package initialization.
+_spec = importlib.util.spec_from_file_location("g2lite_report_eval", ROOT / "src/attention_lab/g2lite_eval.py")
+evaluation = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(evaluation)
+cell_key, method_key = evaluation.cell_key, evaluation.method_key
 
 METHOD_LABEL = {"A": "A 完整读取", "B": "B 近期窗口", "C": "C 均匀随机", "D0": "D0 未训练索引"}
 BUCKET_LABEL = {"front": "前段", "middle": "中段", "back_near": "后段·窗口内", "back_far": "后段·远窗口"}
@@ -28,10 +35,18 @@ BUCKET_LABEL = {"front": "前段", "middle": "中段", "back_near": "后段·窗
 
 def load_run(d: Path) -> dict:
     d = d if d.is_dir() else d.parent
+    manifest = json.loads((d / "manifest.json").read_text(encoding="utf-8"))
+    summary = json.loads((d / "summary.json").read_text(encoding="utf-8"))
+    if manifest.get("status") != "done" or summary.get("status", "done") != "done":
+        raise ValueError(f"incomplete run cannot be reported as complete evidence: {d.name}")
+    completion = manifest.get("completion")
+    if completion and (completion["completed_requests"] != completion["planned_requests"]
+                       or completion["skipped_requests"] or completion["pending_requests"]):
+        raise ValueError(f"incomplete request accounting: {d.name}")
     rows = [json.loads(l) for l in (d / "quality.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
     docs = [json.loads(l) for l in (d / "data.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()] if (d / "data.jsonl").exists() else []   # smoke / calibration archives carry no data.jsonl
-    return {"dir": d, "rows": rows, "docs": {x["doc_id"]: x for x in docs}, "summary": json.loads((d / "summary.json").read_text(encoding="utf-8")),
-            "manifest": json.loads((d / "manifest.json").read_text(encoding="utf-8")), "config": json.loads((d / "config.json").read_text(encoding="utf-8")) if (d / "config.json").exists() else None}
+    return {"dir": d, "rows": rows, "docs": {x["doc_id"]: x for x in docs}, "summary": summary,
+            "manifest": manifest, "config": json.loads((d / "config.json").read_text(encoding="utf-8")) if (d / "config.json").exists() else None}
 
 
 def rel(p: Path) -> str:
@@ -45,6 +60,64 @@ def f(x, nd=2):
 
 def pct(x):
     return "—" if x is None else f"{100 * x:.0f}%"
+
+
+def value_range(values, *, percent=False):
+    if not values:
+        return "—"
+    lo, hi = min(values), max(values)
+    fmt = (lambda x: f"{100*x:.2f}%") if percent else str
+    return fmt(lo) if lo == hi else f"{fmt(lo)}–{fmt(hi)}"
+
+
+def render_rewrite_observations(observations):
+    """A shared calculated table for the report, review card and teaching notebook."""
+    lines = ["| 改写 | 方法 | 配对请求 | 回答不变 | 回答改变 | 正误改变 | 两次都错 | 改后答编号 | 从非编号变为编号 | C 随机条件不同 |",
+             "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|"]
+    for variant, methods in observations.items():
+        for method, c in methods.items():
+            keys = ("n", "answer_unchanged", "answer_changed", "correctness_changed", "both_wrong", "rewrite_answered_with_ids", "became_id_echo", "confounded_uniform_conditions")
+            lines.append(f"| {variant} | {method} | " + " | ".join(str(c[k]) for k in keys) + " |")
+    value = observations.get("value", {})
+    sparse = [value[m] for m in ("B", "C", "D0") if m in value]
+    n = sum(c["n"] for c in sparse)
+    lines.append(f"\nvalue 的 B/C/D0 合计：{sum(c['answer_unchanged'] for c in sparse)}/{n} 个解析后回答不变，"
+                 f"{sum(c['answer_changed'] for c in sparse)}/{n} 个改变；{sum(c['both_wrong'] for c in sparse)}/{n} 个两次都错，"
+                 f"改后 {sum(c['rewrite_answered_with_ids'] for c in sparse)}/{n} 个答成编号。四个量不能互相替代。")
+    lines.append("\n旧 C 改写的随机种子随资料 ID 后缀改变：这些记录是真实观察，但不是固定随机读取条件下的单变量证据。"
+                 "新代码控制父资料的外部随机性，没有重跑旧 C，也没有倒填旧 manifest。D0 仍按改变后的输入重新打分，不强制固定名单。")
+    return "\n".join(lines)
+
+
+def report_build(runs, comp, details):
+    """Separate generating-code identity from immutable model-run manifests."""
+    sources = ("scripts/g2lite_report.py", "src/attention_lab/g2lite_eval.py")
+    hashes = {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in sources}
+    try:
+        commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+        dirty = [p for p in sources if hashlib.sha256(subprocess.check_output(["git", "show", f"HEAD:{p}"], cwd=ROOT)).hexdigest() != hashes[p]]
+    except (OSError, subprocess.CalledProcessError):
+        commit, dirty = None, None
+    inputs = {}
+    for run in runs:
+        rid = run["manifest"]["run_id"]
+        for name in ("data.jsonl", "quality.jsonl", "summary.json", "manifest.json", "config.json"):
+            p = run["dir"] / name
+            if p.exists():
+                inputs[f"{rid}/{name}"] = hashlib.sha256(p.read_bytes()).hexdigest()
+    if comp:
+        for doc_id, detail in details.items():
+            for mk in detail["answers"]:
+                p = comp["dir"] / "positions" / f"{doc_id}__{mk.replace('@', '_rho')}.npz"
+                if p.exists():
+                    inputs[f"{comp['manifest']['run_id']}/positions/{p.name}"] = hashlib.sha256(p.read_bytes()).hexdigest()
+    return {"schema_version": 1, "kind": "report_regeneration_not_model_run", "source_commit": commit,
+            "report_source_hashes": hashes, "uncommitted_report_sources": dirty, "input_files_sha256": dict(sorted(inputs.items())),
+            "model_run_commits": sorted({r["manifest"]["git"]["commit"] for r in runs}),
+            "model_run_config_versions": sorted({r["manifest"]["config_version"] for r in runs}),
+            "new_model_runs": False, "dependencies": ["Python standard library", "NumPy (position bitsets)"],
+            "historical_C_rewrites": "confounded: variant-specific seeds; retained without rerunning",
+            "early_calibration_gap": "v1 calib-w2/w4/w5 generator hashes differ from both 4bccbb5 and af62df4; exact source not recovered"}
 
 
 def runs_of_kind(all_runs):
@@ -151,7 +224,7 @@ def case_detail(comp, rew_runs, doc_id, rhos):
                                  "doc_id": r["doc_id"], "run_id": rr["summary"]["run_id"]})
     return {"doc": {k: doc.get(k) for k in ("doc_id", "task", "length_tag", "buckets", "n_records", "prefix_token_count", "suffix_token_count", "question", "targets", "target_ids", "target_indices",
                                            "target_records_from_end", "target_distance_from_prefix_end", "target_spans")},
-            "records_around_targets": {str(i): [doc["ids"][j], doc["values"][j]] for i in doc["target_indices"] for j in range(max(0, i - 2), min(doc["n_records"], i + 3))},
+            "records_around_targets": {str(j): [doc["ids"][j], doc["values"][j]] for i in doc["target_indices"] for j in range(max(0, i - 2), min(doc["n_records"], i + 3))},
             "last_records": [[doc["ids"][j], doc["values"][j]] for j in range(max(0, doc["n_records"] - 6), doc["n_records"])],
             "answers": answers, "rewrites": rewrites}
 
@@ -166,6 +239,8 @@ def main() -> int:
     ap.add_argument("--json", type=Path, default=ROOT / "reports/g2lite_summary_mac_m4max.json")
     ap.add_argument("--answers", type=Path, default=ROOT / "reports/g2lite_answers_mac_m4max.json")
     ap.add_argument("--manifest", type=Path, default=ROOT / "reports/g2lite_manifest_mac_m4max.json")
+    ap.add_argument("--build-manifest", type=Path, default=ROOT / "reports/g2lite_report_build.json", help="new report-code/input identity; never changes the old run manifests")
+    ap.add_argument("--review-card", type=Path, default=None, help="refresh only the marked calculated review block, preserving registered predictions")
     ap.add_argument("--card", default="reports/cards/G2lite_mac_m4max.md")
     ap.add_argument("--include-quick", action="store_true")
     a = ap.parse_args()
@@ -187,14 +262,17 @@ def main() -> int:
     details = {c["doc_id"]: case_detail(comp, rews, c["doc_id"], rhos) for c in cases} if comp else {}
     rew_rows = [r for rr in rews for r in rr["rows"]]
     comp_rows = comp["rows"] if comp else []
-    from attention_lab.g2lite_eval import rewrite_table
-    rew_table = rewrite_table(comp_rows + rew_rows) if rews else []
+    rew_table = evaluation.rewrite_table(comp_rows + rew_rows) if rews else []
+    observations = evaluation.rewrite_observations(rew_table)
+    budgets = evaluation.budget_tables(comp_rows)
+    build = report_build([base] + ([comp] if comp else []) + rews, comp, details)
     # ---- condensed JSON ----
     cond = {"baseline_run": base["summary"]["run_id"], "comparison_run": comp["summary"]["run_id"] if comp else None, "rewrite_runs": [r["summary"]["run_id"] for r in rews],
             "config_version": cfg["config_version"], "rho": rhos, "gate": gate, "usable_cells": usable,
             "baseline_methods": base["summary"]["aggregate"]["methods"], "comparison_methods": agg_comp["methods"] if agg_comp else None,
             "paired": agg_comp["paired"] if agg_comp else None, "a_consistency_vs_baseline": agg_comp.get("a_consistency_vs_prev") if agg_comp else None,
-            "rewrites": rew_table, "move_cases": [r["summary"].get("move_cases") for r in rews], "cases": cases, "case_details": details,
+            "rewrites": rew_table, "rewrite_observations": observations, "read_budgets": budgets,
+            "move_cases": [r["summary"].get("move_cases") for r in rews], "cases": cases, "case_details": details,
             "timing": {"baseline": base["summary"]["aggregate"]["timing"], "comparison": agg_comp["timing"] if agg_comp else None, "rewrites": [r["summary"]["aggregate"]["timing"] for r in rews]},
             "device_seconds": {"baseline": base["summary"]["device_seconds"], "comparison": comp["summary"]["device_seconds"] if comp else None, "rewrites": [r["summary"]["device_seconds"] for r in rews],
                                "total": base["summary"]["device_seconds"] + (comp["summary"]["device_seconds"] if comp else 0) + sum(r["summary"]["device_seconds"] for r in rews)},
@@ -207,7 +285,18 @@ def main() -> int:
                 "coverage_generation_steps": r["coverage"].get("mean_fraction_generation_steps"), "coverage_first_gen_step_per_layer": r["coverage"].get("first_gen_step_per_layer")}
                for run in [base] + ([comp] if comp else []) + rews for r in run["rows"]]
     a.answers.write_text(json.dumps(answers, ensure_ascii=False, indent=0) + "\n", encoding="utf-8")
-    a.manifest.write_text(json.dumps({"runs": [r["manifest"] for r in [base] + ([comp] if comp else []) + rews]}, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    manifest_text = json.dumps({"runs": [r["manifest"] for r in [base] + ([comp] if comp else []) + rews]}, ensure_ascii=False, indent=1) + "\n"
+    if not a.manifest.exists() or a.manifest.read_text(encoding="utf-8") != manifest_text:
+        a.manifest.write_text(manifest_text, encoding="utf-8")
+    a.build_manifest.write_text(json.dumps(build, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if a.review_card:
+        card = a.review_card.read_text(encoding="utf-8")
+        start, end = "<!-- review-counts:start -->", "<!-- review-counts:end -->"
+        if card.count(start) != 1 or card.count(end) != 1:
+            raise ValueError("review card must contain one start/end pair for calculated counts")
+        before, tail = card.split(start)
+        _, after = tail.split(end)
+        a.review_card.write_text(before + start + "\n" + render_rewrite_observations(observations) + "\n" + end + after, encoding="utf-8")
 
     # ---- markdown ----
     L = []
@@ -215,7 +304,9 @@ def main() -> int:
     H, S, info = s0["host"], s0["software"], s0["model_info"]
     L.append("# G2-lite 实测报告 · Mac M4 Max：少看历史会丢掉什么——四种读取方式在 T1 / T2 上的质量对照\n")
     L.append(f"由 `scripts/g2lite_report.py` 从基线 run `{s0['run_id']}`、对照 run `{comp['summary']['run_id'] if comp else '无'}` 与 {len(rews)} 个改写 run（{', '.join(r['summary']['run_id'] for r in rews) or '无'}）生成。"
-             f"**48 份探索资料，不做区间统计；D0 是未训练的随机索引器；B 由窗口几何决定；MPS 结果不推 CUDA。** 预测见 `{a.card}`。\n")
+             f"**48 份探索资料，不做区间统计；D0 是未训练的随机索引器；B 的名单按窗口几何确定，正确性另测；MPS 结果不推 CUDA。** 预测见 `{a.card}`。\n")
+    L.append(f"**2026-10-18 审查修订：仅由旧记录重生成，没有新增模型运行。** 旧运行配置 v{cfg['config_version']}、运行源码 `af62df4` 与今日报告代码分开标识：生成提交 `{build['source_commit']}`，"
+             "文件 SHA-256 与输入文件清单见 `reports/g2lite_report_build.json`。旧 run manifest 保持原样；当前种子修复没有追溯性地修复旧 C 改写。\n")
     L.append("## 1. 环境、模型、数据与协议\n")
     L.append("| 项 | 值 |\n|---|---|")
     L.append(f"| 机器 | {H.get('chip')}，{H.get('gpu_cores')} 核 GPU，{(H.get('physical_memory_bytes') or 0)/2**30:.0f} GiB，macOS {H.get('macos')} |")
@@ -254,7 +345,7 @@ def main() -> int:
                 pr = (s1["aggregate"]["paired"].get(c) or {}).get(mk)
                 p2 = f"{pr['counts']['both_right']} / {pr['counts']['A_right_other_wrong']} / {pr['counts']['A_wrong_other_right']} / {pr['counts']['both_wrong']}" if pr else "—"
                 bb = "；".join(f"{'/'.join(BUCKET_LABEL.get(x, x) for x in b.split('/'))} {pct(v)}" for b, v in t["by_bucket"].items())
-                L.append(f"| {c} | {METHOD_LABEL[mk.split('@')[0]]}{' ρ=' + mk.split('@')[1] if '@' in mk else ''} | {t['k0'][0] if t['k0'] else '—'} | {t['selected'][0] if t['selected'] else '全部'} | {t['n']} | {t['hits']} | {pct(t['rate'])} | {ids} | {pct(t['any_order'])} | {t['format_errors']} | {bb} | {p2} |")
+                L.append(f"| {c} | {METHOD_LABEL[mk.split('@')[0]]}{' ρ=' + mk.split('@')[1] if '@' in mk else ''} | {value_range(t['k0'])} | {value_range(t['selected']) if t['selected'] else '全部'} | {t['n']} | {t['hits']} | {pct(t['rate'])} | {ids} | {pct(t['any_order'])} | {t['format_errors']} | {bb} | {p2} |")
         L.append("")
         # coverage
         L.append("### 3.1 目标片段覆盖率（每步每层每组读到的被查询记录 token 占比；结构性数字，不是学习结果）\n")
@@ -264,21 +355,28 @@ def main() -> int:
                 rs = [r for r in comp["rows"] if r["length_tag"] == lt and method_key(r["method"], r["rho"]) == mk and r.get("variant", "base") == "base"]
                 if not rs:
                     continue
-                k0 = rs[0]["k0"]
-                M = rs[0]["legal_start"] - 68
+                budget = budgets[cell_key(rs[0]["task"], lt)][mk]
                 cq = statistics.mean(r["coverage"]["mean_fraction_question_steps"] for r in rs)
                 cg = statistics.mean(r["coverage"]["mean_fraction_generation_steps"] for r in rs if r["coverage"].get("mean_fraction_generation_steps") is not None)
                 fm = statistics.mean(r["coverage"]["first_gen_step_mean"] for r in rs)
                 fmin = statistics.mean(r["coverage"]["first_gen_step_min_layer"] for r in rs)
                 fmax = statistics.mean(r["coverage"]["first_gen_step_max_layer"] for r in rs)
-                L.append(f"| {lt} | {METHOD_LABEL[mk.split('@')[0]]} ρ={mk.split('@')[1]} | {k0}/{M} = {pct(k0 / M)} | {pct(cq)} | {pct(cg)} | {pct(fm)} / {pct(fmin)} / {pct(fmax)} |")
-        L.append("\nB 的覆盖率只取 0 或 1（目标在窗口内外），对 T2 可为 0.5（两条记录一内一外）。\n")
+                L.append(f"| {lt} | {METHOD_LABEL[mk.split('@')[0]]} ρ={mk.split('@')[1]} | {100*budget['candidate_fraction_mean']:.2f}%（逐请求均值，首生成步） | {pct(cq)} | {pct(cg)} | {pct(fm)} / {pct(fmin)} / {pct(fmax)} |")
+        L.append("\n本次 T1 的 B 首生成步目标覆盖率为 0 或 1；其他窗口可能切开一条记录，不能把二值性当成通用规则。k/M 是均匀 C 的结构参考，不是 B/D0 的覆盖率预测。\n")
         b_rows = [r for r in comp["rows"] if r["method"] == "B" and r.get("variant", "base") == "base"]
         inside = [r for r in b_rows if r["coverage"].get("first_gen_step_mean", 0) >= 0.999]
         outside = [r for r in b_rows if r["coverage"].get("first_gen_step_mean", 0) < 0.001]
         L.append(f"**B 的窗口内命中率。** 目标在窗口内的请求 {len(inside)} 个，答对 {sum(r['exact_match'] for r in inside)} 个" +
                  (f"（答错的：{', '.join(f'{r[chr(100)+chr(111)+chr(99)+chr(95)+chr(105)+chr(100)]} ρ={r[chr(114)+chr(104)+chr(111)]:g} 答 {r[chr(116)+chr(101)+chr(120)+chr(116)][:12]!r}' for r in inside if not r['exact_match'])}）" if any(not r["exact_match"] for r in inside) else "") +
                  f"；目标在窗口外的请求 {len(outside)} 个，答对 {sum(r['exact_match'] for r in outside)} 个，其中答成编号 {sum(1 for r in outside if r.get('answered_with_ids'))} 个。\n")
+        L.append("### 3.2 实际读取预算（预测第一个答案 token 的步骤）\n")
+        L.append("ρ 用请求起始长度 N0=P+1 决定 k0；首生成步的合法长度 N=P+Q，候选域 M=N−|F|。下表分别列 k/M 和 (|F|+k)/N，范围按逐请求计算。B/C/D0 同题同档相同。\n")
+        L.append("| 格子 | ρ | k0 范围 | 总读取数范围 | N 范围 | k/M 范围 | 总读取比例范围 |\n|---|---:|---|---|---|---|---|")
+        for cell, table in budgets.items():
+            for mk, b in table.items():
+                if mk.startswith("B@"):
+                    L.append(f"| {cell} | {b['rho']:g} | {value_range(b['k0'])} | {value_range(b['selected'])} | {value_range(b['legal'])} | {value_range(b['candidate_fraction'], percent=True)} | {value_range(b['total_read_fraction'], percent=True)} |")
+        L.append("\n覆盖率只是选中目标位置的比例，不是注意力权重，也不是检索的必要或充分条件。整条记录覆盖与四个值 token 覆盖不同；即便某层组读齐值 token 仍错，也只能说明读齐不足以保证答对，不能据此证明读齐不是必要条件。\n")
         # cases
         L.append("## 4. 代表案例（预登记规则：每个可用格子每类最多两份，按资料序号从小到大；标 † 的两类是看到结果后追加的对比，不在预登记内）\n")
         if not cases:
@@ -300,6 +398,8 @@ def main() -> int:
     # ---- rewrites ----
     if rew_table:
         L.append("## 5. 反事实改写（重建前缀，不复用 KV）\n")
+        L.append(render_rewrite_observations(observations) + "\n")
+        L.append("资料前缀先用完整注意力处理，后方位置的深层 K/V 可能受前方记录影响。因此没有直接选择目标位置不等于目标信息无法影响答案。现有例外否定了‘窗口外必不变’，尚未定位具体层或路径。\n")
         L.append("| 改写 | 资料 | 方法 | 原答 | 原判定 | 改后答 | 改后目标 | 改后判定 | 检查 |\n|---|---|---|---|---|---|---|---|---|")
         for r in rew_table:
             chk = {"value": f"跟着改：{r.get('answer_followed_change')}；黏在旧值：{r.get('answer_stuck_to_old_value')}", "irrelevant": f"不变：{r.get('answer_unchanged')}", "move": f"移近后变对：{r.get('became_right')}"}[r["variant"]]

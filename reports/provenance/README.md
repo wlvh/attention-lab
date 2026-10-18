@@ -80,7 +80,7 @@ diff /tmp/g1b_check/g1b.md reports/g1b_mac_m4max.md
 
 ## 核验
 
-`python scripts/check_provenance.py` 新增：G1b 的数值 run 4 与附录 run 的 manifest 哈希等于 PR #2 版本的 `qwen_wrap.py` 快照；G1a 与 G1b 全部 manifest 的 `decode.py` 哈希等于其快照；提交文件与两份快照只差记录的 diff；`reports/g2lite_manifest_mac_m4max.json` 中每个正式 run 的 manifest 对 `decode.py`、`qwen_wrap.py`、`g2lite_data.py`、`g2lite_eval.py`、`bench/g2lite_quality.py` 的哈希等于提交文件（正式 run 全部在提交 `af62df4` 的干净工作树上运行）。
+`python scripts/check_provenance.py` 校验 G1b/G1a 的历史快照链，以及四个 G2-lite 正式 run 对应的 `af62df4` 源码。2026-10-18 修复后，`g2lite_eval.py` 和 `bench/g2lite_quality.py` 已有变化，旧运行哈希改与下面的新归档快照核对；不能为了让当前源码匹配而改写旧 manifest。
 
 ## 无 GPU、不加载模型重新生成报告
 
@@ -88,10 +88,22 @@ diff /tmp/g1b_check/g1b.md reports/g1b_mac_m4max.md
 mkdir -p /tmp/g2lite_check && tar xzf reports/provenance/g2lite_runs_20261017.tar.gz -C /tmp/g2lite_check
 python scripts/g2lite_report.py --runs-dir /tmp/g2lite_check/runs \
   --out /tmp/g2lite_check/g2lite.md --json /tmp/g2lite_check/summary.json \
-  --answers /tmp/g2lite_check/answers.json --manifest /tmp/g2lite_check/manifest.json
+  --answers /tmp/g2lite_check/answers.json --manifest /tmp/g2lite_check/manifest.json \
+  --build-manifest /tmp/g2lite_check/report_build.json
 diff /tmp/g2lite_check/g2lite.md reports/g2lite_mac_m4max.md
 ```
 
 `g2lite_report.py` 只读 JSON / JSONL 与 npz，不导入 torch、不加载模型。校准 run（`-calib-`）与冒烟 run（`-quick-`）被默认排除；它们的数字只出现在卡片的校准附录里。
 
 校准与冒烟 run 是用会话临时目录里的候选配置启动的，归档副本中 summary.json / manifest.json 的 `args.config` 与 `command` 字段把该临时目录替换成了 `<scratchpad>`（它含本机用户名）；实际使用的配置原样归档为同目录的 config.json，正式 run 未做任何改动。
+
+## 2026-10-18：PR #5 收尾修复的独立来源链
+
+- `g2lite_pr5_review/` 保存从 `af62df4` 直接取得的运行器、汇总模块和 v2 配置原件，另附当前修复的 diff。原有归档、旧快照和 manifest 不改。
+- `g2lite_pr5_review_manifest.json` 记录新快照的哈希、旧答案/manifest/归档的固定哈希、主表与配对表的固定摘要、原预测段哈希。`check_provenance.py` 同时校验这些不变量及源码差异。
+- `../g2lite_report_build.json` 是新报告的生成清单：记录生成代码提交和源码哈希、旧数据输入哈希及使用的名单位图，不是新模型运行。
+- 报告入口局部加载纯 Python 模块，不依赖 torch；Python 标准库与 NumPy 是报告所需依赖。Notebook 的 CPU 演示另外使用现有 torch/transformers/Jupyter/Matplotlib 环境。
+- 当前配置 v3 的父资料种子规则为 NOT_RUN；旧 C 改写继续使用它们原记录中的不同种子，只能标混杂，不能倒填为已受控。
+- v1 calib-w2/w4/w5 的生成器确切源码未在现有提交或来源快照中找到，缺口保留。其余正式 v2 来源核验不因此改写或中止。
+
+报告正文中的生成代码提交会随重生成时所在提交变化，逐文件源码 SHA-256 提供精确版本标识。重建应保持逐题答案、评分、主表、门槛及配对统计不变；新增来源清单不要求跨不同生成提交逐字节相同。
