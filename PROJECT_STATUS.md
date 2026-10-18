@@ -1,6 +1,6 @@
 # 接力状态
 
-更新日期：2026-10-18。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_DONE（工程完成；性能 `correct_but_not_faster`，收口速度主线）/ NOTEBOOK_02_DONE / P0_FUSED_SCORE_DONE（停止门通过）/ P1_FUSED_ATTEND_DONE（停止门未通过：比值 0.82 / 0.83 > 0.80）/ FUSED_KERNEL_LINE_STOPPED（用户决定，2026-10-17）/ PR2_MERGED（`e682e9b`）/ PR3_MERGED（`158bad9`）/ PR4_MERGED（`5f55729`）/ G2LITE_DONE / PR5_REVIEW_FIX_READY（旧结果保留，配置 v3 NOT_RUN，待复审）**。`task/p0-fused-score-kernel`（PR #3）是已合并归档的停止原型；可合并的记录不等于内核完成生产验收。
+更新日期：2026-10-18。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_DONE（工程完成；性能 `correct_but_not_faster`，收口速度主线）/ NOTEBOOK_02_DONE / P0_FUSED_SCORE_DONE（停止门通过）/ P1_FUSED_ATTEND_DONE（停止门未通过：比值 0.82 / 0.83 > 0.80）/ FUSED_KERNEL_LINE_STOPPED（用户决定，2026-10-17）/ PR2_MERGED（`e682e9b`）/ PR3_MERGED（`158bad9`）/ PR4_MERGED（`5f55729`）/ G2LITE_DONE / PR5_MERGED（`d2fc4ad`；已审head `a3832a8`；配置 v3 NOT_RUN）**。`task/p0-fused-score-kernel`（PR #3）是已合并归档的停止原型；可合并的记录不等于内核完成生产验收。
 
 ## 远端与发布
 
@@ -64,9 +64,9 @@ MPS 能力、带宽、提交开销与索引路径原语成本；关键发现是 
 - 判定：**时间与数值通过，比值门未通过 → 按预登记规则停止**。取行段受随机访存效率限制而非核数量限制，PyTorch 的 index_select 已接近同一下界；用局部节省推出的三段全融合整模型 32K D/A 约 0.84 到 0.88 是情景推算，不是实测也不是严格上限（G1a 到 G1b 已显示局部节省不会原样进入整模型；范围说明的"乐观 0.65"前提不成立）。P0 在 fp32 中算分数，旧路径含 bf16 中间结果，top-k 集合一致率 99.6% 到 99.7%，不是逐位等价替换。G1b 的收口结论维持；不建议 P2。
 - 消耗：设备活跃时间不到 1 分钟，现金 0。累计 G0 + G1a + G1b + P0 + P1 约 57 分钟。
 
-## 当前收尾：PR #5 审查修复（2026-10-18）
+## G2-lite 主交付：PR #5 已合并（2026-10-18）
 
-PR #5 分支 `task/g2-lite-mac` 在旧 head `bb1b639` 后追加收尾修复。当前目标只到复审，不合并；main 和诊断分支 #6–#9 不改。旧 G2-lite 正式运行代码为 `af62df4`、配置 v2；四个 run 均保留，未重跑模型。本次配置 v3 只登记 C 的稳定父资料种子规则，状态 **NOT_RUN**。
+PR #5 在 `bb1b639` 后追加修复，经复审后由用户明确授权，于2026-10-18以merge commit `d2fc4ad` 合并已审head `a3832a8`。已读回远端MERGED、合并的两个父提交及main包含该head；保留 `task/g2-lite-mac` 分支。#6–#9仍保持原head，不合并、不关闭、不删除。旧 G2-lite 正式运行代码为 `af62df4`、配置 v2；四个 run 均保留，未重跑模型。本次配置 v3 只登记 C 的稳定父资料种子规则，状态 **NOT_RUN**。
 
 - 主结果：T1 的 A 2K 12/12、8K 10/12；B 两档分别为 2/12、2/12 和 2/12、3/12；C/D0 四格均 0/12。T2 在当前提示、生成及评分协议下为 baseline_too_weak（8/12、1/12），未进入稀疏对照。所有逐题答案和评分保留。
 - 修复：C 控制外部随机性（D0 内容响应不冻结）；回答变化、正误变化、编号回声分别从记录计数；旧 C 改写标混杂；案例目标及邻域不再被覆盖；实际预算范围和ρ/k/M/总读取比例分列；报告入口不导入 torch；运行计划/完成/跳过与原因分开，未完成不写 done。
@@ -76,19 +76,16 @@ PR #5 分支 `task/g2-lite-mac` 在旧 head `bb1b639` 后追加收尾修复。�
 - 验收：25 项针对性 CPU 测试、5 个子测试通过；无 torch 的入口及旧归档重生成通过；89 项标准库环境测试通过（53 项依赖相关跳过）；原件、旧答案/manifest、主表/门槛/配对表与预测原文不变量通过。Notebook 新内核顺序执行 18 个代码单元、无错误，已导出 HTML；9 张图与旧版逐字节相同，5 张独立图已逐一检查。整页 HTML 布局未验：此前浏览器拒绝 file://，本轮受支持的 Codex 文件预览返回 queued，未确认实际展示。生成代码提交 `72b848d`；远端 CI 与本地检查分别确认，以 PR 当前 head 为准。
 - 早期证据缺口：v1 calib-w2/w4/w5 的生成器源码未恢复；旧配置/输出仍可读。资料设计调整不是密度的单变量实验。诊断报告路径/default 输出问题留待处理 #6–#9，不扩大本补丁。
 
-## 下一步与停止点
+## 当前交付与停止点
 
-本轮代码、旧记录重生成与实验课执行已完成，交付修复提交后等待复审。合并必须由用户另行明确指令，采用 merge commit 并保留分支。G3、融合 Metal、CUDA、更长上下文、追加ρ及T2变式均未授权。没有新增云或付费 API 支出。
+- 主干：PR #5已合并，合并提交 `d2fc4adac0431c51f24e7c73acc9599070fb5a2c`；本地主分支与远端一致。只检查了已审head、对应CI和冲突状态，没有为合并重跑模型或报告。
+- 交接：本状态与[交接文档当前段](docs/HANDOFF_2026-10-18.md#current-state-20261018)在既有PR #10中更新，待审，不自动合并。历史交接原文保留，当前事实另列。
+- 诊断：#6–#9同批案例递进索引已加入交接，附固定提交、变化条件、样本、观察、限制、源码和归档入口。它们继承旧#5，后续整合必须以修复后的main为准，不能覆盖回旧报告或旧种子。
+- 阅读：三课HTML及版本见[现有课程入口](notebooks/README.md)。默认直接阅读，不下载模型、不训练、不启动GPU。第三课整页布局仍未验；本轮现有预览查询超时，未重复请求queued入口，未发现具体阅读错误，未改HTML。
+- 教学：第一段从B的 `T1-2K-00` 改值案例开始（8422→4122；B回答8340→1563），按实际资料、Prefill、位置名单、正式函数/形状、输出和推论边界讲解，随后等待用户反馈。不写第四课。
+- 边界：速度路线停止，G3/追加ρ/T2新变式/Metal/CUDA/更长上下文/云与付费API均未授权。无新增模型运行、训练或费用。环境、模型缓存、runs和worktree保留。
 
-复核命令（使用现有隔离 Python 环境，不初始化环境、不启动 GPU）：
-
-```bash
-ATTENTION_LAB_TEST_CPU_ONLY=1 HF_HUB_OFFLINE=1 python -m pytest -q tests/test_g2lite.py tests/test_g2lite_review.py
-python scripts/check_sources.py
-python scripts/check_repository.py
-python scripts/check_provenance.py
-python scripts/g2lite_report.py --review-card reports/cards/G2lite_mac_m4max.md
-```
+下一项只做：用户阅读第三课并反馈这一段；PR #10与诊断归档决定另行审查。无需新的实验命令。
 
 ## 接力格式
 

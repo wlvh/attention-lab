@@ -2,43 +2,37 @@
 
 ## 给项目所有者
 
-不需要先学会逐格运行 Notebook。把本目录放到 Mac 的独立项目目录，在**本地** Codex 中打开，让它读 `AGENTS.md` 和 `docs/CODEX_HANDOFF.md`。
+这是既有研究项目的阅读入口。G0/G1a/G1b 已完成，速度主线停止；G2-lite 主交付已随 PR #5 合并（`d2fc4ad`），现在从真实案例开始学习。不要因接管新会话重建环境、重跑关卡或下载模型。
 
-第一次只完成 **G0 环境预检 + G1a 最小执行可行性**。不要直接下载三个模型、跑全部训练或租云。
+直接打开已保存的 HTML，无需执行代码：
 
-日常阅读 `reports/` 的 HTML；需要改一个变量、重放小例子时打开 `notebooks/`。当前的 `00_orientation.ipynb` 是导读与预测核算，不是 Mac 测速报告。
+| 课程 | 入口 | 内容版本 |
+|---|---|---|
+| 01 环境与单层注意力 | [阅读第一课](reports/01_environment_and_attention.html) | G0/G1a；`ff31d3a` 的措辞校正版 |
+| 02 Qwen接入与整步解码 | [阅读第二课](reports/02_qwen_integration_and_decode.html) | G1b；`ff31d3a` 的措辞校正版 |
+| 03 少读历史会丢什么 | [阅读第三课](reports/03_what_is_lost_when_reading_less.html) | 旧v2运行 `af62df4`、报告代码 `72b848d`、导出 `a3832a8`；整页布局未验 |
 
-## 已有公开远端
+第三课第一段可直接看 `T1-2K-00` 的 B / ρ=1/8 改值案例：目标记录在窗口外，回答却从8340变成1563。分清资料Prefill和后续读取，不把“仍错”当成“未变”。先讲这一段，随后由用户决定下一段。
 
-所有者已经创建并明确选择公开仓库 `https://github.com/wlvh/attention-lab`。本次导入保留全部九个原始材料；当前入口与发布约定调整为公开仓库，不改写原始方案。
-
-```bash
-git clone https://github.com/wlvh/attention-lab.git
-cd attention-lab
-```
-
-无需执行旧的 `scripts/publish_repo.py --execute`；该脚本是历史私有建仓工具，对现有公开仓库会拒绝操作。后续用正常分支、提交和 PR 推进，不改可见性、不 force push。详细说明见 `docs/tasks/00_PUBLISH.md`。
+完整版本边界与 Notebook 入口见 [notebooks/README.md](notebooks/README.md)。`00_orientation.ipynb` 仍是历史导读与预测核算，不是额外一份实测课。
 
 ## 给刚接手的 Codex
 
-最短阅读路线：
+最短路线：
 
-`AGENTS.md → PROJECT_STATUS.md → docs/PLAN_CURRENT.md → docs/tasks/01_G0_G1A.md`
+`AGENTS.md → PROJECT_STATUS.md → docs/HANDOFF_2026-10-18.md 当前段 → notebooks/README.md`
 
-操作细节按需查 `docs/MAC_RUNBOOK.md`；接口查 `docs/IMPLEMENTATION.md`；验收查 `docs/MEASUREMENT.md`；每关解释怎么交查 `docs/TEACHING_NOTEBOOKS.md`。
+[交接当前段与诊断索引](docs/HANDOFF_2026-10-18.md#current-state-20261018)明确区分已合并主交付、同批案例诊断和未授权实验。前半段历史交接原文不作为当前执行指令。PR #10 的文档更新待审，不自动合并。
 
-原始教材不需要每轮全部放入上下文。按 `docs/REFERENCE_MAP.md` 定位相关锚点。历史 v1/v2/v3 只有溯源权，不覆盖当前补充约定。
+- 原始v2结果、旧manifest和预测原文保留；当前配置v3是C的控制规则修复，NOT_RUN。
+- #6–#9不合并、不关闭、不删除、不改写历史；不能从#9复制旧代码/报告覆盖修正后的main。
+- G3、追加ρ、T2新变式、Metal/CUDA/更长上下文均未授权；没有新增云或付费API授权。
+- 默认读HTML。Notebook仅在明确需要时使用已有环境做CPU小例子，不自动下载、训练或运行GPU基准；不要无意触发整套测试或旧实验入口。
 
-## 一页构建顺序
+具体接管提示见 [docs/CODEX_HANDOFF.md](docs/CODEX_HANDOFF.md)。操作、接口和教学规范按需查看，不重新执行历史启动任务。
 
-| 阶段 | 创建什么 | 用什么事实解锁下一阶段 |
-|---|---|---|
-| G0 | 隔离环境、能力与内存清单 | 实际所需 MPS 运算正确；CPU/后端异常明确 |
-| G1a | 单层 A 与 D 的真实子集执行、测试、微基准 | 至少有值得复核的设备/形状/执行方式组合；否则一次定位后收口 |
-| G1b | 最小模型封装、静态 KV/z、连续生成 | 全选与分段对照通过，连续运行没有失控重编译或状态污染 |
-| G2 | 任务生成与完整基线校准 | 最小可用模型与 G1 性能可行组合有交集 |
-| G3 | 单层 P0/P1 → 全层小索引器 | 留出资料与实际稀疏轨迹支持其选择能力；解释均匀分布例外 |
-| G4 | 冻结测试，A-step/A-best 与 D 联合比较 | 质量、三口径耗时、内存与预算可一起判断 |
-| G5 | 可选分层预算/名单复用 | 前面有证据、预算有余量，改结构后重新测速 |
+## 已有公开远端
 
-“支持运算”“通过微基准”“模型具有质量”“正式质量—速度取舍”是四件不同的事。不要提前宣布后一件已经成立。
+仓库是用户已创建的公开仓库 [wlvh/attention-lab](https://github.com/wlvh/attention-lab)。只有没有本地源码的新读者才需要克隆；本机既有项目复用原目录。无需执行历史 `scripts/publish_repo.py --execute`，不重新建仓、不改可见性、不force push、不自动开启Pages。
+
+研究目标仍是通过可运行、可干预、可解释的结果理解取舍。负结果、失败边界和明确的未知都是交付；不以新增PR或新实验数量替代教学。
