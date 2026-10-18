@@ -1,6 +1,6 @@
 # 阅读与证据
 
-所有数字来自本机 Mac M4 Max 的 MPS 实测，或由实测回填的预测；每个文件都写明了自己是哪一种。不要凭空填性能值。
+各文件明确区分本机 Mac M4 Max 的 MPS 运行、CPU 核验、保存数据的派生计算与预测。对应设备、精度和适用范围以各报告的记录为准。
 
 | 文件 | 内容 | 性质 |
 |---|---|---|
@@ -15,6 +15,8 @@
 | `03_what_is_lost_when_reading_less.html` | 第三份实验课：G2-lite，少看历史会丢掉什么——四种读取方式在 T1 / T2 上的质量对照、覆盖率、代表案例、反事实改写 | 读取下列 G2-lite 实测结果，tiny 模型 CPU 契约重放 |
 | `g2lite_mac_m4max.md` | G2-lite 报告：基线可用性、四方法对照与配对四格、覆盖率、代表案例、反事实改写、成本 | 实测（48 份探索样本，无区间统计） |
 | `g2lite_summary_mac_m4max.json`、`g2lite_answers_mac_m4max.json`、`g2lite_manifest_mac_m4max.json` | G2-lite 精简表格与案例、逐题回答与解析、三遍 run 的 manifest（含 model / tokenizer revision、配置版本、数据 digest） | 实测 |
+| `04_can_an_indexer_learn.html` | 实验课04：第14层索引器第一次训练，冻结特征上的教师模仿与局部输出 | 新 G3a 48/16 资料；不是 G2-lite 重跑或整模型能力评测 |
+| `g3a_mac_m4max.md`、`g3a_summary_mac_m4max.json`、`g3a_cpu_audit.json` | 单层结果、逐资料/逐组指标、真实选位、独立 NumPy 核验 | 源自新的 G3a 原始记录 |
 | `cards/G0_mac_m4max.md`、`cards/G1a_mac_m4max.md`、`cards/G1b_mac_m4max.md`、`cards/G2lite_mac_m4max.md` | 关卡卡片：运行前预测、运行后观察、解释、决策 | 预测写于运行前 |
 | `g0_*.json`、`g1a_*.json`、`g1a_supplement_*.json` | 上述报告的精简数据与 manifest | 实测 |
 | `g0_roofline_mac_bw390.{md,json}` | 以实测 390 GB/s 回填的载荷情景 | 预测 |
@@ -22,3 +24,5 @@
 | `bootstrap_validation.md`、`public_publication.md` | 启动工具与发布记录 | 不是 GPU 结果 |
 
 重新生成：`python scripts/g0_report.py`、`python scripts/g1a_report.py`、`python scripts/g1a_supplement_report.py`、`python scripts/g1b_report.py`、`python scripts/g2lite_report.py`。无 GPU 从归档重生 G1a 报告的步骤见 `provenance/README.md`。
+
+G3a 报告重建：`python scripts/g3a_report.py`（标准库，不导入 torch）。完整特征保留在本机原始 run；精简归档含数据、参数、指标及原位置名单。

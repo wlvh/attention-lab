@@ -4,7 +4,7 @@ Scope at this version (G2-lite): the G1a single-layer read paths, the Qwen3 inte
 self_attn wrapper around the frozen body, static K/V cache, index table, prefill / decode drivers) and, from G2-lite,
 the B (recent window) and C (uniform random) row-list generators beside the D0 index selector, plus the task data
 generator and scorer in `g2lite_data` / `g2lite_eval`.
-No training. `qwen_wrap` needs transformers and is imported explicitly (`from attention_lab.qwen_wrap import ...`)
+G3a adds opt-in, single-layer training in `g3a`; the normal read paths do not train. `qwen_wrap` needs transformers and is imported explicitly (`from attention_lab.qwen_wrap import ...`)
 so the random-tensor modules stay importable without it. Notebooks display and call this code; they do not keep a
 second copy of the algorithms.
 """

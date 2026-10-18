@@ -1,0 +1,22 @@
+{
+  "status": "passed",
+  "run_id": "g3a-20261018T122927Z-formal",
+  "reference": "independent NumPy float64 from saved features and weights",
+  "documents": 16,
+  "query_group_method_comparisons": 2048,
+  "tolerance": 0.0001,
+  "maximum_absolute_difference": {
+    "kl": 3.326042821605313e-06,
+    "candidate_mass": 1.4189709421907892e-06,
+    "coverage": 7.315248958250642e-07,
+    "missed_full_mass": 1.425015982770006e-06,
+    "output_rmse": 8.238661045600892e-07,
+    "output_relative_l2": 1.2521713489976882e-06
+  },
+  "actual_parameter_change_l2": {
+    "wq": 8.106425285339355,
+    "wk": 7.847850799560547
+  },
+  "scope": "all 16 heldout docs, 4 query rows, 8 groups, 4 methods; no fresh model inference",
+  "audit_source_sha256": "9699d3b5fce4203ece318612c8cd3bdffd328100511627714a2d7d339a235086"
+}

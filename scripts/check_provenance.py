@@ -174,6 +174,13 @@ def main() -> int:
                 if run.get("source_hashes", {}).get(f_) != h:
                     errors.append(f"{run.get('run_id')}: {f_} hash != as-run source (old manifests must not be rewritten)")
             g2_checked += 1
+    if (PROV / "g3a_archive_manifest.json").exists():
+        try:
+            from g3a_report import read_evidence, summarize
+            g3a = summarize(read_evidence())
+            print(f"G3a archive/source/checkpoint hashes and {g3a['rows']} complete per-query method records verified.")
+        except Exception as exc:
+            errors.append(f"G3a evidence: {exc}")
     if errors:
         print("\n".join(errors))
         return 1

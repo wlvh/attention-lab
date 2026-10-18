@@ -1,5 +1,28 @@
 # 接力状态
 
+## 2026-10-18 PR #12 复审补丁：预检绑定执行源码
+
+本轮只修 P2 预检复用条件，未运行模型或训练，未合并 PR。`bench/g3a_train.py` 现在同时读取预检 summary/manifest，检查完成状态、记录配对、G3a 配置与基础数据配置的 SHA-256，以及 12 个本地执行源文件（运行器、特征/教师/索引训练、数据生成、完整注意力及依赖）。缺失或不一致拒绝；Git 提交号不作为门槛，文档、Notebook、报告和无关实验文件的提交不影响有效预检。
+
+核验记录：[g3a_preflight_binding_check.json](reports/g3a_preflight_binding_check.json)。成功预检 `1ee30e2` 与正式运行 `b998ee7` 的两个配置哈希和全部 23 个记录源码哈希一致，两个提交间仅新增 `scripts/g3a_report.py`；本机的四份 summary/manifest 与归档逐字节一致。历史绑定通过；当前执行器源码已改变，因此旧预检不被当作修后版本的新运行许可。
+
+CPU 回归 **18 项通过**（原有 12 项加 6 项预检绑定测试，涵盖全部 12 个执行文件的变化与缺失反例）。旧 run、manifest、归档、索引参数、成绩、Notebook 和 HTML 均未改写；第四课整页及窄屏布局仍未验。下一步只等待此补丁的最终合并确认；CPU 核验命令：`.venv/bin/python -m pytest tests/test_g3a.py tests/test_g3a_report.py -q`。
+
+## 2026-10-18 当前增量：G3a 已完成，待 PR 复审
+
+基于已合并 PR #5 的 main `d2fc4ad` 完成独立缩减任务 [Issue #11](https://github.com/wlvh/attention-lab/issues/11)，分支 `task/g3a-single-layer`。任务书 [06_G3A_SINGLE_LAYER.md](docs/tasks/06_G3A_SINGLE_LAYER.md)，运行前预测提交 `ee7e2f1`。本节是最新状态，下文保留 G0—G2-lite 的历史交付记录。
+
+- 正式 run：`g3a-20261018T122927Z-formal`，运行代码 `b998ee7`；只训练第 14 层 P0/r32 索引器的 98,304 个参数，主体冻结。新 T1 48/16 划分，ρ=1/8，固定 50 轮。留出最终检查之前不选模型或调参。
+- 留出结果：D0→D 的 KL 2.85786→0.13534、条件教师覆盖率 24.36%→87.83%、局部输出相对 L2 0.20997→0.02196；16/16 资料平均指标改善。只支持同分布固定特征上的单层学习，不证明答题、自由生成或速度改善。
+- 原始数据、参数、指标、源码、失败预检和预算：[精简归档](reports/provenance/g3a_evidence_20261018.tar.gz) 及 [清单](reports/provenance/g3a_archive_manifest.json)；完整特征约 778MB 留在 `runs/g3a-20261018T122927Z-formal/features/`，每份 hash 在原 manifest。没有覆盖旧 runs、manifest 或冻结分数。
+- 一次预检定位：整句填充导致长度调整振荡；训练前仅对 G3a 明确 2048±64 token，保留种子/样本和目标尾距。全部 64 份实际 1991–2082 token，与旧资料 hash 无重合。含失败、通过预检和正式运行累计 313.8 秒，新增现金 0；记录中 swap 为 0。
+- 验证：12 项新增 CPU 契约与归档检查通过；[独立 NumPy 审计](reports/g3a_cpu_audit.json) 重算全部 16 份留出资料、2048 项查询/组/方法比较，最大差异 3.33e-6 < 预设 1e-4。Wq/Wk 实值变化范数分别为 8.1064/7.8479，主体前后 hash 相同。报告入口用禁用 site-packages 的 Python 成功重建，不需要 torch。
+- 教学：[实验课04 HTML](reports/04_can_an_indexer_learn.html)、[Notebook](notebooks/04_can_an_indexer_learn.ipynb)、[报告](reports/g3a_mac_m4max.md)。10 个代码单元从新内核执行无错误；默认只读保存结果与 CPU 张量小例子。三张 PNG 检查过文字/坐标/图例/位置阴影，方法颜色已统一。整页 HTML 预览返回 queued，整页与窄屏布局未验；不把单元执行或 PNG 检查当整页验收。
+- 运行后仅补强未来运行的“参数已更新”检查：比较张量实值，不只比较压缩文件 hash。原执行版本在归档，旧 manifest 未改，没有重跑模型。
+- PR #6–#9 保持开放，不合并/删除/改写；PR #10 仍为 `e5490bc`、开放。本轮只读复核发现其中 18:44 状态所写“G3 未授权”已被后续 G3a 范围取代，合并该文档 PR 前须更新当前段，历史时点应保留；不允许其旧状态覆盖本节。
+
+下一步：复审本分支的单层证据与代码；不启动全层训练。下一条只读命令：`python scripts/g3a_report.py`。完整 G3–G5、G2-lite 配置 v3 的新模型运行、T2 新变式、速度优化、Metal/CUDA/更长上下文、云与付费 API 都未解锁。本轮停在提交 PR 后，任何合并需用户另行明确授权。
+
 更新日期：2026-10-18。状态：**G0_DONE / G1A_DONE（通过，continue）/ PR1_MERGED（`0798aa7`）/ NOTEBOOK_01_DONE / G1B_DONE（工程完成；性能 `correct_but_not_faster`，收口速度主线）/ NOTEBOOK_02_DONE / P0_FUSED_SCORE_DONE（停止门通过）/ P1_FUSED_ATTEND_DONE（停止门未通过：比值 0.82 / 0.83 > 0.80）/ FUSED_KERNEL_LINE_STOPPED（用户决定，2026-10-17）/ PR2_MERGED（`e682e9b`）/ PR3_MERGED（`158bad9`）/ PR4_MERGED（`5f55729`）/ G2LITE_DONE / PR5_REVIEW_FIX_READY（旧结果保留，配置 v3 NOT_RUN，待复审）**。`task/p0-fused-score-kernel`（PR #3）是已合并归档的停止原型；可合并的记录不等于内核完成生产验收。
 
 ## 远端与发布

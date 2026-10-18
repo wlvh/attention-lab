@@ -80,3 +80,5 @@ cd attention-lab
 本设备不划算、质量损失太大、证据不足，都是可接受结果。成功意味着能够根据可追溯的预测与对照作出设计判断，而不是一定证明稀疏注意力更快。
 
 原始 [PLAN_v3.md](docs/archive/PLAN_v3.md) 保留不改；执行时以当前方案和 [AGENTS.md](AGENTS.md) 为准。原件、讨论结论、官方资料核对和本地工具验证各有独立来源，参见 [SOURCES.md](docs/SOURCES.md)。
+
+最新缩减任务：[G3a 单层索引器可学习性](docs/tasks/06_G3A_SINGLE_LAYER.md)；[结果报告](reports/g3a_mac_m4max.md)；[实验课04](reports/04_can_an_indexer_learn.html)。默认阅读使用保存结果，不启动训练。

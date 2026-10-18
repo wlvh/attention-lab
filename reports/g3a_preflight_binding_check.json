@@ -1,0 +1,63 @@
+{
+  "scope": "CPU-only check of existing successful preflight and formal records; no model execution or historical file writes",
+  "archive_sha256": "3a580f8115aa242c143f274d82803a5048aa87d84edb8906aa2dfcd7682b8e7d",
+  "inputs": {
+    "g3a-20261018T122640Z-preflight/manifest.json": {
+      "sha256": "2c77d7b935bfa0dd91df735948fe6b705964db003e156c6f2c057d0332caf7a2",
+      "local_matches_archive": true
+    },
+    "g3a-20261018T122640Z-preflight/summary.json": {
+      "sha256": "c2e28a23a9f572379b68fec516e7b006c7b73b41bb3b7c79ea3c5140920a968a",
+      "local_matches_archive": true
+    },
+    "g3a-20261018T122927Z-formal/manifest.json": {
+      "sha256": "11757fb8a75c221af7125438312b9a5cc1f5fbe172b682e093859d79ed22f67d",
+      "local_matches_archive": true
+    },
+    "g3a-20261018T122927Z-formal/summary.json": {
+      "sha256": "eddabf3ef16e3ae39f149a0bdc72da8e1d5b9cbe51b6154e016824238100d3ca",
+      "local_matches_archive": true
+    }
+  },
+  "preflight_run": "g3a-20261018T122640Z-preflight",
+  "preflight_commit": "1ee30e29e7d5d5535a3d69c95d21014d69cf0e85",
+  "formal_run": "g3a-20261018T122927Z-formal",
+  "formal_commit": "b998ee733b75af861613999fc3d4ec6c992b4835",
+  "config_sha256": "96b071c79b5e956a6daec3f404a959c63e7ff2872d6ab097e0d267c934769456",
+  "base_config_sha256": "83f1bd6a87b031de827618b32843fe2857402fe59a67a44165508ca8f15c7a0c",
+  "config_objects_equal": true,
+  "recorded_source_count": 23,
+  "source_differences": {},
+  "committed_file_changes_between_runs": [
+    "scripts/g3a_report.py"
+  ],
+  "required_execution_sources": [
+    "bench/g3a_train.py",
+    "src/attention_lab/__init__.py",
+    "src/attention_lab/g3a.py",
+    "src/attention_lab/g2lite_data.py",
+    "src/attention_lab/qwen_wrap.py",
+    "src/attention_lab/indexer.py",
+    "src/attention_lab/selection.py",
+    "src/attention_lab/decode.py",
+    "src/attention_lab/full.py",
+    "src/attention_lab/sparse.py",
+    "src/attention_lab/reference.py",
+    "src/attention_lab/runinfo.py"
+  ],
+  "historical_binding_check": "passed",
+  "patched_runner_against_historical_preflight": "rejected as expected: preflight execution source missing or differs: bench/g3a_train.py",
+  "historical_versions": {
+    "torch": [
+      "2.14.1",
+      "2.14.1"
+    ],
+    "transformers": [
+      "5.20.0",
+      "5.20.0"
+    ]
+  },
+  "raw_result_changes": false,
+  "new_model_runs": 0,
+  "html_layout_validation": "unchanged; full page and narrow viewport not verified"
+}
