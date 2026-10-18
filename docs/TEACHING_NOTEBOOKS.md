@@ -29,9 +29,9 @@ Codex负责执行，用户事后按计算问题逐段理解。讲解单位是一
 
 当前只有`00_orientation.ipynb`：解释仓库、源材料、载荷预测和未运行状态。不声称MPS基准完成。
 
-G0/G1a后创建`01_environment_and_attention.ipynb`：本机能力、密集mask与gather等价、真少算、索引成本、MPS测量。
+第一课`01_environment_and_attention.ipynb`已交付：本机能力、密集mask与gather等价、真少算、索引成本、MPS测量。
 
-G1b之后按实际需要增加缓存/连续生成、索引训练/梯度、质量与整体成本课程。不要初始化一堆空Notebook。
+第二课记录Qwen接入与整步成本，第三课记录G2-lite质量与反事实边界。后续课程或实验需明确授权；当前只沿第三课已有案例逐段讲解，不创建第四课。
 
 ## 输出检查
 
@@ -40,7 +40,7 @@ python -m jupyter nbconvert --to notebook --execute --inplace notebooks/01_envir
 python -m jupyter nbconvert --to html notebooks/01_environment_and_attention.ipynb --output-dir reports
 ```
 
-以上是未来文件创建后的操作；不存在的文件不能假装可运行。当前00文件可用相同命令替换路径执行。
+以上是已有Notebook的显式重放命令，不是默认阅读动作。历史课程重放前需核对对应源码/结果版本；本轮直接读已保存HTML，不重新执行三课。
 
 在全新内核从上到下跑通，保留实际输出；HTML检查中文、代码、表格与图片无截断。图仅从测量记录生成；无实测性能前不画预测为实际曲线。小数学例子的数值要标“教学算例”。
 

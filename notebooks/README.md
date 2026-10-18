@@ -1,13 +1,18 @@
-# 教学 Notebook
+# 三份实验课的阅读入口
 
-| Notebook | 内容 | 默认模式 |
-|---|---|---|
-| `00_orientation.ipynb` | 仓库导读、源材料校验、载荷预测工具 | 只读，标准库 |
-| `01_environment_and_attention.ipynb` | G0 与 G1a 的实验课：取子集两种写法为何差 25 倍；少读 KV 为何仍可能更慢；分段相加为何不等于链式；预测与观察对照 | 只读：加载 `reports/` 的实测 JSON，展示同版本源码，CPU 小例子；不加载模型，不跑基准 |
-| `02_qwen_integration_and_decode.ipynb` | G1b 的实验课：把索引注意力装进真实 Qwen——为什么单层快不等于整模型快；真实接入位置、缓存增长、完整步骤耗时、预测成立或失效的原因 | 只读：加载 `reports/g1b_*.json`，展示同版本 `qwen_wrap.py` 源码，tiny 随机 Qwen3 的 CPU 小例子；不下载权重，不跑整模型基准 |
-| `03_what_is_lost_when_reading_less.ipynb` | G2-lite 的实验课：少看历史会丢掉什么——A / B / C / D0 四种读取方式在同一前缀、同一问题、同一名额下的质量对照；基线可用性、覆盖率、代表案例的真实选择位置、反事实改写 | 只读：加载 `reports/g2lite_*.json`，展示同版本选择器源码，tiny 随机 Qwen3 的 CPU 契约重放；不加载 0.6B 模型，不跑 GPU |
+默认直接打开HTML，不执行Python、不下载模型、不训练、不启动GPU基准。打开Notebook也可先阅读已保存输出；其中的可执行小例子仅用CPU，不会隐式启动正式模型实验。
 
-已执行的 HTML 在 `../reports/`。从全新内核重跑并导出：
+| 课程 | 已保存HTML | Notebook | 内容与版本 |
+|---|---|---|---|
+| 01 环境与单层注意力 | [直接阅读](../reports/01_environment_and_attention.html) | [源码与保存输出](01_environment_and_attention.ipynb) | G0/G1a；`ff31d3a` 含PR #4措辞更正，数据来源见G0/G1a报告和manifest |
+| 02 Qwen接入与整步解码 | [直接阅读](../reports/02_qwen_integration_and_decode.html) | [源码与保存输出](02_qwen_integration_and_decode.ipynb) | G1b；`ff31d3a` 含PR #4措辞更正，历史运行源码在provenance/g1b；tiny CPU示例不是0.6B复测 |
+| 03 少读历史会丢什么 | [直接阅读](../reports/03_what_is_lost_when_reading_less.html) | [源码与保存输出](03_what_is_lost_when_reading_less.ipynb) | 旧v2运行 `af62df4` → 报告生成代码 `72b848d` → 保存导出 `a3832a8`；当前v3 NOT_RUN |
+
+[00导读](00_orientation.ipynb)用于认识原方案和预测核算，不是实测课程。三课都已进入main；当前项目状态与固定版本诊断索引见[交接当前段](../docs/HANDOFF_2026-10-18.md#current-state-20261018)。
+
+第三课修订保留旧回答与成绩，标注旧C改写的随机条件混杂，修正邻域与预算展示，撤回未经证明的机制结论。18个代码单元已从新内核执行，9处图像中5张独立图已检查；**整页HTML布局仍未验**。本轮预览状态查询超时，没有确认开头、主要表格、案例、代码区和结尾的实际页面，不把执行成功当视觉验收。
+
+以下为明确需要重放时的命令，不是默认阅读动作；本轮不执行。01/02 的历史源码与当前工作树可能不同，重放前须核对对应快照，不能把当前源码冒充旧run版本。03 已显式区分旧运行快照与当前汇总代码。使用已有隔离环境，不安装或下载模型：
 
 ```bash
 source .venv/bin/activate
