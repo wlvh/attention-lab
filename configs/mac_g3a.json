@@ -16,6 +16,7 @@
   "fixed_prefix": 4,
   "fixed_recent": 64,
   "data_seed": 2026101803,
+  "length_tolerance_tokens": 64,
   "train_docs": 48,
   "heldout_docs": 16,
   "buckets_cycle": ["front", "middle", "back_near", "back_far"],

@@ -29,6 +29,7 @@ def new_documents(tok, cfg, count):
     from attention_lab.g2lite_data import build_document
     base = copy.deepcopy(json.loads((ROOT / cfg["base_config"]).read_text()))
     base["data"]["seed"] = cfg["data_seed"]
+    base["data"]["layout"]["length_tolerance_tokens"] = cfg["length_tolerance_tokens"]
     base["data"]["bucket_plan"]["T1"] = (cfg["buckets_cycle"] * 16)
     docs = []
     for i in range(count):
