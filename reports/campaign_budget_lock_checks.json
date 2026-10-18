@@ -1,0 +1,39 @@
+{
+  "scope": "CPU-only lock regression checks in temporary ledgers; no real model or historical ledger writes",
+  "implementation_sha256": "4b596a40f1904ca73c709f0f0c751c609cdbebb038820263e0e7d96c39b5f97f",
+  "tests_sha256": "253479a18cfaa9ffa051cf2286780a3e125f70b5663d8744b0bd8f2a4eec0582",
+  "previous_implementation_commit": "c8b5dd6604094aa7a32a7c2f871b6a71c9c19b7a",
+  "positive": {
+    "command": ".venv/bin/python -m pytest tests/test_campaign.py tests/test_g3b.py tests/test_g3b_report.py -q",
+    "passed": 14
+  },
+  "standard_library_only": {
+    "command": ".venv/bin/python -S -m unittest discover -s tests -p test_campaign.py -q",
+    "passed": 9
+  },
+  "negative_control": {
+    "source": "previous implementation from git show; new test file in a temporary source tree",
+    "selection": "-k simultaneous",
+    "expected_failures": 2,
+    "observed": "both workers read idle state; [read, read] rather than [read, rejected]"
+  },
+  "synthetic_clock_example": {
+    "first_seconds": 10,
+    "second_seconds": 20,
+    "expected_and_observed_total": 30,
+    "second_status": "incomplete",
+    "note": "constructed CPU test times, not real experiment elapsed time"
+  },
+  "covered": [
+    "simultaneous first creation",
+    "simultaneous existing ledger read",
+    "sequential OS processes preserve all charges",
+    "caught worker failure charges and releases",
+    "lock spans final ledger write",
+    "entry/write failures release OS lock",
+    "forced termination releases OS lock but stale accounting remains blocked"
+  ],
+  "platform": "POSIX flock on Mac; Linux verification via PR CI; no Windows execution route",
+  "forced_termination_policy": "do not erase active_pid or guess elapsed time; reconcile unfinished accounting before another real run",
+  "historical_records": "unchanged; full five-run archive and time audit delivered on downstream PR #18"
+}
