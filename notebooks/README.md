@@ -10,6 +10,7 @@
 
 | `05_training_all_layer_indexers.ipynb` | G3b：28层参数、逐层指标与完整路径训练的局限 | 只读归档、重算与画图，不加载模型或训练 |
 | `06_from_teacher_features_to_sparse_states.ipynb` | G3c：单层/全层接入、全选检查、同token状态差异 | 只读已有记录和源码，不运行模型 |
+| `07_trained_sparse_quality_and_cost.ipynb` | G4-lite：新T1自由生成、配对错误、实际选位和同token成本 | 只读冻结记录，CPU重判与作图，不运行模型 |
 
 已执行的 HTML 在 `../reports/`。从全新内核重跑并导出：
 
