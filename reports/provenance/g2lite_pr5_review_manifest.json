@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "purpose": "PR5 review repairs; historical run manifests and archives remain unchanged",
+  "snapshots": [
+    {
+      "source": "bench/g2lite_quality.py",
+      "snapshot": "reports/provenance/g2lite_pr5_review/g2lite_quality_at_formal_runs.py",
+      "sha256": "d397c5013adac63f9413f388956091b483dd9e5aa48229e49d7f8aa500ab804a",
+      "commit": "af62df48d2a993dc6b4e0369ee4137bd6cc47615",
+      "diff": "reports/provenance/g2lite_pr5_review/g2lite_quality_at_formal_runs.diff"
+    },
+    {
+      "source": "src/attention_lab/g2lite_eval.py",
+      "snapshot": "reports/provenance/g2lite_pr5_review/g2lite_eval_at_formal_runs.py",
+      "sha256": "be8cc6a17cd007fe2cb50782d5a4a2ad28354eb80d2d94e8312d65c52df62b8c",
+      "commit": "af62df48d2a993dc6b4e0369ee4137bd6cc47615",
+      "diff": "reports/provenance/g2lite_pr5_review/g2lite_eval_at_formal_runs.diff"
+    },
+    {
+      "source": "configs/mac_g2lite.json",
+      "snapshot": "reports/provenance/g2lite_pr5_review/mac_g2lite_at_formal_runs.json",
+      "sha256": "4aa1703fc88c290098337a90fb5af297370c1c3ada25d93323cee1b964f5987e",
+      "commit": "af62df48d2a993dc6b4e0369ee4137bd6cc47615",
+      "diff": "reports/provenance/g2lite_pr5_review/mac_g2lite_at_formal_runs.diff"
+    }
+  ],
+  "immutable_files": {
+    "reports/provenance/g2lite_runs_20261017.tar.gz": "69d3f3afb12e10ad20d2cd4f8350c7dd2f1122855ba540004be7775ff1a7c42d",
+    "reports/provenance/archive_manifest.json": "1f302c146179a2057502d07a4a5316c72b8f745b3d8229c02176aded1dbc50d4",
+    "reports/g2lite_answers_mac_m4max.json": "a19ce35ec8027f8044555e197347d13ad2b44b151a8336292b7ac5f39c14e13e",
+    "reports/g2lite_manifest_mac_m4max.json": "f87df083b19f59c65644cac6d46941833f82f9958a1ddff55ac98469a9fea10a"
+  },
+  "prediction_sha256": "a029d0cf4eba7f9706bcf960626cebeebb0c2b7c68dfa1b0a561dab727c09d35",
+  "frozen_table_fields": [
+    "baseline_methods",
+    "comparison_methods",
+    "gate",
+    "paired",
+    "a_consistency_vs_baseline"
+  ],
+  "frozen_tables_sha256": "160c74e8430aef6336a1d41757ed840efc088eca63d9b1f5ccb456fb0fa1527b",
+  "early_calibration_gap": {
+    "run_tags": [
+      "calib-w2",
+      "calib-w4",
+      "calib-w5"
+    ],
+    "source": "src/attention_lab/g2lite_data.py",
+    "sha256": "f6ea72476fe667c3ca8b31bb29228f6c54f8593cde02e9cceb1823ab047f23e4",
+    "status": "exact source not recovered from existing source history or provenance snapshots"
+  }
+}

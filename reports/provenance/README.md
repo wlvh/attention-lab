@@ -67,3 +67,43 @@ diff /tmp/g1b_check/g1b.md reports/g1b_mac_m4max.md
 ```
 
 `g1b_report.py` 只读 JSON，不导入 torch、不加载模型、不启动 GPU。旧 run 的 manifest 没有被改写。
+
+# G2-lite 证据链归档（PR #5）
+
+## 内容
+
+| 文件 | 作用 |
+|---|---|
+| `g2lite_runs_20261017.tar.gz` | 正式三遍四个 run（`g2lite-20261017T130007Z-pass1-A`、`…T130319Z-pass2-ABCD0`、`…T130551Z-pass3a-rewrites`、`…T130715Z-pass3b-move`）的 data.jsonl（含送入模型的 token id）、quality.jsonl（逐题回答与解析）、summary.json、manifest.json、运行时的 config.json，以及代表案例的 `positions/*.npz`（每层每组第一个生成 token 那一步的名单位图与逐步覆盖率）；冒烟、预检与校准 run 的 quality / summary / manifest / config（不含 data.jsonl）；日志 |
+| `g1b/decode_at_g1a_g1b_runs.py`、`g1b/decode_post_g1b_edit.diff` | G1a 到 G1b 所有 run 使用的 `src/attention_lab/decode.py` 快照，与 G2-lite 对它的全部改动（B、C 的名单生成函数、共用取行核、`return_rows`）；D0 的核序列不变 |
+| `g1b/qwen_wrap_at_g1b_numerics4_and_phasefix_runs.py`、`g1b/qwen_wrap_post_g1b_edit.diff` | G1b 数值 run 4 与附录 run 使用的 `qwen_wrap.py`（PR #2 合并版本）快照，与 G2-lite 对它的全部改动（选择器、每步均匀抽样流、名单记录） |
+
+## 核验
+
+`python scripts/check_provenance.py` 校验 G1b/G1a 的历史快照链，以及四个 G2-lite 正式 run 对应的 `af62df4` 源码。2026-10-18 修复后，`g2lite_eval.py` 和 `bench/g2lite_quality.py` 已有变化，旧运行哈希改与下面的新归档快照核对；不能为了让当前源码匹配而改写旧 manifest。
+
+## 无 GPU、不加载模型重新生成报告
+
+```bash
+mkdir -p /tmp/g2lite_check && tar xzf reports/provenance/g2lite_runs_20261017.tar.gz -C /tmp/g2lite_check
+python scripts/g2lite_report.py --runs-dir /tmp/g2lite_check/runs \
+  --out /tmp/g2lite_check/g2lite.md --json /tmp/g2lite_check/summary.json \
+  --answers /tmp/g2lite_check/answers.json --manifest /tmp/g2lite_check/manifest.json \
+  --build-manifest /tmp/g2lite_check/report_build.json
+diff /tmp/g2lite_check/g2lite.md reports/g2lite_mac_m4max.md
+```
+
+`g2lite_report.py` 只读 JSON / JSONL 与 npz，不导入 torch、不加载模型。校准 run（`-calib-`）与冒烟 run（`-quick-`）被默认排除；它们的数字只出现在卡片的校准附录里。
+
+校准与冒烟 run 是用会话临时目录里的候选配置启动的，归档副本中 summary.json / manifest.json 的 `args.config` 与 `command` 字段把该临时目录替换成了 `<scratchpad>`（它含本机用户名）；实际使用的配置原样归档为同目录的 config.json，正式 run 未做任何改动。
+
+## 2026-10-18：PR #5 收尾修复的独立来源链
+
+- `g2lite_pr5_review/` 保存从 `af62df4` 直接取得的运行器、汇总模块和 v2 配置原件，另附当前修复的 diff。原有归档、旧快照和 manifest 不改。
+- `g2lite_pr5_review_manifest.json` 记录新快照的哈希、旧答案/manifest/归档的固定哈希、主表与配对表的固定摘要、原预测段哈希。`check_provenance.py` 同时校验这些不变量及源码差异。
+- `../g2lite_report_build.json` 是新报告的生成清单：记录生成代码提交和源码哈希、旧数据输入哈希及使用的名单位图，不是新模型运行。
+- 报告入口局部加载纯 Python 模块，不依赖 torch；Python 标准库与 NumPy 是报告所需依赖。Notebook 的 CPU 演示另外使用现有 torch/transformers/Jupyter/Matplotlib 环境。
+- 当前配置 v3 的父资料种子规则为 NOT_RUN；旧 C 改写继续使用它们原记录中的不同种子，只能标混杂，不能倒填为已受控。
+- v1 calib-w2/w4/w5 的生成器确切源码未在现有提交或来源快照中找到，缺口保留。其余正式 v2 来源核验不因此改写或中止。
+
+报告正文中的生成代码提交会随重生成时所在提交变化，逐文件源码 SHA-256 提供精确版本标识。重建应保持逐题答案、评分、主表、门槛及配对统计不变；新增来源清单不要求跨不同生成提交逐字节相同。
