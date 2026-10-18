@@ -82,3 +82,5 @@ cd attention-lab
 原始 [PLAN_v3.md](docs/archive/PLAN_v3.md) 保留不改；执行时以当前方案和 [AGENTS.md](AGENTS.md) 为准。原件、讨论结论、官方资料核对和本地工具验证各有独立来源，参见 [SOURCES.md](docs/SOURCES.md)。
 
 最新缩减任务：[G3a 单层索引器可学习性](docs/tasks/06_G3A_SINGLE_LAYER.md)；[结果报告](reports/g3a_mac_m4max.md)；[实验课04](reports/04_can_an_indexer_learn.html)。默认阅读使用保存结果，不启动训练。
+
+连续质量路线：[G3b任务](docs/tasks/07_G3B_LITE.md)已完成并待审，[结果](reports/g3b_mac_m4max.md)与[实验课05](reports/05_training_all_layer_indexers.html)。后续[G3c](docs/tasks/08_G3C_REAL_SPARSE.md)和[G4-lite](docs/tasks/09_G4_LITE.md)在共享4小时设备预算内接续；最新授权与进度以[接力状态](PROJECT_STATUS.md)为准。

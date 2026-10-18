@@ -181,6 +181,13 @@ def main() -> int:
             print(f"G3a archive/source/checkpoint hashes and {g3a['rows']} complete per-query method records verified.")
         except Exception as exc:
             errors.append(f"G3a evidence: {exc}")
+    if (PROV / "g3b_archive_manifest.json").exists():
+        try:
+            from g3b_report import read_evidence as read_g3b, summarize as summarize_g3b
+            g3b = summarize_g3b(read_g3b())
+            print(f"G3b archive/source/checkpoint hashes and {len(g3b['layers'])} complete layers verified from raw query records.")
+        except Exception as exc:
+            errors.append(f"G3b evidence: {exc}")
     if errors:
         print("\n".join(errors))
         return 1

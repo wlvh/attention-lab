@@ -17,6 +17,7 @@
 | `g2lite_summary_mac_m4max.json`、`g2lite_answers_mac_m4max.json`、`g2lite_manifest_mac_m4max.json` | G2-lite 精简表格与案例、逐题回答与解析、三遍 run 的 manifest（含 model / tokenizer revision、配置版本、数据 digest） | 实测 |
 | `04_can_an_indexer_learn.html` | 实验课04：第14层索引器第一次训练，冻结特征上的教师模仿与局部输出 | 新 G3a 48/16 资料；不是 G2-lite 重跑或整模型能力评测 |
 | `g3a_mac_m4max.md`、`g3a_summary_mac_m4max.json`、`g3a_cpu_audit.json` | 单层结果、逐资料/逐组指标、真实选位、独立 NumPy 核验 | 源自新的 G3a 原始记录 |
+| `05_training_all_layer_indexers.html`、`g3b_mac_m4max.md` | G3b：27层新训练、第14层复用；28层完整路径局部指标 | 旧开发集描述，不代表真实稀疏生成 |
 | `cards/G0_mac_m4max.md`、`cards/G1a_mac_m4max.md`、`cards/G1b_mac_m4max.md`、`cards/G2lite_mac_m4max.md` | 关卡卡片：运行前预测、运行后观察、解释、决策 | 预测写于运行前 |
 | `g0_*.json`、`g1a_*.json`、`g1a_supplement_*.json` | 上述报告的精简数据与 manifest | 实测 |
 | `g0_roofline_mac_bw390.{md,json}` | 以实测 390 GB/s 回填的载荷情景 | 预测 |
@@ -26,3 +27,5 @@
 重新生成：`python scripts/g0_report.py`、`python scripts/g1a_report.py`、`python scripts/g1a_supplement_report.py`、`python scripts/g1b_report.py`、`python scripts/g2lite_report.py`。无 GPU 从归档重生 G1a 报告的步骤见 `provenance/README.md`。
 
 G3a 报告重建：`python scripts/g3a_report.py`（标准库，不导入 torch）。完整特征保留在本机原始 run；精简归档含数据、参数、指标及原位置名单。
+
+G3b报告重建：`python scripts/g3b_report.py`（标准库，不导入torch）。参数来源与身份见 `g3b_parameters.json`。

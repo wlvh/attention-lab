@@ -1,0 +1,235 @@
+{
+  "run_id": "g3b-20261018T142640Z-formal",
+  "source_commit": "2b6db0bc95641403ce5d728bcdbc4a16c209cf4a",
+  "model_id": "Qwen/Qwen3-0.6B",
+  "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+  "index_dtype": "float32",
+  "r": 32,
+  "layers": [
+    {
+      "layer_index": 0,
+      "initial_file": "layer-00/index_initial.npz",
+      "final_file": "layer-00/index_final.npz",
+      "initial_sha256": "4c3501ac77803705cdda4f13d9a3de05ef8e5dfa55cfeff8b70077b1a47aa5c0",
+      "final_sha256": "8b02c33f080f85741319b99f05d0e3b38664e031f11329eb2c5fd788f8db8b9c",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 1,
+      "initial_file": "layer-01/index_initial.npz",
+      "final_file": "layer-01/index_final.npz",
+      "initial_sha256": "36788aee994c21d9f06d23c8e3a3fd7d9b3b634e6ee950fb8104c0628c60f753",
+      "final_sha256": "c1348d41c1ae45d00d3f43601f21ab0636cbfcddd3b55000851f9c2335002386",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 2,
+      "initial_file": "layer-02/index_initial.npz",
+      "final_file": "layer-02/index_final.npz",
+      "initial_sha256": "9aaa2ca479b648bd664949171fc3803121b0aab925aeb950f4ece9d9208555e0",
+      "final_sha256": "6c11c694a05d0b9409fbf1f73c8501aa146f878178cd610d9dc5245ec790d557",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 3,
+      "initial_file": "layer-03/index_initial.npz",
+      "final_file": "layer-03/index_final.npz",
+      "initial_sha256": "1e5037fee5e04eee47b46577d566356bbf7961678c2befd7cff41add81163680",
+      "final_sha256": "4a127e74158bda2166877f236ff0f2691fd509c73d5d237fca889338081c59e3",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 4,
+      "initial_file": "layer-04/index_initial.npz",
+      "final_file": "layer-04/index_final.npz",
+      "initial_sha256": "15fc1f0808becd36536eb3743f0310aec5dc7db9c314d569cf5e9ba8e0dee053",
+      "final_sha256": "0db74aa0f62453454fcee161ae8f3a1f3067b9082ba1c08af1aa9501e31e9010",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 5,
+      "initial_file": "layer-05/index_initial.npz",
+      "final_file": "layer-05/index_final.npz",
+      "initial_sha256": "df8254ac87896087bde9199d04a7d273fc73bc095292b66b570a62d0d98c150e",
+      "final_sha256": "cc5a06196ac940c34c4b3c0e99f16dfca5f53b13435f8488fe7e93378c95285d",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 6,
+      "initial_file": "layer-06/index_initial.npz",
+      "final_file": "layer-06/index_final.npz",
+      "initial_sha256": "4e2015f8b1ed0e46f620c74e061979523e9bee9ff6af71277176332786f91256",
+      "final_sha256": "eb394bb6f8328ecd5190e4a6b3e5638effbdafb345edd719497a346813f0c84f",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 7,
+      "initial_file": "layer-07/index_initial.npz",
+      "final_file": "layer-07/index_final.npz",
+      "initial_sha256": "903a50ab23a49dd8b134292495c98df9b1418d3d528f81f0781d039292bb2331",
+      "final_sha256": "f7fdac6624db30e82a9048fd5d7b3dc390755a86a3719831410662b43a7feb8e",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 8,
+      "initial_file": "layer-08/index_initial.npz",
+      "final_file": "layer-08/index_final.npz",
+      "initial_sha256": "630311fc3ffce49e5232ad967a10cc015bf7d2bd08e8c68fbe64bc7713e4a5c6",
+      "final_sha256": "7c7f26aaecf07f692b0e607c06b59bcdba658ba7853259915614428c3de2c3c4",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 9,
+      "initial_file": "layer-09/index_initial.npz",
+      "final_file": "layer-09/index_final.npz",
+      "initial_sha256": "9c74c082395a9f21b0534d8376cab059dfb630905f3cebcb843ac0bd4dd3784f",
+      "final_sha256": "32642e4e55418768c57c9f4eacdfb8f7d77bef71b6c2be1874405c289715a8ab",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 10,
+      "initial_file": "layer-10/index_initial.npz",
+      "final_file": "layer-10/index_final.npz",
+      "initial_sha256": "8151c4ba0271e9e653c5cc005f6c7d232d308d486959e83fa7f4ae90ae812b85",
+      "final_sha256": "60df984a0eb4ccba88a0825631dac0aa43cf1b9dd72228195da0b0e0d0e5df29",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 11,
+      "initial_file": "layer-11/index_initial.npz",
+      "final_file": "layer-11/index_final.npz",
+      "initial_sha256": "979efb1565fc2bf067a690bd5d0aff968c917b376c6decc11ea6396672db7a6a",
+      "final_sha256": "4b54c24875bae00af0cb2e4cc69a2f6e110ee2aed57407989db4b23dfdbce3ef",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 12,
+      "initial_file": "layer-12/index_initial.npz",
+      "final_file": "layer-12/index_final.npz",
+      "initial_sha256": "6f03818c0ea2487d66bda0aad95368ba62b3295b2bb2be6eafdb108ae9449359",
+      "final_sha256": "fbf4732b5549b46736cc7468924c51048cd41eae084f1a2c57461d7be0efd935",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 13,
+      "initial_file": "layer-13/index_initial.npz",
+      "final_file": "layer-13/index_final.npz",
+      "initial_sha256": "2b9e3158406fc6ea3e7e539679e06aa667961c91d2bb1d3f88e2923d40070d6f",
+      "final_sha256": "523a5a76b165ac0ca4b8570990b15dceaee55f54ff5738a64fc69d9699a24dad",
+      "origin": "reused_G3a"
+    },
+    {
+      "layer_index": 14,
+      "initial_file": "layer-14/index_initial.npz",
+      "final_file": "layer-14/index_final.npz",
+      "initial_sha256": "5e56b8a2a7e40fa169ea03851909a3dadb41cffd655cd1d1be6a64644e73bbd0",
+      "final_sha256": "d67f092d03b4ae770f8fba310175b7e2a698805aa868af0aa1448c976c384c00",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 15,
+      "initial_file": "layer-15/index_initial.npz",
+      "final_file": "layer-15/index_final.npz",
+      "initial_sha256": "17c171edcbaef59e7a699a3be7f504748de7e3fcbe5af49fb1181f4bec9f94ea",
+      "final_sha256": "aa8140fd4cfec22913083ebde5fe524b1d98c831bc63fcd49c282d4628a97851",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 16,
+      "initial_file": "layer-16/index_initial.npz",
+      "final_file": "layer-16/index_final.npz",
+      "initial_sha256": "52f475c74096cfb4ef2e890b0f891b2ca03dc09834121b186e1fe84ffa51243f",
+      "final_sha256": "f2c646c7be8f750b2611578b644b5ff8c7a68b16a2adcfcf7e1ed5e564cc6ed0",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 17,
+      "initial_file": "layer-17/index_initial.npz",
+      "final_file": "layer-17/index_final.npz",
+      "initial_sha256": "e1b3d7a57f7621dde62ca4c69b27853a925c30b0fd81b6846d36c3a0a1f9644e",
+      "final_sha256": "7226fea286b34bd3d876288516904458c810b4211559013f0d80bb74294d4bf8",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 18,
+      "initial_file": "layer-18/index_initial.npz",
+      "final_file": "layer-18/index_final.npz",
+      "initial_sha256": "128d1bfe915d51b76dd1581397f103daba5431e49624af3d0c612989c342d4e2",
+      "final_sha256": "f181809757c36abf808c7658e30affee17baf5089413738aa03df85833d947b5",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 19,
+      "initial_file": "layer-19/index_initial.npz",
+      "final_file": "layer-19/index_final.npz",
+      "initial_sha256": "e871b25e5d7d04fcc31bfebd49fb2c3980f03624f1100382df37533d248e5269",
+      "final_sha256": "4065639c87837c7afaed27fedb97b9b0ee74d2d42cc3eced783c62b8dbb7e3bd",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 20,
+      "initial_file": "layer-20/index_initial.npz",
+      "final_file": "layer-20/index_final.npz",
+      "initial_sha256": "0f75e17efc80503ca8220183604afcbd1db0729e2f8e4e38fecc93e3d8331db6",
+      "final_sha256": "c64ad50510810b844453c1c05b84df14aded1bcc57d1f772c93918bd5f9a160b",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 21,
+      "initial_file": "layer-21/index_initial.npz",
+      "final_file": "layer-21/index_final.npz",
+      "initial_sha256": "48a1b34329c89c9149cf688f3cadbd796d3256fd47825c1176c419945babb2ea",
+      "final_sha256": "0c6aff5dfe395aa4a2bf8ee58d9eef1be26a4ba8fea951fbd46472870c09c0f9",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 22,
+      "initial_file": "layer-22/index_initial.npz",
+      "final_file": "layer-22/index_final.npz",
+      "initial_sha256": "6a77d441370a3ff3661f7333605ac3bfbc59b0ae338706105e44c81f0e157346",
+      "final_sha256": "e3844846185694e96833ca6c31747ec66f5a9c3d29964ffdbf9b9a84d69d9f23",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 23,
+      "initial_file": "layer-23/index_initial.npz",
+      "final_file": "layer-23/index_final.npz",
+      "initial_sha256": "4c573beb988c409096632916d1aec3b714eb85f48fac199aa722fd957c9f4e1b",
+      "final_sha256": "08638994267af0dc90431d5f2909bcd5b401530006c33e8e1b122bcb716eff7a",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 24,
+      "initial_file": "layer-24/index_initial.npz",
+      "final_file": "layer-24/index_final.npz",
+      "initial_sha256": "a8c045032daff826a8da98833afcc852c4af61b24bb2f5ea18c336d36432514a",
+      "final_sha256": "7b8d1cd9be8b0547915466b31507652f5fffb92ec356bf36f2913fc86db9f1ed",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 25,
+      "initial_file": "layer-25/index_initial.npz",
+      "final_file": "layer-25/index_final.npz",
+      "initial_sha256": "4b45a1bc3ec910256f01921c0352b174ded08c414dbf051580b9c321f2657d4b",
+      "final_sha256": "ca8ad71c6cde9c57a0283239a4ce1939e0a8270a6455ee26f1c0db5f8e7891d5",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 26,
+      "initial_file": "layer-26/index_initial.npz",
+      "final_file": "layer-26/index_final.npz",
+      "initial_sha256": "c08b35c357aa58206f4862600f8884bcf4c980015cce5413ba680e87aa2051c6",
+      "final_sha256": "8abc34acd2ceb1f33234a3c04dc0a7b29066598bb36f25e8a51d681d95996650",
+      "origin": "new_training"
+    },
+    {
+      "layer_index": 27,
+      "initial_file": "layer-27/index_initial.npz",
+      "final_file": "layer-27/index_final.npz",
+      "initial_sha256": "e066ed3d2ccc4eb73edfb4e8e48eca16d0e600569f030f62632a56c30f05f072",
+      "final_sha256": "9e9d7fff8c753deab924168f53c487c667c6e4016932b1e9910acd6224861eda",
+      "origin": "new_training"
+    }
+  ],
+  "bank_id": "1ef58490ae43de079f2405d72111df17167b7784059c93f6e658758b830e7e62"
+}
