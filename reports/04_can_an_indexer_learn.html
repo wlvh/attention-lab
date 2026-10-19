@@ -8255,33 +8255,26 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>两头各自分配: [[0.40111207962036133, 0.19777581095695496, 0.40111207962036133], [0.19777581095695496, 0.40111207962036133, 0.40111207962036133]]
 组平均: [[0.29944396018981934, 0.29944396018981934, 0.40111207962036133]]
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>逐头归一化，再平均：检查通过。
+逐头归一化，再平均：检查通过。
 </pre>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0888e60c">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=301deae4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="3a.-%E6%8A%8A%E4%B8%80%E6%AC%A1%E5%AD%A6%E4%B9%A0%E8%BF%87%E7%A8%8B%E7%BC%A9%E5%88%B012%E4%B8%AACPU%E5%8F%82%E6%95%B0">3a. 把一次学习过程缩到12个CPU参数<a class="anchor-link" href="#3a.-%E6%8A%8A%E4%B8%80%E6%AC%A1%E5%AD%A6%E4%B9%A0%E8%BF%87%E7%A8%8B%E7%BC%A9%E5%88%B012%E4%B8%AACPU%E5%8F%82%E6%95%B0">¶</a></h2><p>沿用上面的两个查询头、三个位置与二维Q/K/V。本节把三个位置视为候选、只选一个，便于看清“分布—名单—读出”的区别；它不模拟真实2K资料的首4/近64规则，也不是新增模型实验。</p>
-<p>小索引器Wq形状为[1,2,4]，Wk为[1,2,2]，一共12个可变数。Q/K/V全部固定。下面调用独立的Python教学入口，入口内部复用正式的teacher、TrainableIndexer、kl_rows与gather_attention；不加载Qwen，不修改任何已训练索引参数。</p>
-<p>先仅将Wq乘2观察数值缩放，再从原始初始化做既有CPU测试使用的20步Adam更新（学习率0.02）。这20步只更新这12个临时CPU参数。</p>
-<p>实现见<a href="../scripts/g3a_cpu_lesson.py">CPU教学入口</a>。下面展示的更新循环直接从该文件读取，Notebook不另维护一份训练算法。</p>
+<h2 id="3a.-%E5%B1%95%E5%BC%80%E4%B8%80%E6%AC%A112%E5%8F%82%E6%95%B0%E7%9A%84CPU%E5%AD%A6%E4%B9%A0%E8%BF%87%E7%A8%8B">3a. 展开一次12参数的CPU学习过程<a class="anchor-link" href="#3a.-%E5%B1%95%E5%BC%80%E4%B8%80%E6%AC%A112%E5%8F%82%E6%95%B0%E7%9A%84CPU%E5%AD%A6%E4%B9%A0%E8%BF%87%E7%A8%8B">¶</a></h2><p>沿用上面的两个查询头、三个位置和二维Q/K/V。这里只有1个KV组，位置编号从0开始；三个位置全部视为候选，没有固定保留集合F，每次只选1个。这个简化算例不模拟真实2K资料的首4/近64规则，也不代表任务答题成绩。</p>
+<p>索引器的Wq形状为[1,2,4]，Wk为[1,2,2]，共12个可训练数值。Q/K/V保持固定。正式实现仍在Python文件中：本节调用<a href="../scripts/g3a_cpu_lesson.py">CPU教学入口</a>，复用项目实际的teacher、TrainableIndexer、kl_rows、gather_attention；不会加载Qwen或修改正式索引参数。</p>
+<p>下面直接运行并解释，不要求读者先回答。先观察Wq×2的缩放，再从原初始化做既有CPU测试使用的20步Adam更新，学习率0.02。</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=4af404b1">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=bc31a9a2">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8289,22 +8282,17 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">demo_source</span><span class="o">=</span><span class="p">(</span><span class="n">ROOT</span><span class="o">/</span><span class="s1">'scripts/g3a_cpu_lesson.py'</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
-<span class="n">start</span><span class="o">=</span><span class="n">demo_source</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">'    optimizer=torch.optim.Adam'</span><span class="p">)</span>
-<span class="n">end</span><span class="o">=</span><span class="n">demo_source</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">'    for x,before'</span><span class="p">,</span><span class="n">start</span><span class="p">)</span>
-<span class="n">display</span><span class="p">(</span><span class="n">Code</span><span class="p">(</span><span class="n">demo_source</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">],</span><span class="n">language</span><span class="o">=</span><span class="s1">'python'</span><span class="p">))</span>
-<span class="n">spec_demo</span><span class="o">=</span><span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">spec_from_file_location</span><span class="p">(</span><span class="s1">'g3a_cpu_lesson'</span><span class="p">,</span><span class="n">ROOT</span><span class="o">/</span><span class="s1">'scripts/g3a_cpu_lesson.py'</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">spec_demo</span><span class="o">=</span><span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">spec_from_file_location</span><span class="p">(</span><span class="s1">'g3a_cpu_lesson'</span><span class="p">,</span><span class="n">ROOT</span><span class="o">/</span><span class="s1">'scripts/g3a_cpu_lesson.py'</span><span class="p">)</span>
 <span class="n">lesson</span><span class="o">=</span><span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">module_from_spec</span><span class="p">(</span><span class="n">spec_demo</span><span class="p">);</span><span class="n">spec_demo</span><span class="o">.</span><span class="n">loader</span><span class="o">.</span><span class="n">exec_module</span><span class="p">(</span><span class="n">lesson</span><span class="p">)</span>
 <span class="n">demo</span><span class="o">=</span><span class="n">lesson</span><span class="o">.</span><span class="n">run_demo</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">'设备:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'device'</span><span class="p">],</span><span class="s1">'临时参数数:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'parameter_count'</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">'固定教师分布:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'teacher'</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">'完整主注意力的两头输出:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'full_main_output'</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">'Q/K/V未变且没有收到梯度:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'body_features_unchanged'</span><span class="p">])</span>
-<span class="n">rows</span><span class="o">=</span><span class="p">[</span><span class="s1">'| 状态 | 索引概率（位置0/1/2） | KL | 入选位置 | 主注意力输出 | 相对输出误差 |'</span><span class="p">,</span><span class="s1">'|---|---|---:|---|---|---:|'</span><span class="p">]</span>
-<span class="k">for</span> <span class="n">label</span><span class="p">,</span><span class="n">key</span> <span class="ow">in</span> <span class="p">[(</span><span class="s1">'初始化'</span><span class="p">,</span><span class="s1">'initial'</span><span class="p">),(</span><span class="s1">'只把Wq乘2'</span><span class="p">,</span><span class="s1">'scaled_Wq_times_2'</span><span class="p">),(</span><span class="s1">'20步CPU更新'</span><span class="p">,</span><span class="s1">'trained'</span><span class="p">)]:</span>
- <span class="n">r</span><span class="o">=</span><span class="n">demo</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
- <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"| </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="mi">6</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">r</span><span class="p">[</span><span class="s1">'probabilities'</span><span class="p">]]</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'kl'</span><span class="p">]</span><span class="si">:</span><span class="s2">.9f</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'positions'</span><span class="p">]</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'main_output'</span><span class="p">]</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'relative_output_error'</span><span class="p">]</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2"> |"</span><span class="p">)</span>
-<span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rows</span><span class="p">)))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'输入Q（两个查询头）:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'inputs'</span><span class="p">][</span><span class="s1">'query_heads'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'输入K（位置0/1/2）:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'inputs'</span><span class="p">][</span><span class="s1">'keys'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'输入V（位置0/1/2）:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'inputs'</span><span class="p">][</span><span class="s1">'values'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'拼接后的组查询q:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'inputs'</span><span class="p">][</span><span class="s1">'concatenated_query'</span><span class="p">])</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span><span class="n">matrix</span> <span class="ow">in</span> <span class="n">demo</span><span class="p">[</span><span class="s1">'initial'</span><span class="p">][</span><span class="s1">'parameters'</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+ <span class="nb">print</span><span class="p">(</span><span class="s1">'初始'</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+ <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">matrix</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">'  '</span><span class="p">,[</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="mi">9</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">row</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'临时参数数:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'parameter_count'</span><span class="p">],</span><span class="s1">'设备:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'device'</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
@@ -8314,6 +8302,235 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>输入Q（两个查询头）: [[1.0, 0.0], [0.0, 1.0]]
+输入K（位置0/1/2）: [[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]]
+输入V（位置0/1/2）: [[2.0, 0.0], [0.0, 2.0], [1.0, 1.0]]
+拼接后的组查询q: [1.0, 0.0, 0.0, 1.0]
+初始 wq
+   [-0.003230926, 0.001780649, -0.002250615, -0.007401995]
+   [0.004102161, -0.027296662, -0.027403669, 0.008768643]
+初始 wk
+   [0.02898637, -0.028630501]
+   [0.011189556, -0.007741941]
+临时参数数: 12 设备: cpu
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=23132401">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="%E4%BB%8E%E8%BE%93%E5%85%A5%E5%92%8C%E5%8F%82%E6%95%B0%E5%BE%97%E5%88%B0%E4%B8%89%E4%B8%AA%E7%B4%A2%E5%BC%95%E5%88%86%E6%95%B0">从输入和参数得到三个索引分数<a class="anchor-link" href="#%E4%BB%8E%E8%BE%93%E5%85%A5%E5%92%8C%E5%8F%82%E6%95%B0%E5%BE%97%E5%88%B0%E4%B8%89%E4%B8%AA%E7%B4%A2%E5%BC%95%E5%88%86%E6%95%B0">¶</a></h3><p>把两个查询头拼成<code>q=[1,0,0,1]</code>。Wq把四维组查询投影成二维向量，Wk把每个位置的二维K投影成二维索引键；两者点积给出位置分数。</p>
+<p>数学上是 (s_j=(W_q q)^T(W_k k_j)/\sqrt r)。实际代码把<code>1/sqrt(r)</code>预先合入查询投影，所以以下显示的是<code>u_scaled</code>，之后点积时不再除第二次。</p>
+<p>教师则用原Q/K分别计算两个头的主注意力概率，再平均。索引器模仿的是这份位置分布，V不参与这次KL监督。</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=dce2acc8">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">initial</span><span class="o">=</span><span class="n">demo</span><span class="p">[</span><span class="s1">'initial'</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'u_scaled:'</span><span class="p">,</span><span class="n">initial</span><span class="p">[</span><span class="s1">'query_projection_scaled'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'三个位置的索引键z:'</span><span class="p">,</span><span class="n">initial</span><span class="p">[</span><span class="s1">'index_keys_by_position'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'索引分数s:'</span><span class="p">,</span><span class="n">initial</span><span class="p">[</span><span class="s1">'scores'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'索引概率softmax(s):'</span><span class="p">,</span><span class="n">initial</span><span class="p">[</span><span class="s1">'probabilities'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'教师的两头概率:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'teacher_per_head'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'教师组平均p:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'teacher'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'初始KL:'</span><span class="p">,</span><span class="n">initial</span><span class="p">[</span><span class="s1">'kl'</span><span class="p">],</span><span class="s1">'初始入选位置:'</span><span class="p">,</span><span class="n">initial</span><span class="p">[</span><span class="s1">'positions'</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>u_scaled: [-0.007518610917031765, 0.009101033210754395]
+三个位置的索引键z: [[0.02898637019097805, 0.011189555749297142], [-0.02863050065934658, -0.007741940673440695], [0.0003558695316314697, 0.0034476150758564472]]
+索引分数s: [-0.00011610071669565514, 0.000144801932037808, 2.8701215342152864e-05]
+索引概率softmax(s): [0.3332882523536682, 0.3333752155303955, 0.3333365023136139]
+教师的两头概率: [[0.40111207962036133, 0.19777581095695496, 0.40111207962036133], [0.19777581095695496, 0.40111207962036133, 0.40111207962036133]]
+教师组平均p: [0.29944396018981934, 0.29944396018981934, 0.40111207962036133]
+初始KL: 0.010033935308456421 初始入选位置: [1]
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ceb542bc">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="%E4%BB%8EKL%E5%88%B0%E6%A2%AF%E5%BA%A6%EF%BC%8C%E5%86%8D%E5%88%B0%E7%9C%9F%E6%AD%A3%E5%86%99%E5%9B%9E%E7%9A%84%E5%8F%82%E6%95%B0">从KL到梯度，再到真正写回的参数<a class="anchor-link" href="#%E4%BB%8EKL%E5%88%B0%E6%A2%AF%E5%BA%A6%EF%BC%8C%E5%86%8D%E5%88%B0%E7%9C%9F%E6%AD%A3%E5%86%99%E5%9B%9E%E7%9A%84%E5%8F%82%E6%95%B0">¶</a></h3><p>此例只有一个组，KL对每个分数的导数为<code>索引概率−教师概率</code>。正值意味着局部上希望压低该位置的分数，负值意味着希望抬高。这个梯度再经过u、z传到Wq和Wk。</p>
+<p>分数本身不是三个独立的可训练参数，它们共享Wq/Wk，因此一次有限步长的参数更新不保证每个分数都按梯度符号单独变化。下面逐个列出12个数值的“更新前→梯度→实际改变量→更新后”。</p>
+<p>优化器是Adam，不能把实际改变量写成简单的<code>−学习率×梯度</code>。它的第一步从零状态开始，经偏差校正后可写为 (\Delta\theta=-0.02g/(|g|+10^{-8}))；这只是在说明本算例的第一步，后续还依赖历史梯度。</p>
+<p>q的第二、三项为0，所以Wq对应列在这份固定输入下梯度为0。<strong>有12个可训练参数，不等于这一步12个数都会改变。</strong></p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=13e63ceb">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">first_step</span><span class="o">=</span><span class="n">demo</span><span class="p">[</span><span class="s1">'trace'</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'dKL/dscore:'</span><span class="p">,</span><span class="n">first_step</span><span class="p">[</span><span class="s1">'gradients'</span><span class="p">][</span><span class="s1">'scores'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'优化器:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'optimizer'</span><span class="p">])</span>
+<span class="n">lines</span><span class="o">=</span><span class="p">[</span><span class="s1">'| 参数 | 更新前 | 梯度 | 实际改变量 | 更新后 |'</span><span class="p">,</span><span class="s1">'|---|---:|---:|---:|---:|'</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'wq'</span><span class="p">,</span><span class="s1">'wk'</span><span class="p">):</span>
+ <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">first_step</span><span class="p">[</span><span class="s1">'before'</span><span class="p">][</span><span class="s1">'parameters'</span><span class="p">][</span><span class="n">name</span><span class="p">]):</span>
+  <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">before</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
+   <span class="n">g</span><span class="o">=</span><span class="n">first_step</span><span class="p">[</span><span class="s1">'gradients'</span><span class="p">][</span><span class="n">name</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+   <span class="n">delta</span><span class="o">=</span><span class="n">first_step</span><span class="p">[</span><span class="s1">'parameter_update'</span><span class="p">][</span><span class="n">name</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+   <span class="n">after</span><span class="o">=</span><span class="n">first_step</span><span class="p">[</span><span class="s1">'parameters'</span><span class="p">][</span><span class="n">name</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+   <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">'| </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">,</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s1">] | </span><span class="si">{</span><span class="n">before</span><span class="si">:</span><span class="s1">.9f</span><span class="si">}</span><span class="s1"> | </span><span class="si">{</span><span class="n">g</span><span class="si">:</span><span class="s1">.9f</span><span class="si">}</span><span class="s1"> | </span><span class="si">{</span><span class="n">delta</span><span class="si">:</span><span class="s1">+.9f</span><span class="si">}</span><span class="s1"> | </span><span class="si">{</span><span class="n">after</span><span class="si">:</span><span class="s1">.9f</span><span class="si">}</span><span class="s1"> |'</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)))</span>
+<span class="n">demo_source</span><span class="o">=</span><span class="p">(</span><span class="n">ROOT</span><span class="o">/</span><span class="s1">'scripts/g3a_cpu_lesson.py'</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+<span class="n">start</span><span class="o">=</span><span class="n">demo_source</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">'    optimizer=torch.optim.Adam'</span><span class="p">)</span>
+<span class="n">end</span><span class="o">=</span><span class="n">demo_source</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">'    for x,before'</span><span class="p">,</span><span class="n">start</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Code</span><span class="p">(</span><span class="n">demo_source</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">],</span><span class="n">language</span><span class="o">=</span><span class="s1">'python'</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>dKL/dscore: [0.03384426236152649, 0.03393125534057617, -0.06777557730674744]
+优化器: {'name': 'Adam', 'learning_rate': 0.02, 'betas': [0.9, 0.999], 'epsilon': 1e-08, 'steps': 20}
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output" data-mime-type="text/markdown" tabindex="0">
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th style="text-align:right">更新前</th>
+<th style="text-align:right">梯度</th>
+<th style="text-align:right">实际改变量</th>
+<th style="text-align:right">更新后</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>wq[0,0]</td>
+<td style="text-align:right">-0.003230926</td>
+<td style="text-align:right">-0.000010300</td>
+<td style="text-align:right">+0.019980600</td>
+<td style="text-align:right">0.016749674</td>
+</tr>
+<tr>
+<td>wq[0,1]</td>
+<td style="text-align:right">0.001780649</td>
+<td style="text-align:right">0.000000000</td>
+<td style="text-align:right">+0.000000000</td>
+<td style="text-align:right">0.001780649</td>
+</tr>
+<tr>
+<td>wq[0,2]</td>
+<td style="text-align:right">-0.002250615</td>
+<td style="text-align:right">0.000000000</td>
+<td style="text-align:right">+0.000000000</td>
+<td style="text-align:right">-0.002250615</td>
+</tr>
+<tr>
+<td>wq[0,3]</td>
+<td style="text-align:right">-0.007401995</td>
+<td style="text-align:right">-0.000010300</td>
+<td style="text-align:right">+0.019980600</td>
+<td style="text-align:right">0.012578605</td>
+</tr>
+<tr>
+<td>wq[1,0]</td>
+<td style="text-align:right">0.004102161</td>
+<td style="text-align:right">-0.000083195</td>
+<td style="text-align:right">+0.019997597</td>
+<td style="text-align:right">0.024099758</td>
+</tr>
+<tr>
+<td>wq[1,1]</td>
+<td style="text-align:right">-0.027296662</td>
+<td style="text-align:right">0.000000000</td>
+<td style="text-align:right">+0.000000000</td>
+<td style="text-align:right">-0.027296662</td>
+</tr>
+<tr>
+<td>wq[1,2]</td>
+<td style="text-align:right">-0.027403669</td>
+<td style="text-align:right">0.000000000</td>
+<td style="text-align:right">+0.000000000</td>
+<td style="text-align:right">-0.027403669</td>
+</tr>
+<tr>
+<td>wq[1,3]</td>
+<td style="text-align:right">0.008768643</td>
+<td style="text-align:right">-0.000083195</td>
+<td style="text-align:right">+0.019997597</td>
+<td style="text-align:right">0.028766241</td>
+</tr>
+<tr>
+<td>wk[0,0]</td>
+<td style="text-align:right">0.028986370</td>
+<td style="text-align:right">0.000255116</td>
+<td style="text-align:right">-0.019999215</td>
+<td style="text-align:right">0.008987155</td>
+</tr>
+<tr>
+<td>wk[0,1]</td>
+<td style="text-align:right">-0.028630501</td>
+<td style="text-align:right">0.000254462</td>
+<td style="text-align:right">-0.019999215</td>
+<td style="text-align:right">-0.048629716</td>
+</tr>
+<tr>
+<td>wk[1,0]</td>
+<td style="text-align:right">0.011189556</td>
+<td style="text-align:right">-0.000308810</td>
+<td style="text-align:right">+0.019999351</td>
+<td style="text-align:right">0.031188907</td>
+</tr>
+<tr>
+<td>wk[1,1]</td>
+<td style="text-align:right">-0.007741941</td>
+<td style="text-align:right">-0.000308018</td>
+<td style="text-align:right">+0.019999348</td>
+<td style="text-align:right">0.012257406</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
@@ -8394,22 +8611,63 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 .output_html .il { color: #666 } /* Literal.Number.Integer.Long */</style><div class="highlight"><pre><span></span>    <span class="n">optimizer</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span><span class="n">lr</span><span class="o">=</span><span class="mf">.02</span><span class="p">)</span>
     <span class="n">trace</span><span class="o">=</span><span class="p">[]</span>
     <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">):</span>
-        <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">();</span><span class="n">current_loss</span><span class="o">=</span><span class="n">loss</span><span class="p">(</span><span class="n">index</span><span class="p">);</span><span class="n">current_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="n">before</span><span class="o">=</span><span class="n">observe</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+        <span class="n">scores</span><span class="o">=</span><span class="n">index</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span><span class="n">k</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">))[</span><span class="mi">0</span><span class="p">,:,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">scores</span><span class="o">.</span><span class="n">retain_grad</span><span class="p">()</span>
+        <span class="n">current_loss</span><span class="o">=</span><span class="n">kl_rows</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span><span class="n">target</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">current_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
         <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">torch</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">index</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
-        <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">();</span><span class="n">trace</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="o">**</span><span class="n">observe</span><span class="p">(</span><span class="n">index</span><span class="p">)))</span>
+        <span class="c1"># For this one-group KL, dL/dscore = index probability - teacher probability.</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_close</span><span class="p">(</span><span class="n">scores</span><span class="o">.</span><span class="n">grad</span><span class="p">,</span><span class="n">scores</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="n">target</span><span class="p">,</span><span class="n">atol</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">,</span><span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span>
+        <span class="n">gradients</span><span class="o">=</span><span class="p">{</span><span class="s1">'scores'</span><span class="p">:</span><span class="n">scores</span><span class="o">.</span><span class="n">grad</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span><span class="s1">'wq'</span><span class="p">:</span><span class="n">index</span><span class="o">.</span><span class="n">wq</span><span class="o">.</span><span class="n">grad</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span><span class="s1">'wk'</span><span class="p">:</span><span class="n">index</span><span class="o">.</span><span class="n">wk</span><span class="o">.</span><span class="n">grad</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()}</span>
+        <span class="n">old_wq</span><span class="p">,</span><span class="n">old_wk</span><span class="o">=</span><span class="n">index</span><span class="o">.</span><span class="n">wq</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">clone</span><span class="p">(),</span><span class="n">index</span><span class="o">.</span><span class="n">wk</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        <span class="n">change</span><span class="o">=</span><span class="p">{</span><span class="s1">'wq'</span><span class="p">:(</span><span class="n">index</span><span class="o">.</span><span class="n">wq</span><span class="o">-</span><span class="n">old_wq</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span><span class="s1">'wk'</span><span class="p">:(</span><span class="n">index</span><span class="o">.</span><span class="n">wk</span><span class="o">-</span><span class="n">old_wk</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()}</span>
+        <span class="n">trace</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">before</span><span class="o">=</span><span class="n">before</span><span class="p">,</span><span class="n">gradients</span><span class="o">=</span><span class="n">gradients</span><span class="p">,</span><span class="n">parameter_update</span><span class="o">=</span><span class="n">change</span><span class="p">,</span><span class="o">**</span><span class="n">observe</span><span class="p">(</span><span class="n">index</span><span class="p">)))</span>
 </pre></div>
 </div>
 </div>
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>设备: cpu 临时参数数: 12
-固定教师分布: [0.29944396018981934, 0.29944396018981934, 0.40111207962036133]
-完整主注意力的两头输出: [[1.203336238861084, 0.7966637015342712], [0.7966637015342712, 1.203336238861084]]
-Q/K/V未变且没有收到梯度: True
-</pre>
 </div>
 </div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6b9c9119">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="%E5%8F%82%E6%95%B0%E6%80%8E%E6%A0%B7%E5%8F%98%E6%88%90%E6%96%B0%E5%90%8D%E5%8D%95%E5%92%8C%E5%AE%9E%E9%99%85%E8%AF%BB%E5%87%BA%EF%BC%9F">参数怎样变成新名单和实际读出？<a class="anchor-link" href="#%E5%8F%82%E6%95%B0%E6%80%8E%E6%A0%B7%E5%8F%98%E6%88%90%E6%96%B0%E5%90%8D%E5%8D%95%E5%92%8C%E5%AE%9E%E9%99%85%E8%AF%BB%E5%87%BA%EF%BC%9F">¶</a></h3><p>第一步实际更新后，位置0暂时排在最前；第二步才切到教师最偏重的位置2。下面把输入固定不变时的关键状态放在同一张表里。Wq乘2的对照从初始参数单独复制，20步学习也从原始参数开始，两者没有串起来训练。</p>
+<p>注意这个例子的边界：<strong>只有一个入选位置，没有F，因此每个主注意力头的softmax权重都等于1，输出直接等于该位置的V。</strong> <code>[0,2]→[2,0]→[1,1]</code>展示了换位置；它没有展示多个入选位置之间如何重新分配主注意力权重。主读取仍实际调用gather_attention，不拿索引概率去混合V。</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=4709a043">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">states</span><span class="o">=</span><span class="p">[(</span><span class="s1">'初始化'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'initial'</span><span class="p">]),(</span><span class="s1">'Wq×2（独立对照）'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'scaled_Wq_times_2'</span><span class="p">]),</span>
+        <span class="p">(</span><span class="s1">'更新第1步'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'trace'</span><span class="p">][</span><span class="mi">0</span><span class="p">]),(</span><span class="s1">'更新第2步'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'trace'</span><span class="p">][</span><span class="mi">1</span><span class="p">]),(</span><span class="s1">'更新第20步'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'trained'</span><span class="p">])]</span>
+<span class="n">lines</span><span class="o">=</span><span class="p">[</span><span class="s1">'| 状态 | 三个索引分数 | KL | 入选位置 | 两头主权重 | 两头读出 |'</span><span class="p">,</span><span class="s1">'|---|---|---:|---|---|---|'</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">label</span><span class="p">,</span><span class="n">r</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
+ <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"| </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="mi">7</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">r</span><span class="p">[</span><span class="s1">'scores'</span><span class="p">]]</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'kl'</span><span class="p">]</span><span class="si">:</span><span class="s2">.9f</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'positions'</span><span class="p">]</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'selected_main_weights'</span><span class="p">]</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'main_output'</span><span class="p">]</span><span class="si">}</span><span class="s2"> |"</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'完整读取的两头输出:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'full_main_output'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'20步后索引概率:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'trained'</span><span class="p">][</span><span class="s1">'probabilities'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Q/K/V保持原值且未收到梯度:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'body_features_unchanged'</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output" data-mime-type="text/markdown" tabindex="0">
@@ -8417,72 +8675,94 @@ Q/K/V未变且没有收到梯度: True
 <thead>
 <tr>
 <th>状态</th>
-<th>索引概率（位置0/1/2）</th>
+<th>三个索引分数</th>
 <th style="text-align:right">KL</th>
 <th>入选位置</th>
-<th>主注意力输出</th>
-<th style="text-align:right">相对输出误差</th>
+<th>两头主权重</th>
+<th>两头读出</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>初始化</td>
-<td>[0.333288, 0.333375, 0.333337]</td>
+<td>[-0.0001161, 0.0001448, 2.87e-05]</td>
 <td style="text-align:right">0.010033935</td>
 <td>[1]</td>
+<td>[[1.0], [1.0]]</td>
 <td>[[0.0, 2.0], [0.0, 2.0]]</td>
-<td style="text-align:right">1.000000</td>
 </tr>
 <tr>
-<td>只把Wq乘2</td>
-<td>[0.333243, 0.333417, 0.33334]</td>
+<td>Wq×2（独立对照）</td>
+<td>[-0.0002322, 0.0002896, 5.74e-05]</td>
 <td style="text-align:right">0.010032952</td>
 <td>[1]</td>
+<td>[[1.0], [1.0]]</td>
 <td>[[0.0, 2.0], [0.0, 2.0]]</td>
-<td style="text-align:right">1.000000</td>
 </tr>
 <tr>
-<td>20步CPU更新</td>
-<td>[0.290737, 0.293121, 0.416141]</td>
+<td>更新第1步</td>
+<td>[0.0013523, -0.0005503, 0.000802]</td>
+<td style="text-align:right">0.010008007</td>
+<td>[0]</td>
+<td>[[1.0], [1.0]]</td>
+<td>[[2.0, 0.0], [2.0, 0.0]]</td>
+</tr>
+<tr>
+<td>更新第2步</td>
+<td>[0.0029228, 0.0017924, 0.0047152]</td>
+<td style="text-align:right">0.009875745</td>
+<td>[2]</td>
+<td>[[1.0], [1.0]]</td>
+<td>[[1.0, 1.0], [1.0, 1.0]]</td>
+</tr>
+<tr>
+<td>更新第20步</td>
+<td>[0.3504382, 0.3586053, 0.7090435]</td>
 <td style="text-align:right">0.000471562</td>
 <td>[2]</td>
+<td>[[1.0], [1.0]]</td>
 <td>[[1.0, 1.0], [1.0, 1.0]]</td>
-<td style="text-align:right">0.199259</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>完整读取的两头输出: [[1.203336238861084, 0.7966637015342712], [0.7966637015342712, 1.203336238861084]]
+20步后索引概率: [0.29073721170425415, 0.2931213974952698, 0.4161413908004761]
+Q/K/V保持原值且未收到梯度: True
+</pre>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=97b34a22">
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e8cc351d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E5%8F%AA%E7%9B%AF%E7%9D%80%E6%8D%9F%E5%A4%B1%E4%B8%8B%E9%99%8D%EF%BC%9F">为什么不能只盯着损失下降？<a class="anchor-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E5%8F%AA%E7%9B%AF%E7%9D%80%E6%8D%9F%E5%A4%B1%E4%B8%8B%E9%99%8D%EF%BC%9F">¶</a></h3><p>Wq乘2使索引分数乘2，softmax分布和KL随之变化；正比例缩放保留排序，因此名单与重新计算的主注意力输出保持不变。此例KL略微下降，但“分数越尖越好”不是定律：方向取决于教师分布与当前分数的关系。</p>
-<p>20步更新使用KL的梯度，改变Wq和Wk，从原初始化重新计算投影和索引表。下面同时查看损失与名单：连续损失可以变化很多次，离散名单只在位置排序发生变化时改变。选位之后，主注意力用原Q/K重新计算权重，不能拿索引概率直接加权V。</p>
+<h3 id="%E8%BF%99%E4%B8%AA%E7%AE%97%E4%BE%8B%E6%94%AF%E6%8C%81%E4%BB%80%E4%B9%88%EF%BC%9F">这个算例支持什么？<a class="anchor-link" href="#%E8%BF%99%E4%B8%AA%E7%AE%97%E4%BE%8B%E6%94%AF%E6%8C%81%E4%BB%80%E4%B9%88%EF%BC%9F">¶</a></h3><p>精确算术下，所有分数乘同一个正数保持次序，所以Wq×2不改top-k；softmax分布和KL通常变化，KL不保证下降。本算例的有限分数没有并列，也没有数值溢出，代码实际核对了名单与读出不变。</p>
+<p>学习过程中，KL是连续量，名单是离散决定；第2步至第20步仍选位置2，分布继续拟合而读出不变。这个观察不能升级为“KL每次下降就会改善答案”，也没有补做多位置读取或真实模型实验。完整的20步中间记录随教学PR保存，便于检查任意一步。</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=59501c71">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3bd6a57e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [10]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">previous</span><span class="o">=</span><span class="kc">None</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">'只列名单首次出现或改变的步：'</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">step</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="o">**</span><span class="n">demo</span><span class="p">[</span><span class="s1">'initial'</span><span class="p">]),</span><span class="o">*</span><span class="n">demo</span><span class="p">[</span><span class="s1">'trace'</span><span class="p">]]:</span>
- <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="s1">'positions'</span><span class="p">]</span><span class="o">!=</span><span class="n">previous</span><span class="p">:</span>
-  <span class="nb">print</span><span class="p">(</span><span class="s1">'step'</span><span class="p">,</span><span class="n">item</span><span class="p">[</span><span class="s1">'step'</span><span class="p">],</span><span class="s1">'KL'</span><span class="p">,</span><span class="nb">round</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s1">'kl'</span><span class="p">],</span><span class="mi">9</span><span class="p">),</span><span class="s1">'positions'</span><span class="p">,</span><span class="n">item</span><span class="p">[</span><span class="s1">'positions'</span><span class="p">],</span><span class="s1">'main output'</span><span class="p">,</span><span class="n">item</span><span class="p">[</span><span class="s1">'main_output'</span><span class="p">])</span>
-  <span class="n">previous</span><span class="o">=</span><span class="n">item</span><span class="p">[</span><span class="s1">'positions'</span><span class="p">]</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">'最后一步KL:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'trained'</span><span class="p">][</span><span class="s1">'kl'</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">'这段演示没有调用真实模型、下载权重、MPS或研究训练入口。'</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s1">'完整20步的KL与名单：'</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">demo</span><span class="p">[</span><span class="s1">'trace'</span><span class="p">]:</span>
+ <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"step=</span><span class="si">{</span><span class="n">item</span><span class="p">[</span><span class="s1">'step'</span><span class="p">]</span><span class="si">:</span><span class="s2">2d</span><span class="si">}</span><span class="s2"> KL=</span><span class="si">{</span><span class="n">item</span><span class="p">[</span><span class="s1">'kl'</span><span class="p">]</span><span class="si">:</span><span class="s2">.9f</span><span class="si">}</span><span class="s2"> positions=</span><span class="si">{</span><span class="n">item</span><span class="p">[</span><span class="s1">'positions'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'保存入口：reports/lesson04_cpu_trace.json'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'这只是12参数CPU算例；没有加载Qwen、运行MPS或改写正式参数。'</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8495,12 +8775,29 @@ Q/K/V未变且没有收到梯度: True
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>只列名单首次出现或改变的步：
-step 0 KL 0.010033935 positions [1] main output [[0.0, 2.0], [0.0, 2.0]]
-step 1 KL 0.010008007 positions [0] main output [[2.0, 0.0], [2.0, 0.0]]
-step 2 KL 0.009875745 positions [2] main output [[1.0, 1.0], [1.0, 1.0]]
-最后一步KL: 0.00047156214714050293
-这段演示没有调用真实模型、下载权重、MPS或研究训练入口。
+<pre>完整20步的KL与名单：
+step= 1 KL=0.010008007 positions=[0]
+step= 2 KL=0.009875745 positions=[2]
+step= 3 KL=0.009704888 positions=[2]
+step= 4 KL=0.009458691 positions=[2]
+step= 5 KL=0.009108543 positions=[2]
+step= 6 KL=0.008644760 positions=[2]
+step= 7 KL=0.008067071 positions=[2]
+step= 8 KL=0.007381052 positions=[2]
+step= 9 KL=0.006596923 positions=[2]
+step=10 KL=0.005730152 positions=[2]
+step=11 KL=0.004801959 positions=[2]
+step=12 KL=0.003841609 positions=[2]
+step=13 KL=0.002886236 positions=[2]
+step=14 KL=0.001982301 positions=[2]
+step=15 KL=0.001184523 positions=[2]
+step=16 KL=0.000553161 positions=[2]
+step=17 KL=0.000147671 positions=[2]
+step=18 KL=0.000010878 positions=[2]
+step=19 KL=0.000142425 positions=[2]
+step=20 KL=0.000471562 positions=[2]
+保存入口：reports/lesson04_cpu_trace.json
+这只是12参数CPU算例；没有加载Qwen、运行MPS或改写正式参数。
 </pre>
 </div>
 </div>
@@ -8523,7 +8820,7 @@ step 2 KL 0.009875745 positions [2] main output [[1.0, 1.0], [1.0, 1.0]]
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [11]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="s1">'### 留出 16 份资料</span><span class="se">\n\n</span><span class="s1">'</span> <span class="o">+</span> <span class="n">report</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="s1">'heldout'</span><span class="p">)))</span>
@@ -8676,7 +8973,7 @@ step 2 KL 0.009875745 positions [2] main output [[1.0, 1.0], [1.0, 1.0]]
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [12]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">lines</span><span class="o">=</span><span class="p">[</span><span class="s1">'| 资料 | ΔKL (D−D0) | Δcoverage | Δ相对输出误差 |'</span><span class="p">,</span> <span class="s1">'|---|---:|---:|---:|'</span><span class="p">]</span>
@@ -8839,7 +9136,7 @@ k/M 范围: 0.12684365781710916 0.12893243940175347
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [10]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [13]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="k">for</span> <span class="n">case</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s1">'cases'</span><span class="p">]:</span>
@@ -8987,7 +9284,7 @@ k/M 范围: 0.12684365781710916 0.12893243940175347
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [11]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [14]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">lines</span><span class="o">=</span><span class="p">[</span><span class="s1">'| KV组 | m_C | KL：D0→D | coverage：D0→D | 相对输出误差：D0→D |'</span><span class="p">,</span> <span class="s1">'|---|---:|---:|---:|---:|'</span><span class="p">]</span>
@@ -9120,7 +9417,7 @@ D 平均遗漏的完整权重: 0.01444
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [12]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [15]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s1">'正式运行：'</span><span class="p">,</span> <span class="n">summary</span><span class="p">[</span><span class="s1">'run_id'</span><span class="p">])</span>

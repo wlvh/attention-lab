@@ -31,3 +31,5 @@
 G3a 报告重建：`python scripts/g3a_report.py`（标准库，不导入 torch）。完整特征保留在本机原始 run；精简归档含数据、参数、指标及原位置名单。
 
 G3b报告重建：`python scripts/g3b_report.py`（标准库，不导入torch）。参数来源与身份见 `g3b_parameters.json`。
+
+第四课3a CPU教学补充：[完整20步中间记录](lesson04_cpu_trace.json)，调用同一正式索引器、教师与主注意力读取实现。12个临时参数、无固定集合、只选一个位置，不修改G3a正式数据或索引参数。
