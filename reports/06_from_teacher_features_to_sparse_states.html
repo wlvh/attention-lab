@@ -7802,7 +7802,61 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="%E5%AE%9E%E9%AA%8C%E8%AF%BE06%EF%BC%9A%E6%8A%8A%E5%AD%A6%E5%88%B0%E7%9A%84%E9%80%89%E4%BD%8D%E8%A7%84%E5%88%99%E6%94%BE%E5%9B%9E%E7%9C%9F%E5%AE%9E%E6%8E%A8%E7%90%86">实验课06：把学到的选位规则放回真实推理<a class="anchor-link" href="#%E5%AE%9E%E9%AA%8C%E8%AF%BE06%EF%BC%9A%E6%8A%8A%E5%AD%A6%E5%88%B0%E7%9A%84%E9%80%89%E4%BD%8D%E8%A7%84%E5%88%99%E6%94%BE%E5%9B%9E%E7%9C%9F%E5%AE%9E%E6%8E%A8%E7%90%86">¶</a></h1><p>预测：在完整路径上学到的规则，进入稀疏路径后会面对变化的Q/K；局部拟合好不保证多层共同部署后相同。使用4份旧开发资料，不是新的独立验证。默认只读已有证据，不加载模型或启动GPU。</p>
+<h1 id="%E5%AE%9E%E9%AA%8C%E8%AF%BE-06%EF%BC%9A%E6%8A%8A%E5%AD%A6%E5%88%B0%E7%9A%84%E9%80%89%E4%BD%8D%E8%A7%84%E5%88%99%E6%94%BE%E5%9B%9E%E7%9C%9F%E5%AE%9E%E6%8E%A8%E7%90%86">实验课 06：把学到的选位规则放回真实推理<a class="anchor-link" href="#%E5%AE%9E%E9%AA%8C%E8%AF%BE-06%EF%BC%9A%E6%8A%8A%E5%AD%A6%E5%88%B0%E7%9A%84%E9%80%89%E4%BD%8D%E8%A7%84%E5%88%99%E6%94%BE%E5%9B%9E%E7%9C%9F%E5%AE%9E%E6%8E%A8%E7%90%86">¶</a></h1><p>本课研究：<strong>训练时看到的是完整读取产生的输入，真正部署后前层已经少读，后层面对的输入还一样吗？</strong> 本项目把“真实稀疏推理接入与状态对照”编号为 <strong>G3c</strong>；此前单层学习叫 G3a（第四课），各层训练叫 G3b-lite（第五课）。这里的“稀疏”就是只选择一部分历史位置读取。</p>
+<p>模型是约 6 亿参数的 <strong>Qwen3-0.6B</strong>，原语言模型参数保持不变，索引器参数也已训练完并固定。<strong>索引器</strong>是给历史位置打分、形成小名单的新增模块。本课使用 4 份已经分析过的开发资料，只作诊断，不是全新的独立验证。</p>
+<p>运行前的预测是：完整读取上的局部拟合好，不保证各层一起少读后状态仍相同。默认执行只读取已有记录、展示源码和画图，不加载模型或启动 GPU（图形处理器）。</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=terms-06-01-b0">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="%E8%BF%99%E9%87%8C%E6%AF%94%E8%BE%83%E5%93%AA%E4%BA%9B%E5%AF%B9%E8%B1%A1">这里比较哪些对象<a class="anchor-link" href="#%E8%BF%99%E9%87%8C%E6%AF%94%E8%BE%83%E5%93%AA%E4%BA%9B%E5%AF%B9%E8%B1%A1">¶</a></h3><p>文本先拆成 <strong>token</strong>（模型输入单元，不一定是完整字词）。当前 <strong>Q 查询</strong>与历史 <strong>K 键</strong>匹配，再按权重组合 <strong>V 内容</strong>；历史 K/V 保存为缓存。<strong>完整路径</strong>每步读全部合法位置；<strong>稀疏路径</strong>每步只读小名单。合法指已写入且不在当前查询未来的位置。不同路径的“状态”包括它们自己产生的内部表示和缓存，不只是输出文字。</p>
+<table>
+<thead>
+<tr>
+<th>代号</th>
+<th>本课的实际配置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>全部 28 层完整读取，作为数值参照</td>
+</tr>
+<tr>
+<td>D-one</td>
+<td>仅第 14 层使用训练后的索引器少读，其他层完整读取</td>
+</tr>
+<tr>
+<td>D0</td>
+<td>全部 28 层使用训练前的索引参数少读</td>
+</tr>
+<tr>
+<td>D</td>
+<td>全部 28 层使用训练后的索引参数少读</td>
+</tr>
+</tbody>
+</table>
+<p>一个<strong>注意力头</strong>是一路独立查询计算；多个查询头共用同一组 K/V，称 <strong>KV 组</strong>。正文层数从 1 开始，代码下标从 0 开始，所以第 14 层下标是 13，组 0 是第一组。</p>
+<p>少读路径固定保留 <strong>F：首 4 与最近 64 个位置</strong>，重叠去重；F 外是候选域。<strong>ρ=1/8</strong> 按请求起始合法长度 N0 计算 <code>k0=min(round(ρ×N0), 起始候选数)</code>，后续 k0 固定，本步 k 不超过候选数；<strong>top-k</strong>取最高分的 k 个候选。<strong>r=32</strong> 是索引向量宽度；<strong>P0</strong> 表示索引使用主模型位置旋转前的 Q/K，不在索引空间额外旋转。位置旋转 <strong>RoPE</strong>是按原位置改变 Q/K 方向、加入位置关系的计算。</p>
+<p>本课资料仍是 <strong>T1：按编号取一项四位值</strong>，约 2K 即约 2048 token。代码里的 <code>G3a-T1-2K-48</code> 表示资料来自旧单层阶段、任务与长度档位、序号 48，不是一个新模型名字。</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=terms-06-01-b1">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>怎样读下面的来源记录。</strong> 一次实际执行叫一次运行（<code>run</code>），<code>run_id</code> 是它的编号；<code>manifest</code> 是随运行保存的清单，记录数据、配置和源码来自哪里。文件的哈希（<code>hash</code> / <code>SHA-256</code> / <code>digest</code>）可理解为按文件内容算出的指纹，用来核对文件是否改变，不是成绩。<code>commit</code> / <code>revision</code> 是保存代码或模型的版本编号；<code>dirty diff</code> 是运行时尚未提交的修改记录，<code>None</code> 表示此项没有内容。<code>tokenizer</code> 是把文本拆成模型输入单元的分词器。<code>source_hashes</code> 列的是源码文件指纹；<code>HF_HUB_OFFLINE</code> 表示模型库是否处于离线模式。这里保留编号是为了追溯，不需要读者记住长字符串。</p>
+<p>下面 <code>scope</code> 说明证据范围：4 份旧开发资料、同一控制输入，<strong>不是自由回答准确率</strong>。MPS 是 PyTorch（代码名 <code>torch</code>，张量计算库）调用 Apple GPU 的后端；CPU 是中央处理器。</p>
 </div>
 </div>
 </div>
@@ -7850,8 +7904,11 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="1.-%E6%AF%94%E8%BE%83%E5%90%8C%E4%B8%80%E8%BE%93%E5%85%A5%EF%BC%8C%E5%85%88%E5%88%86%E7%A6%BB%E7%8A%B6%E6%80%81%E5%8F%98%E5%8C%96">1. 比较同一输入，先分离状态变化<a class="anchor-link" href="#1.-%E6%AF%94%E8%BE%83%E5%90%8C%E4%B8%80%E8%BE%93%E5%85%A5%EF%BC%8C%E5%85%88%E5%88%86%E7%A6%BB%E7%8A%B6%E6%80%81%E5%8F%98%E5%8C%96">¶</a></h2><p>每种方法从相同资料重新完整Prefill，分别保存主K/V。问题和后续16个token均使用A预先产生的同一序列；16步即使遇到EOS也继续，只作控制输入，不当作回答。</p>
-<p>D-one只让第14层稀疏；D0和D让全部28层稀疏。每条路径维护自己的后缀缓存。q是当前token的归一化查询，原形状[1,16,1,128]；k为[1,8,1,128]；读出向量为o_proj之前[1,1,2048]。本课将每层向量展开比较，图的横轴为层，不是token位置。</p>
+<h2 id="1.-%E6%AF%94%E8%BE%83%E5%90%8C%E4%B8%80%E8%BE%93%E5%85%A5%EF%BC%8C%E5%85%88%E5%88%86%E7%A6%BB%E7%8A%B6%E6%80%81%E5%8F%98%E5%8C%96">1. 比较同一输入，先分离状态变化<a class="anchor-link" href="#1.-%E6%AF%94%E8%BE%83%E5%90%8C%E4%B8%80%E8%BE%93%E5%85%A5%EF%BC%8C%E5%85%88%E5%88%86%E7%A6%BB%E7%8A%B6%E6%80%81%E5%8F%98%E5%8C%96">¶</a></h2><p>各方法先完整处理相同资料并建立缓存，这个阶段叫 <strong>Prefill</strong>。<strong>前缀</strong>指问题之前的资料与格式标记；<strong>后缀</strong>指随后的问题、模板尾部及后续输入。问题不包含在共同前缀中。</p>
+<p>之后每种方法都输入同一个问题，再输入 A 预先产生的同一串 16 个 token，称为<strong>控制序列</strong>。即使遇到 **EOS（结束标记）**仍把这 16 步输入完，目的是对齐计算位置，不把输出当回答评分。与之不同，<strong>自由生成</strong>会将各方法自己选择的 token 送回模型，遇 EOS 停止。</p>
+<p>每条路径独立维护后缀缓存，不借用 A 后来算出的 K/V。一次<strong>前向 forward</strong>是让给定输入经过模型得到输出；<strong>logits</strong>是对词表中下一个 token 的原始分数；<strong>argmax</strong>取其中最高分的 token。“argmax 相同”只是与 A 的选择一致，不保证这个选择正确。</p>
+<p>数组形状按维度顺序写：q 为 <code>[1,16,1,128]</code>，分别是 1 份输入、16 个查询头、1 个输入位置、128 个坐标；k 为 <code>[1,8,1,128]</code>，8 是 K/V 组数。<strong>读出向量</strong>为所有头组合后、输出投影 <code>o_proj</code> 之前的 <code>[1,1,2048]</code>，还没有变成词表分数。图比较每一层的向量，横轴是层数，不是 token 位置。</p>
+<p>下一格若打印整数列表，那是问题的 token id，而非乱码答案；<code>controlled_not_quality</code> 表示“控制输入、不能当质量成绩”。原文的 <code>&lt;|im_end|&gt;</code> / <code>&lt;|endoftext|&gt;</code> 是模型格式或结束标记，不是四位值的一部分。</p>
 </div>
 </div>
 </div>
@@ -7900,8 +7957,10 @@ A控制序列: 6692&lt;|im_end|&gt;
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="2.-%E5%8F%82%E6%95%B0%E5%9B%BA%E5%AE%9A%EF%BC%8C%E8%BF%98%E5%BF%85%E9%A1%BB%E4%BF%9D%E8%AF%81%E7%BC%93%E5%AD%98%E5%B1%9E%E4%BA%8E%E8%BF%99%E4%BB%BD%E5%8F%82%E6%95%B0">2. 参数固定，还必须保证缓存属于这份参数<a class="anchor-link" href="#2.-%E5%8F%82%E6%95%B0%E5%9B%BA%E5%AE%9A%EF%BC%8C%E8%BF%98%E5%BF%85%E9%A1%BB%E4%BF%9D%E8%AF%81%E7%BC%93%E5%AD%98%E5%B1%9E%E4%BA%8E%E8%BF%99%E4%BB%BD%E5%8F%82%E6%95%B0">¶</a></h2><p>z=Wk·k_pre依赖索引参数。更换参数后直接使用旧z，会让查询和历史索引处于不同规则下。本轮加载文件先验hash和形状，缓存绑定参数身份，每次写入前检查；主K/V是bf16，z与索引投影为fp32。</p>
+<h2 id="2.-%E5%8F%82%E6%95%B0%E5%9B%BA%E5%AE%9A%EF%BC%8C%E8%BF%98%E5%BF%85%E9%A1%BB%E4%BF%9D%E8%AF%81%E7%BC%93%E5%AD%98%E5%B1%9E%E4%BA%8E%E8%BF%99%E4%BB%BD%E5%8F%82%E6%95%B0">2. 参数固定，还必须保证缓存属于这份参数<a class="anchor-link" href="#2.-%E5%8F%82%E6%95%B0%E5%9B%BA%E5%AE%9A%EF%BC%8C%E8%BF%98%E5%BF%85%E9%A1%BB%E4%BF%9D%E8%AF%81%E7%BC%93%E5%AD%98%E5%B1%9E%E4%BA%8E%E8%BF%99%E4%BB%BD%E5%8F%82%E6%95%B0">¶</a></h2><p><strong>Wk</strong> 是把主模型旋转前的键 <code>k_pre</code> 投影成短索引键 z 的矩阵，和原模型生成 K 的权重不同。<strong>bf16/bfloat16</strong> 每个浮点数占 2 字节，<strong>fp32/float32</strong> 占 4 字节；本课主 K/V 用前者，索引计算用后者。</p>
+<p>z=Wk·k_pre依赖索引参数。更换参数后直接使用旧z，会让查询和历史索引处于不同规则下。本轮加载文件先验hash和形状，缓存绑定参数身份，每次写入前检查；主K/V是bf16，z与索引投影为fp32。</p>
 <p>下面展示正式运行的同一实现。默认阅读只展示源码，不建立真实模型。</p>
+<p>代码类 <strong>FrozenBank</strong> 是把各层固定的索引参数集中保存和装载的对象，不是新模型。<strong>参数身份</strong>包括文件指纹、数组形状和版本；把这个身份记到缓存上，就是“绑定”。更换或修改参数后，旧缓存不应继续通过检查。源码中的 <code>fingerprint/digest</code> 都用于这种身份核对，有限值检查会拒绝 NaN 或无穷大。</p>
 </div>
 </div>
 </div>
@@ -8033,8 +8092,11 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="3.-%E5%90%8C%E4%B8%80%E9%9B%86%E5%90%88%E4%B9%9F%E5%8F%AF%E8%83%BD%E6%9C%89%E4%B8%8D%E5%90%8C%E7%9A%84%E6%9C%89%E9%99%90%E7%B2%BE%E5%BA%A6%E8%AE%A1%E7%AE%97%E9%A1%BA%E5%BA%8F">3. 同一集合也可能有不同的有限精度计算顺序<a class="anchor-link" href="#3.-%E5%90%8C%E4%B8%80%E9%9B%86%E5%90%88%E4%B9%9F%E5%8F%AF%E8%83%BD%E6%9C%89%E4%B8%8D%E5%90%8C%E7%9A%84%E6%9C%89%E9%99%90%E7%B2%BE%E5%BA%A6%E8%AE%A1%E7%AE%97%E9%A1%BA%E5%BA%8F">¶</a></h2><p>初次全选检查失败：按分数排列的集合与A的原位置排列具有相同数学含义，bf16实际加总次序却不同。首次差异在第14层读出后出现，随后可能传播。记录保留，没有放宽容差。</p>
+<h2 id="3.-%E5%90%8C%E4%B8%80%E9%9B%86%E5%90%88%E4%B9%9F%E5%8F%AF%E8%83%BD%E6%9C%89%E4%B8%8D%E5%90%8C%E7%9A%84%E6%9C%89%E9%99%90%E7%B2%BE%E5%BA%A6%E8%AE%A1%E7%AE%97%E9%A1%BA%E5%BA%8F">3. 同一集合也可能有不同的有限精度计算顺序<a class="anchor-link" href="#3.-%E5%90%8C%E4%B8%80%E9%9B%86%E5%90%88%E4%B9%9F%E5%8F%AF%E8%83%BD%E6%9C%89%E4%B8%8D%E5%90%8C%E7%9A%84%E6%9C%89%E9%99%90%E7%B2%BE%E5%BA%A6%E8%AE%A1%E7%AE%97%E9%A1%BA%E5%BA%8F">¶</a></h2><p>**全选检查（full_selection）**把候选名额开到覆盖全部合法历史，检查筛选实现能否与完整读取 A 对应；这不是正常小预算测试。<strong>有限精度</strong>是计算机只能保存有限位数字，改变加总顺序可能造成舍入差。<strong>容差 tolerance</strong>是运行前允许的差异范围。</p>
+<p>初次全选检查失败：按分数排列的集合与A的原位置排列具有相同数学含义，bf16实际加总次序却不同。首次差异在第14层读出后出现，随后可能传播。记录保留，没有放宽容差。</p>
 <p>一次修复：本轮所有稀疏方法选位后按原位置升序，再实际gather和主注意力。集合、预算和选择分数保持不变。修后单层/全层全选都要通过；这不是学习带来的准确率改善。</p>
+<p><strong>gather</strong>表示实际取出所选 K/V 行，按原位置升序只是改变这些行进入计算时的顺序，并未增加位置。</p>
+<p>下一格 <code>steps</code> 为比较步数，<code>max_abs_logits</code> 是最大的逐项词表分数差，<code>max_relative_logits</code> 是最大相对分数向量误差，<code>argmax_agreement</code> 是最高分 token 的一致比例。容差字段 <code>logits_atol/cache_atol</code> 是分数/缓存的绝对差上限，<code>logits_rel_norm</code> 是相对误差上限，<code>argmax_agreement_min</code> 是一致率下限；<code>RuntimeError</code> 是失败时保存的错误类型。</p>
 </div>
 </div>
 </div>
@@ -8079,6 +8141,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="4.-%E4%BB%8E%E7%AC%AC%E5%87%A0%E5%B1%82%E5%BC%80%E5%A7%8B%EF%BC%8C%E8%BE%93%E5%85%A5%E5%B7%B2%E7%BB%8F%E4%B8%8D%E5%90%8C%EF%BC%9F">4. 从第几层开始，输入已经不同？<a class="anchor-link" href="#4.-%E4%BB%8E%E7%AC%AC%E5%87%A0%E5%B1%82%E5%BC%80%E5%A7%8B%EF%BC%8C%E8%BE%93%E5%85%A5%E5%B7%B2%E7%BB%8F%E4%B8%8D%E5%90%8C%EF%BC%9F">¶</a></h2><p>下面只看问题最后一token，即首个答案预测前的位置。D-one前14层的Q与A相同：第14层的新信息先出现在注意力读出，下一层才改变Q。D在第一层就少读，因此第二层起Q已经可能不同。</p>
 <p>相对L2先逐资料计算，再平均4份。它是各自真实状态间的差异，不能和G3b的同特征局部误差当成同一指标，更不能直接换算为准确率损失。</p>
+<p><strong>相对 L2</strong>把两向量之差的长度除以 A 向量的长度；0 表示相同，0.1 表示这种范数口径的相对差为 10%，不表示错了 10% 的题。表中 <code>first_answer_prediction</code> 指输入完问题、即将预测第一个答案的位置；<code>last_controlled_step</code> 指输入第 16 个控制 token 后的位置。</p>
+<p>图中 <code>Incoming query difference from A</code> 是进入各层的查询差异，<code>Attention output difference from A</code> 是各层注意力读出差异，<code>single sparse layer</code> 虚线标出 D-one 唯一少读的第 14 层。第五课 G3b 的“同特征局部误差”是给各方法同一份完整路径 Q/K/V；这里比较的是各自推进后的不同状态，两种分母和实验条件不能混同。</p>
 </div>
 </div>
 </div>
@@ -8192,7 +8256,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="5.-%E5%8F%AF%E4%BB%A5%E6%8E%A8%E5%87%BA%E4%BB%80%E4%B9%88%EF%BC%8C%E4%B8%8B%E4%B8%80%E6%AD%A5%E8%BF%98%E7%BC%BA%E4%BB%80%E4%B9%88%EF%BC%9F">5. 可以推出什么，下一步还缺什么？<a class="anchor-link" href="#5.-%E5%8F%AF%E4%BB%A5%E6%8E%A8%E5%87%BA%E4%BB%80%E4%B9%88%EF%BC%8C%E4%B8%8B%E4%B8%80%E6%AD%A5%E8%BF%98%E7%BC%BA%E4%BB%80%E4%B9%88%EF%BC%9F">¶</a></h2><p>D比D0更接近A，是这4份开发资料、当前位置的描述；D-one与D也不能只用最终分数代替逐层证据。控制输入保证两条路径读到相同token，却消除了自由生成的分叉，因此argmax相同率不等于答题正确率。</p>
-<p>下一步必须让A/B/C/D0/D各自自由生成，并保留A答错、D改善与D仍失败的题。先前冻结的新32份资料只在下一阶段评分，不据结果重新调ρ、改提示或追加训练。</p>
+<p>下一阶段还要比较完整读取 A、近期窗口 B、均匀随机候选 C、训练前 D0、训练后 D 各自自由生成，并保留A答错、D改善与D仍失败的题。先前冻结的新32份资料只在下一阶段评分，不据结果重新调ρ、改提示或追加训练。</p>
+<p>这个质量与成本阶段编号 <strong>G4-lite</strong>，其已完成结果在第七课。所谓<strong>轨迹修正训练</strong>是用稀疏路径自己产生的新状态再训练索引器，本轮没有追加。末格“共享设备秒数”累计各层训练、接入诊断和质量成本阶段的运行预算，包含失败与预检，不是某方法的速度指标。</p>
 </div>
 </div>
 </div>

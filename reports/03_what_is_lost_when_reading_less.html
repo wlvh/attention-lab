@@ -7802,41 +7802,45 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="03-%C2%B7-%E5%B0%91%E7%9C%8B%E5%8E%86%E5%8F%B2%E4%BC%9A%E4%B8%A2%E6%8E%89%E4%BB%80%E4%B9%88%EF%BC%9A%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E5%9C%A8%E7%9C%9F%E5%AE%9E%E9%97%AE%E9%A2%98%E4%B8%8A%E7%9A%84%E8%B4%A8%E9%87%8F%E5%AF%B9%E7%85%A7">03 · 少看历史会丢掉什么：四种读取方式在真实问题上的质量对照<a class="anchor-link" href="#03-%C2%B7-%E5%B0%91%E7%9C%8B%E5%8E%86%E5%8F%B2%E4%BC%9A%E4%B8%A2%E6%8E%89%E4%BB%80%E4%B9%88%EF%BC%9A%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E5%9C%A8%E7%9C%9F%E5%AE%9E%E9%97%AE%E9%A2%98%E4%B8%8A%E7%9A%84%E8%B4%A8%E9%87%8F%E5%AF%B9%E7%85%A7">¶</a></h1><p><strong>这是一份只读实验课：</strong> 它加载 <code>reports/</code> 下已保存的 G2-lite 结果（基线可用性、四方法对照、覆盖率、代表案例的真实选择位置、反事实改写、成本），展示与那些结果同一版本的正式源码，并用一个随机初始化的 2 层小 Qwen3（真实模块代码，CPU float64）重放 B / C / D0 三种选择器的契约。它不加载 0.6B 模型、不跑 GPU、不训练。重跑的入口是 <code>bench/g2lite_quality.py</code>（三遍：A 基线 → 可用格子上的四方法对照 → 反事实改写）与 <code>scripts/g2lite_report.py</code>，不由本页隐式触发。</p>
-<p>G1b 回答了速度一侧：同模型同设备下，未训练索引读取的整步收益不足 10%，速度主线收口。本页回答质量一侧的一个缩减问题：<strong>当模型只能读一小部分历史时，它丢掉了什么？</strong> 四种读取方式在同一前缀、同一问题、同一名额下作答：</p>
+<h1 id="03-%C2%B7-%E5%B0%91%E7%9C%8B%E5%8E%86%E5%8F%B2%E4%BC%9A%E4%B8%A2%E6%8E%89%E4%BB%80%E4%B9%88%EF%BC%9A%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E5%9C%A8%E7%9C%9F%E5%AE%9E%E9%97%AE%E9%A2%98%E4%B8%8A%E7%9A%84%E8%B4%A8%E9%87%8F%E5%AF%B9%E7%85%A7">03 · 少看历史会丢掉什么：四种读取方式在真实问题上的质量对照<a class="anchor-link" href="#03-%C2%B7-%E5%B0%91%E7%9C%8B%E5%8E%86%E5%8F%B2%E4%BC%9A%E4%B8%A2%E6%8E%89%E4%BB%80%E4%B9%88%EF%BC%9A%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E5%9C%A8%E7%9C%9F%E5%AE%9E%E9%97%AE%E9%A2%98%E4%B8%8A%E7%9A%84%E8%B4%A8%E9%87%8F%E5%AF%B9%E7%85%A7">¶</a></h1><p>本课研究：<strong>让同一个模型少读一些历史位置，它还能否答对资料里的问题？</strong> 本项目把任务质量对照叫 G2，这次小规模版本叫 <strong>G2-lite</strong>；lite 只是“缩减范围”，不是另一种模型。此前真实模型整步测速（G1b，第二课）没有稳定达到节省 10% 时间的门槛，本课转而检查回答质量。</p>
+<p>实验模型是 <strong>Qwen3-0.6B</strong>（约 6 亿参数的语言模型），主模型参数不更新。真实成绩来自已保存的 Mac M4 Max 运行；PyTorch（<code>torch</code>）是张量计算库，MPS 是它调用 Apple GPU 的后端。默认执行只读记录，并用中央处理器 CPU 上随机初始化的 2 层小模型检查实现，不加载真实模型、不启动 GPU 或训练。小例子的 float64 是每个浮点数 8 字节的高精度格式，正式模型的 bf16/bfloat16 是每数 2 字节的格式。</p>
+<p>文本会拆成 <strong>token</strong>（文本单元，可能是字、数字或词的一部分）。“历史位置”是 token 在序列中的位置，不等于整条记录。注意力用 <strong>Q 查询</strong>与历史 <strong>K 键</strong>匹配，再组合对应的 <strong>V 内容向量</strong>；历史 K/V 存在 KV 缓存中。<strong>合法位置</strong>指已经写入且不在当前查询未来的位置。</p>
+<p>先解释四方法共有的名额：<strong>固定集合 F</strong>是首 4 和最近 64 个合法位置的并集，重叠去重；剩余位置叫<strong>候选域</strong>。k 是本步额外选择的候选数，<code>∪</code> 表示集合合并。三条少读路径都保留 F，再从候选中选 k 个：</p>
 <table>
 <thead>
 <tr>
-<th>方法</th>
-<th>读什么</th>
-<th>名额给谁</th>
+<th>本课代号</th>
+<th>读取规则</th>
+<th>名单由什么决定</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>A 完整读取</td>
+<td><strong>A：完整读取</strong></td>
 <td>全部合法位置</td>
-<td>—</td>
+<td>不做筛选，作为比较基线</td>
 </tr>
 <tr>
-<td>B 近期窗口</td>
-<td>F ∪ 最近的 k 个候选位置</td>
-<td>最近的位置</td>
+<td><strong>B：近期窗口</strong></td>
+<td>F ∪ 最近的 k 个候选</td>
+<td>位置远近</td>
 </tr>
 <tr>
-<td>C 均匀随机</td>
-<td>F ∪ 候选域内均匀抽取的 k 个位置（固定种子，每层每组独立）</td>
-<td>随机</td>
+<td><strong>C：均匀随机</strong></td>
+<td>F ∪ 均匀抽取的 k 个候选</td>
+<td>与内容无关的随机抽样</td>
 </tr>
 <tr>
-<td>D0 未训练索引</td>
-<td>F ∪ 随机初始化 GroupedIndexer 打分的 top-k</td>
-<td>由内容决定但权重未训练</td>
+<td><strong>D0：未训练索引器</strong></td>
+<td>F ∪ 索引分数最高的 k 个候选</td>
+<td>内容经过随机初始化参数打分，参数尚未学习</td>
 </tr>
 </tbody>
 </table>
-<p>F = 首 4 ∪ 近 64；B、C、D0 的实际读取数都是 68 + k0。<strong>C 不叫"随机筛选"，D0 也不叫</strong>：C 的选择与内容无关，D0 的选择由内容决定但没有学过。每个案例按固定结构：资料与问题 → 运行前预测 → 四种方法实际回答 → 各自选择的位置 → 改动一处资料再检查 → 哪些解释得到支持、哪些仍不确定。模型成绩来自 2026-10-17 保存的 Mac M4 Max / MPS 运行；本次报告修订与 CPU 契约不产生新的模型成绩；<strong>48 份是探索样本，不做区间统计，不支持"损失小于 2 个百分点"或其反面；D0 未训练，B 的名单按窗口几何确定，正确性另测。</strong></p>
-<p><strong>2026-10-18 审查修订。</strong> 主表准确率保持不变；修正改写计数、案例邻域和预算口径。旧 C 改写同时改变了资料和随机名单，保留为混杂观察。当前配置 v3 的稳定父资料种子规则尚未做模型运行；本页结果仍来自 v2。学习重点是分清观察、充分条件与必要条件。</p>
+<p><strong>索引器</strong>是给历史位置打分以形成名单的小模块；<code>GroupedIndexer</code> 是它在代码里的类名，每组 K/V 有自己的参数。<strong>top-k</strong>就是取分数最高的 k 个；<strong>种子 seed</strong>是生成可重复随机数的起始值。C 与 D0 不能混称“随机方法”：前者直接随机选位置，后者的参数随机但选择会响应内容。</p>
+<p>**ρ（rho）**用请求开始时的合法长度 N0 算候选名额 <code>k0=min(round(ρ×N0), 起始候选数)</code>；k0 在同一问题及其后续回答中固定，本步 k 还受当前候选数限制。正常长度下总读取数为 68+k0，短历史要按实际集合去重和裁剪；A 读全部，不受这个小预算限制。</p>
+<p>本课用 <strong>T1</strong> 表示“给一个编号，返回对应的一项四位数值”，<strong>T2</strong> 表示“给两个编号，按指定顺序返回两项值”。2K / 8K 是约 2048 / 8192 token 的资料长度档位，不是中文字符数。48 份是探索样本，没有总体能力的统计区间保证。</p>
+<p><strong>本课的改写检查</strong>是修改目标值、无关值或位置再看回答是否变化，后文也称反事实检查。旧 C 改写同时改变了资料和随机名单，属于两种因素一起变化的<strong>混杂观察</strong>。v1 是早期把记录密集排列的资料设计，v2 改为 16 条记录穿插无数字填充句，是正式数据及运行配置，v3 是后来修复随机控制的代码规则；这些是实验配置版本，不是模型代数。v3 尚未运行新模型，本课分数仍来自 v2。</p>
 </div>
 </div>
 </div>
@@ -7848,6 +7852,8 @@ a.anchor-link {
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="0.-%E5%AE%9A%E4%BD%8D%E4%BB%93%E5%BA%93%E3%80%81%E5%8A%A0%E8%BD%BD%E5%B7%B2%E4%BF%9D%E5%AD%98%E7%BB%93%E6%9E%9C%E3%80%81%E6%A0%B8%E5%AF%B9%E6%BA%90%E7%A0%81%E7%89%88%E6%9C%AC">0. 定位仓库、加载已保存结果、核对源码版本<a class="anchor-link" href="#0.-%E5%AE%9A%E4%BD%8D%E4%BB%93%E5%BA%93%E3%80%81%E5%8A%A0%E8%BD%BD%E5%B7%B2%E4%BF%9D%E5%AD%98%E7%BB%93%E6%9E%9C%E3%80%81%E6%A0%B8%E5%AF%B9%E6%BA%90%E7%A0%81%E7%89%88%E6%9C%AC">¶</a></h2><p>结果与代码必须锁在同一版本：下面把当前源码的哈希与三遍 run 的 manifest 记录的哈希逐个对照，并核对模型 / tokenizer revision、配置版本与数据 digest。</p>
+<p><strong>怎样读下面的来源记录。</strong> 一次实际执行叫一次运行（<code>run</code>），<code>run_id</code> 是它的编号；<code>manifest</code> 是随运行保存的清单，记录数据、配置和源码来自哪里。文件的哈希（<code>hash</code> / <code>SHA-256</code> / <code>digest</code>）可理解为按文件内容算出的指纹，用来核对文件是否改变，不是成绩。<code>commit</code> / <code>revision</code> 是保存代码或模型的版本编号；<code>dirty diff</code> 是运行时尚未提交的修改记录，<code>None</code> 表示此项没有内容。<code>tokenizer</code> 是把文本拆成模型输入单元的分词器。<code>source_hashes</code> 列的是源码文件指纹；<code>HF_HUB_OFFLINE</code> 表示模型库是否处于离线模式。这里保留编号是为了追溯，不需要读者记住长字符串。</p>
+<p>本课把一个“任务类型×长度”的组合叫<strong>实验格子</strong>，如 T1/2K。三遍分别是：<code>baseline</code> 完整读取基线；<code>comparison</code> 在基线过门槛的组合上做方法对照；<code>rewrites</code> 做资料改写。<code>usable_cells</code> 是允许进入对照的组合，<code>NOT_RUN</code> 是“未执行”，不是失败得零分。</p>
 </div>
 </div>
 </div>
@@ -7923,6 +7929,11 @@ g2lite-20261017T130715Z-pass3b-move      commit af62df48d2 dirty None model c189
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">sha</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 <span class="k">if</span> <span class="n">manifests</span><span class="p">:</span>
     <span class="n">snapshots</span> <span class="o">=</span> <span class="p">{</span><span class="n">item</span><span class="p">[</span><span class="s2">"source"</span><span class="p">]:</span> <span class="n">item</span><span class="p">[</span><span class="s2">"snapshot"</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">review_sources</span><span class="p">[</span><span class="s2">"snapshots"</span><span class="p">]}</span>
+    <span class="c1"># 后续真实推理阶段改过选择/接入代码；使用已有历史快照核对旧实验。</span>
+    <span class="n">later_sources</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s2">"reports/provenance/g3c/post_run_manifest.json"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">later_sources</span><span class="p">[</span><span class="s2">"snapshots"</span><span class="p">]:</span>
+        <span class="k">assert</span> <span class="n">sha</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">item</span><span class="p">[</span><span class="s2">"snapshot"</span><span class="p">])</span> <span class="o">==</span> <span class="n">item</span><span class="p">[</span><span class="s2">"sha256"</span><span class="p">]</span>
+        <span class="n">snapshots</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">"source"</span><span class="p">],</span> <span class="n">item</span><span class="p">[</span><span class="s2">"snapshot"</span><span class="p">])</span>
     <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"src/attention_lab/decode.py"</span><span class="p">,</span> <span class="s2">"src/attention_lab/qwen_wrap.py"</span><span class="p">,</span> <span class="s2">"src/attention_lab/g2lite_data.py"</span><span class="p">,</span> <span class="s2">"src/attention_lab/g2lite_eval.py"</span><span class="p">,</span> <span class="s2">"bench/g2lite_quality.py"</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">relative_path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
         <span class="n">as_run</span> <span class="o">=</span> <span class="n">root</span> <span class="o">/</span> <span class="n">snapshots</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">relative_path</span><span class="p">,</span> <span class="n">relative_path</span><span class="p">)</span>
@@ -7945,8 +7956,8 @@ g2lite-20261017T130715Z-pass3b-move      commit af62df48d2 dirty None model c189
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>src/attention_lab/decode.py 运行时源码核对通过 当前文件相同
-src/attention_lab/qwen_wrap.py 运行时源码核对通过 当前文件相同
+<pre>src/attention_lab/decode.py 运行时源码核对通过 当前已修复；旧版本由快照保留
+src/attention_lab/qwen_wrap.py 运行时源码核对通过 当前已修复；旧版本由快照保留
 src/attention_lab/g2lite_data.py 运行时源码核对通过 当前文件相同
 src/attention_lab/g2lite_eval.py 运行时源码核对通过 当前已修复；旧版本由快照保留
 bench/g2lite_quality.py 运行时源码核对通过 当前已修复；旧版本由快照保留
@@ -7965,7 +7976,8 @@ bench/g2lite_quality.py 运行时源码核对通过 当前已修复；旧版本�
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p><strong>读法。</strong> 四个正式 run 使用 <code>af62df4</code> 的源码、配置 v2，模型与 tokenizer revision 同为 <code>c1899de…</code>。基线、可用格子对照和两组改写的资料集合不同，数据 digest 各自不同；不能把“相同生成规则”写成“相同数据摘要”。</p>
-<p>选择器和 Qwen 封装未改，本页的 CPU 演示调用它们的原实现。运行器和汇总逻辑已有修复：运行时版本由来源快照保存，今日报告另记生成代码提交与 SHA-256。旧 run/manifest 不改，旧 C 的混杂不会因为今天修了代码而消失。</p>
+<p>下面的正式选择与分派源码展示使用已核对的历史快照；CPU 规则检查调用当前实现。二者用途分开，当前检查不是旧模型运行的重做，代码演进不改变旧回答的身份。运行器和汇总逻辑已有修复：运行时版本由来源快照保存，今日报告另记生成代码提交与 SHA-256。旧 run/manifest 不改，旧 C 的混杂不会因为今天修了代码而消失。</p>
+<p>历史快照的定位也包含后来真实推理接入阶段保存的修改前源码：选择器/接入文件已演进时，仍用当时版本核对旧运行清单，不把当前文件误当旧文件，也不删掉校验。</p>
 </div>
 </div>
 </div>
@@ -7976,7 +7988,11 @@ bench/g2lite_quality.py 运行时源码核对通过 当前已修复；旧版本�
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="1.-%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E7%9A%84%E6%AD%A3%E5%BC%8F%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%A5%91%E7%BA%A6">1. 四种读取方式的正式代码与契约<a class="anchor-link" href="#1.-%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E7%9A%84%E6%AD%A3%E5%BC%8F%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%A5%91%E7%BA%A6">¶</a></h2><p><strong>运行前的预测</strong>（<code>reports/cards/G2lite_mac_m4max.md</code>）：B、C、D0 在同一 ρ 下读取数相同、都包含 F；全选时三者退化为 A；B 的额外行恰为最近的 k 个候选；C 的抽取由种子决定且回退重放不变；B、C 不打分。下面并排打印三个名单生成函数与共用的取行核，再在小模型上逐条验证。</p>
+<h2 id="1.-%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E7%9A%84%E6%AD%A3%E5%BC%8F%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%A5%91%E7%BA%A6">1. 四种读取方式的正式代码与契约<a class="anchor-link" href="#1.-%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E7%9A%84%E6%AD%A3%E5%BC%8F%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%A5%91%E7%BA%A6">¶</a></h2><p><strong>这里说的“契约”就是实现必须遵守的规则</strong>，例如同题同名额、不能读未来位置、全选时对应完整读取；它不是训练目标。“全选退化为 A”指给足名额，让少读路径也读取全部合法位置。</p>
+<p><strong>运行前的预测</strong>（<code>reports/cards/G2lite_mac_m4max.md</code>）：B、C、D0 在同一 ρ 下读取数相同、都包含 F；全选时三者退化为 A；B 的额外行恰为最近的 k 个候选；C 的抽取由种子决定且回退重放不变；B、C 不打分。下面并排打印三个名单生成函数与共用的取行核，再在小模型上逐条验证。</p>
+<p>源码中的 <code>recent/uniform/index</code> 分别对应 B/C/D0，<code>full/sparse</code> 分别表示完整/少读执行模式；<code>select_rows_*</code> 形成名单，<code>gathered_decode_step_kernel</code> 按名单取行并做主注意力。<strong>gather/取行</strong>是实际取出指定位置的 K/V；<strong>内核 kernel</strong>是执行该计算的程序。</p>
+<p>小例子中 <code>prefill</code> 是先完整处理资料并建缓存，<code>step</code> 是处理一个新 token，<code>rollback</code> 是退回旧有效长度以便重放。<code>[B,G,S]</code> 等形状表示输入份数、K/V 组数、入选位置数，形状字母 B/G 不对应方法 B 或阶段 G。一个 K/V 组是多个查询头共用的历史表。<strong>NaN</strong>是无效数值标记，给未选行写入它可检查是否误读；<code>max|Δ|</code> 是两条计算的最大逐项差，<code>True/False</code> 表示检查条件真/假。</p>
+<p>若函数形状写作 <code>[B,G,h,T,d]</code>，h 是每组查询头数、T 是本次输入 token 数、d 是每头向量宽度；<code>q_main</code> 是主注意力查询，<code>q_pre</code> 是位置旋转前的索引查询特征。位置旋转 RoPE 按原位置改变 Q/K 方向来编码位置关系，名单不重编号，也不对取出的 K 再旋转一次。</p>
 </div>
 </div>
 </div>
@@ -7989,10 +8005,13 @@ bench/g2lite_quality.py 运行时源码核对通过 当前已修复；旧版本�
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span><span class="p">;</span> <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ast</span><span class="o">,</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">attention_lab</span><span class="w"> </span><span class="kn">import</span> <span class="n">decode</span><span class="p">,</span> <span class="n">qwen_wrap</span>
-<span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="p">(</span><span class="n">decode</span><span class="o">.</span><span class="n">select_rows_kernel</span><span class="p">,</span> <span class="n">decode</span><span class="o">.</span><span class="n">select_rows_recent</span><span class="p">,</span> <span class="n">decode</span><span class="o">.</span><span class="n">select_rows_uniform</span><span class="p">,</span> <span class="n">decode</span><span class="o">.</span><span class="n">gathered_decode_step_kernel</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">fn</span><span class="p">))</span>
+<span class="c1"># 展示产生旧结果的选择器；当前 CPU 例子另在下格调用现有实现。</span>
+<span class="n">as_run_decode</span> <span class="o">=</span> <span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">snapshots</span><span class="p">[</span><span class="s2">"src/attention_lab/decode.py"</span><span class="p">])</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"select_rows_kernel"</span><span class="p">,</span> <span class="s2">"select_rows_recent"</span><span class="p">,</span> <span class="s2">"select_rows_uniform"</span><span class="p">,</span> <span class="s2">"gathered_decode_step_kernel"</span><span class="p">):</span>
+    <span class="n">node</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">as_run_decode</span><span class="p">)</span><span class="o">.</span><span class="n">body</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">name</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">get_source_segment</span><span class="p">(</span><span class="n">as_run_decode</span><span class="p">,</span> <span class="n">node</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -8005,7 +8024,7 @@ bench/g2lite_quality.py 运行时源码核对通过 当前已修复；旧版本�
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
-<pre>W1018 13:06:04.893000 93639 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+<pre>W1019 17:09:59.223000 34212 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
 </pre>
 </div>
 </div>
@@ -8019,8 +8038,7 @@ bench/g2lite_quality.py 运行时源码核对通过 当前已修复；旧版本�
         return fixed_rows.reshape(-1)
     scores = candidate_scores(u, zT, lo, hi)                       # [B,G,1,M]
     top = torch.topk(scores, k, dim=-1).indices.view(B, G, k)      # the only top-k, over the candidate domain
-    return torch.cat([fixed_rows, top + off_lo], dim=-1).view(-1)  # original positions as row ids
-
+    return torch.cat([fixed_rows, top + off_lo], dim=-1).view(-1)
 def select_rows_recent(fixed_rows, off_lo, lo: int, hi: int, k: int) -&gt; torch.Tensor:
     """B: the k most recent candidate positions [hi-k, hi) merged with the fixed rows. Same F and count as D0.
 
@@ -8035,7 +8053,6 @@ def select_rows_recent(fixed_rows, off_lo, lo: int, hi: int, k: int) -&gt; torch
         raise ValueError(f"k={k} exceeds the candidate count {M}")
     rel = torch.arange(M - k, M, device=fixed_rows.device, dtype=torch.long).view(1, 1, k).expand(B, G, k)
     return torch.cat([fixed_rows, rel + off_lo], dim=-1).view(-1)
-
 def select_rows_uniform(fixed_rows, off_lo, lo: int, hi: int, k: int, *, rng) -&gt; torch.Tensor:
     """C: k candidate positions drawn uniformly without replacement, independently per (batch, group), merged with F.
 
@@ -8053,7 +8070,6 @@ def select_rows_uniform(fixed_rows, off_lo, lo: int, hi: int, k: int, *, rng) -&
     u = torch.from_numpy(rng.random((B, G, M), dtype=np.float64))                # CPU, deterministic given the generator state
     rel = torch.topk(u, k, dim=-1).indices.to(fixed_rows.device)               # [B,G,k] candidate-relative
     return torch.cat([fixed_rows, rel + off_lo], dim=-1).view(-1)
-
 def gathered_decode_step_kernel(q_main, k_cache, v_cache, rows, selected_count: int, *, scale=None, backend="sdpa"):
     """Read exactly the listed rows (flat ids into the flattened [B*G*C, d] cache) and attend over them.
 
@@ -8066,7 +8082,6 @@ def gathered_decode_step_kernel(q_main, k_cache, v_cache, rows, selected_count: 
     k_sub = flatten_cache(k_cache).index_select(0, rows).view(B, G, selected_count, d)
     v_sub = flatten_cache(v_cache).index_select(0, rows).view(B, G, selected_count, d)
     return subset_attention(q_main, k_sub, v_sub, scale=scale, backend=backend)
-
 </pre>
 </div>
 </div>
@@ -8080,10 +8095,13 @@ def gathered_decode_step_kernel(q_main, k_cache, v_cache, rows, selected_count: 
 <div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># 封装里的分派：同一个解码分支，只有名单来源不同</span>
-<span class="n">src</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">qwen_wrap</span><span class="o">.</span><span class="n">LabAttention</span><span class="o">.</span><span class="n">forward</span><span class="p">)</span>
-<span class="n">i</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">'if st.mode == "sparse":'</span><span class="p">);</span> <span class="n">j</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">"else:   # prefill"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="n">src</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">j</span><span class="p">]))</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># 历史封装里的名单分派；按 Python 语法树找分支，不依赖当前文件的注释文字。</span>
+<span class="n">as_run_wrapper</span> <span class="o">=</span> <span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">snapshots</span><span class="p">[</span><span class="s2">"src/attention_lab/qwen_wrap.py"</span><span class="p">])</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+<span class="n">wrapper_class</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">as_run_wrapper</span><span class="p">)</span><span class="o">.</span><span class="n">body</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"LabAttention"</span><span class="p">)</span>
+<span class="n">forward_node</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">wrapper_class</span><span class="o">.</span><span class="n">body</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"forward"</span><span class="p">)</span>
+<span class="n">branch</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">ast</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">forward_node</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">If</span><span class="p">)</span>
+              <span class="ow">and</span> <span class="n">ast</span><span class="o">.</span><span class="n">unparse</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">test</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"st.mode == 'sparse'"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">get_source_segment</span><span class="p">(</span><span class="n">as_run_wrapper</span><span class="p">,</span> <span class="n">branch</span><span class="p">)))</span>
 </pre></div>
 </div>
 </div>
@@ -8119,7 +8137,6 @@ def gathered_decode_step_kernel(q_main, k_cache, v_cache, rows, selected_count: 
             else:
                 cache.append(l, k_main, v)
                 out = full_attention(q5, cache.k[l], cache.v[l], valid_length=L0 + 1, backend=st.decode_backend, scale=self.scaling)
-
 </pre>
 </div>
 </div>
@@ -8214,7 +8231,11 @@ D0  读取数 81 = 81  含 F: True  额外 13 个候选: [4, 6, 7, 12, 13, 15, 1
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="2.-%E8%B5%84%E6%96%99%E3%80%81%E9%97%AE%E9%A2%98%E4%B8%8E%E5%8D%8F%E8%AE%AE">2. 资料、问题与协议<a class="anchor-link" href="#2.-%E8%B5%84%E6%96%99%E3%80%81%E9%97%AE%E9%A2%98%E4%B8%8E%E5%8D%8F%E8%AE%AE">¶</a></h2><p><strong>协议 <code>document_dense_then_sparse</code>。</strong> 资料前缀（聊天模板头 + 表头 + 记录与填充）用完整读取处理一次并建索引表，问题不在前缀里；每个请求克隆这份前缀缓存，从问题第一个 token 起逐 token 用自己的读取方式（问题、模板尾部、生成的每个 token 都是一步解码）；贪心，≤ 64 新 token，EOS 停止；资料改写后重建前缀。下面展示生成器的布局函数与一份实际资料。</p>
+<h2 id="2.-%E8%B5%84%E6%96%99%E3%80%81%E9%97%AE%E9%A2%98%E4%B8%8E%E5%8D%8F%E8%AE%AE">2. 资料、问题与协议<a class="anchor-link" href="#2.-%E8%B5%84%E6%96%99%E3%80%81%E9%97%AE%E9%A2%98%E4%B8%8E%E5%8D%8F%E8%AE%AE">¶</a></h2><p>**“先完整处理资料，再从问题开始少读”**是本实验的执行协议，代码名为 <code>document_dense_then_sparse</code>。<strong>资料前缀</strong>包含聊天模板头、表头、记录与填充文字，不含问题；<strong>问题后缀</strong>包含问题和要求模型开始回答的模板尾部。聊天模板是把系统、用户、助手等角色边界加入输入的格式；填充句只用于拉开记录之间的距离。</p>
+<p>前缀先用完整注意力计算并建立缓存，这一步叫 <strong>Prefill</strong>。各方法复制相同前缀缓存后，从问题的第一个 token 起独立推进自己的缓存，后续不借用 A 的状态。资料被改写时必须重新计算前缀。<strong>贪心生成</strong>每次选词表分数最高的 token；遇到 **EOS（回答结束标记）**停止，最多输出 64 个新 token。</p>
+<p><strong>判分规则先于结果固定。</strong> <code>score_answer</code> 取回答中最前面的一个（T1）或两个（T2）独立四位数，逐项按顺序和正确值比较，这叫<strong>完整匹配 exact_match</strong>。编号也是四位数时，先复述编号可能导致判错，称<strong>编号回声</strong>。<code>targets_present_any_order</code> 只检查整段是否包含全部正确值，和完整匹配不同；<code>format_error</code> 表示四位数数量不足，<code>truncated</code> 表示达到长度上限而未正常结束。</p>
+<p>下面展示布局与评分源码，再看一份实际资料。数据名 <code>doc_id=T1-2K-00</code> 表示 T1、约 2K、资料序号 00，不是目标编号。目标位置的分组叫<strong>桶 bucket</strong>：<code>front</code> 前部、<code>middle</code> 中部、<code>back_far</code> 尾部但较远、<code>back_near</code> 最靠近末尾。目标记录的实际距离随后单独列出。</p>
+<p>布局源码里的 <code>id/value</code> 格式占位符分别是记录的编号/数值；后文改写标签 <code>value</code> 则表示“只改目标记录的值”，两处要按上下文区分。</p>
 </div>
 </div>
 </div>
@@ -8401,8 +8422,9 @@ T2-8K-编号 3 middle/back_far      8189   54        [225, 3914]     [1, 8]
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>读法。</strong> 每份资料 16 条记录穿插在无数字的中文填充句之间；问题与模板尾部为 35（T1）或 54（T2）token。ρ 在请求起始合法长度 N0=P+1 上决定固定 k0，实际前缀略有长短，因此相同 ρ 下不同资料的 k0 可以略有不同；同一资料的 B/C/D0 则相同。</p>
-<p>预测第一个答案 token 时，问题已处理完，合法长度 N=P+Q，候选域大小 M=N−|F|。需要分别看 <strong>ρ、k/M、(F+k)/N</strong>；下面按逐题记录展示范围。B 此时覆盖的资料尾部长度为 64+k0−Q。记录是否落入窗口是可检查的几何关系，不预先保证模型答对。</p>
+<p><strong>读法。</strong> 每份资料有 16 条“编号→四位数值”记录，穿插无数字的中文填充句。令 <strong>P</strong> 为资料前缀 token 数，<strong>Q</strong> 为问题加模板尾部 token 数；这里 Q 是长度字母，不是前文的查询向量 Q。问题与模板尾部共 35（T1）或 54（T2）token。</p>
+<p>ρ 在请求起始合法长度 <strong>N0=P+1</strong> 上决定固定 k0。实际前缀略有长短，所以同一 ρ 下不同资料的 k0 可以不同；同一资料的 B/C/D0 必须相同。预测首个答案时，问题已处理完，合法长度 <strong>N=P+Q</strong>，候选数量 <strong>M=N−|F|</strong>。</p>
+<p>三个比例的分母不同：<strong>ρ</strong>用于起始定名额；<strong>k/M</strong>是本步候选位置抽取比例；<strong>(|F|+k)/N</strong>才是本步总读取比例。B 此时还能读到的资料尾部长度为 64+k0−Q。记录落入窗口只描述位置关系，不保证模型答对。</p>
 </div>
 </div>
 </div>
@@ -8414,6 +8436,7 @@ T2-8K-编号 3 middle/back_far      8189   54        [225, 3914]     [1, 8]
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="3.-%E5%9F%BA%E7%BA%BF%E5%8F%AF%E7%94%A8%E6%80%A7%EF%BC%88%E7%AC%AC%E4%B8%80%E9%81%8D%EF%BC%9AA-%E5%9C%A8%E5%85%A8%E9%83%A8%E6%A0%BC%E5%AD%90%EF%BC%89">3. 基线可用性（第一遍：A 在全部格子）<a class="anchor-link" href="#3.-%E5%9F%BA%E7%BA%BF%E5%8F%AF%E7%94%A8%E6%80%A7%EF%BC%88%E7%AC%AC%E4%B8%80%E9%81%8D%EF%BC%9AA-%E5%9C%A8%E5%85%A8%E9%83%A8%E6%A0%BC%E5%AD%90%EF%BC%89">¶</a></h2><p><strong>运行前的预测</strong>（卡片原文，写于 v1 密集表设计）：T1-2K 10–12/12，T2-2K 7–11/12，T1-8K 6–11/12，T2-8K 3–9/12。<strong>校准后的修订预测</strong>（卡片附录，写于正式运行前）：T1 两档可用（2K 10–12，8K 9–12），T2 两档不可用（2K 3–7，8K 0–3）。门槛 80% 是小样本可用性检查。</p>
+<p><strong>基线</strong>是比较所用的完整读取 A。<strong>可用性门槛</strong>要求当前组合中 A 的完整匹配率至少 80%，才继续比较少读方法；<code>baseline_too_weak</code> 表示“此协议下基线未达到门槛”，不表示模型一般没有该能力。每个组合 n=12，<code>10–12/12</code> 是预测答对 10 至 12 题。校准是在正式对照前用另一批资料检查模板与任务是否可用；不能用正式结果反过来挑题。</p>
 </div>
 </div>
 </div>
@@ -8484,6 +8507,19 @@ T2/8K     12   1     8%        4                17%        0     0  front/back_f
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p><strong>观察。</strong> T1 两档基线达到本批探索样本的可用性门槛，T2 两档未达到。A 的 T1 错误发生在 8K，回答了其他记录的值，没有编号回声。T2 有编号回声、一对一错或全错等形态；8K 还出现“编号:值”配对格式。冻结评分取最前面的一个或两个独立四位数，不能与“整段包含正确内容”混同。</p>
 <p><strong>边界。</strong> <code>baseline_too_weak</code> 仅指当前提示、生成和评分协议下没有过门槛，不是“模型没有双证据读取能力”。本轮未改评分规则，T2 不进入稀疏对照；80% 也不是总体能力的区间估计。</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=terms-03-17-b0">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="%E8%AF%BB%E8%B4%A8%E9%87%8F%E3%80%81%E8%A6%86%E7%9B%96%E4%B8%8E%E6%94%B9%E5%86%99%E8%A1%A8%E7%9A%84%E7%BA%A6%E5%AE%9A">读质量、覆盖与改写表的约定<a class="anchor-link" href="#%E8%AF%BB%E8%B4%A8%E9%87%8F%E3%80%81%E8%A6%86%E7%9B%96%E4%B8%8E%E6%94%B9%E5%86%99%E8%A1%A8%E7%9A%84%E7%BA%A6%E5%AE%9A">¶</a></h3><p><code>B@0.03125</code> 表示 B 方法、ρ=1/32，<code>D0@0.125</code> 表示 D0、ρ=1/8。<strong>配对四格</strong>按同一道题统计：两者都对、A 对而另一方法错、A 错而另一方法对、两者都错；不同方法总分相同不代表答对的是同一批题。</p>
+<p>本课的 <strong>目标位置覆盖率 coverage</strong> 是目标记录的 token 位置中有多少被直接选中，按步骤、层和 K/V 组统计；“层组”就是某一层中的某个 K/V 组。“层组全覆盖比例”数有多少层组读齐整条记录。它不是注意力权重，也不是第四课起的教师条件覆盖率。问题阶段指正在输入问题，生成阶段指输出答案过程，<strong>首生成步</strong>指用问题最后一个 token 预测第一个答案的位置。</p>
+<p>图里 <code>exact match</code> 是完整匹配率，<code>target coverage</code> 是目标位置覆盖率，<code>layer</code> 是层；<code>pp</code> 表示百分点，例如 10% 到 11% 增加 1 个百分点。候选全部来自均匀随机抽样时，每个候选被选中的概率为 k/M；这只是 C 的位置选择参照。</p>
 </div>
 </div>
 </div>
@@ -8710,6 +8746,17 @@ T1/8K    D0@0.125   1023–1026 1091–1094  0/12        12       0%            
 <p><strong>观察。</strong> 主表和配对结果与旧记录一致：C/D0 在四格均未答对；B 窗口内 9/14、窗口外 0/34，且有增加名额后由对变错的案例。多数失败答成问题里的编号。C 的目标位置覆盖接近对应步骤的 k/M；D0 的覆盖较高，但分数仍为零。</p>
 <p><strong>解释的边界。</strong> 这里同时观察到了低目标位置覆盖和零分，不能仅凭这个指标确定两者的充分或必要关系。覆盖指标计算整条记录，而非仅四位答案；跨层、跨位置的信息传递也没有被分离。“没直接选到目标行”和“没有任何目标信息”不是同一件事。</p>
 <p>D0 未训练，其零分不代表训练后索引的上限。B 的结果限定于当前 F、预算和样本。计时含覆盖率记账与同步，不能作为新的速度基准。</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=terms-03-22-b0">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>案例代码里 <code>base</code> 是原资料，<code>value</code> 只改被查询记录的值，<code>irrelevant</code> 改无关记录的值，<code>move</code> 把目标记录与靠近资料末尾的记录交换位置。<code>parent_doc_id</code> 指改写前的资料身份。<strong>案例类别</strong> <code>A_right_B_wrong</code> / <code>A_right_C_or_D0_wrong</code> 分别表示 A 对而 B 错 / A 对而 C 或 D0 错；<code>all_four_right</code> 表示四方法都对。<code>ranges</code> 是连续入选位置的区间简写，逐条完整名单仍在记录中。</p>
 </div>
 </div>
 </div>
@@ -9946,7 +9993,7 @@ T1-2K-00 B 0.125 ['8340'] → ['1563'] | 改后编号回声: True
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="7.-%E5%AE%9E%E9%99%85%E8%BF%90%E8%A1%8C%E6%88%90%E6%9C%AC">7. 实际运行成本<a class="anchor-link" href="#7.-%E5%AE%9E%E9%99%85%E8%BF%90%E8%A1%8C%E6%88%90%E6%9C%AC">¶</a></h2>
+<h2 id="7.-%E5%AE%9E%E9%99%85%E8%BF%90%E8%A1%8C%E6%88%90%E6%9C%AC">7. 实际运行成本<a class="anchor-link" href="#7.-%E5%AE%9E%E9%99%85%E8%BF%90%E8%A1%8C%E6%88%90%E6%9C%AC">¶</a></h2><p>这里 <code>s</code> 是秒、<code>ms</code> 是毫秒；<code>prefill ms</code> 统计资料完整处理时间，<code>每步 ms</code> 统计后续处理一步的时间。<code>baseline/comparison/rewrites</code> 对应前述基线、方法对照和改写运行；<code>rewrites[0/1]</code> 是两组改写运行的序号。质量运行含额外记录开销，不作为独立速度基准。</p>
 </div>
 </div>
 </div>
@@ -9992,7 +10039,7 @@ rewrites[1] | prefill ms 中位: {'2K': 369.0802920027636, '8K': 1916.1310414783
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>读法。</strong> 正式三遍 313 s，加冒烟与校准 654 s，现金 0，分配内存峰值 3.4 GB。每步耗时：A 11–13 ms，B 与 A 相当，D0 约 18 ms（G1b 测过的小核链），C 20–36 ms——C 的额外成本是 CPU 上 numpy 的均匀抽样与 top-k（每层每步一次，8K 候选域更大），不是 GPU 属性，也不是本任务的测量对象。</p>
+<p><strong>读法。</strong> 正式三遍 313 s，加小批运行检查（俗称“冒烟测试”，用于尽早发现流程错误）与正式前校准 654 s，现金 0，分配内存峰值 3.4 GB。每步耗时：A 11–13 ms，B 与 A 相当，D0 约 18 ms（G1b 测过的小核链），C 20–36 ms——C 的额外成本是 CPU 上 NumPy（数值数组库） 的均匀抽样与 top-k（每层每步一次，8K 候选域更大），不是 GPU 属性，也不是本任务的测量对象。</p>
 </div>
 </div>
 </div>
@@ -10068,7 +10115,7 @@ rewrites[1] | prefill ms 中位: {'2K': 369.0802920027636, '8K': 1916.1310414783
 <td>成立</td>
 </tr>
 <tr>
-<td>反事实签名</td>
+<td>改写后的回答变化模式</td>
 <td>原预测见卡片</td>
 <td>逐题动态计数见第 6 节</td>
 <td>A 在本批支持；B“窗口外必不变”被反例否定；旧 C 因混杂不能判断</td>
@@ -10082,7 +10129,7 @@ rewrites[1] | prefill ms 中位: {'2K': 369.0802920027636, '8K': 1916.1310414783
 </tbody>
 </table>
 <p><strong>结论（限 Qwen3-0.6B、bf16、MPS、本提示与评分协议、探索样本）。</strong> 当前读取预算下，B/C/D0 的成绩很差，且错误多为复述问题中的编号。我们已经区分了三件事：直接选中哪些位置、资料可能怎样影响深层状态、最终回答是否正确。现有覆盖指标没有证明检索的必要或充分条件，也没有给训练索引器提供保证。</p>
-<p>T2 在当前提示、生成和评分协议下未过基线门槛，没有进入稀疏对照。PR #6–#9 是同一批案例的后续诊断，不进入本课冻结主表，也不作为独立验证集。<code>03_G2_TO_G5.md</code> 保持 BLOCKED；本轮止于 PR #5 收尾与复审，不启动 G3、性能优化或新任务变式。</p>
+<p>T2 在当前提示、生成和评分协议下未过基线门槛，没有进入稀疏对照。PR（代码合并申请）#6–#9 是同一批案例的后续诊断，不进入本课冻结主表，也不作为独立验证集。历史任务书中的 <code>BLOCKED</code> 表示当时后续实验尚未解锁。第三课的结果在当时的交付 PR #5 中冻结；后来另行授权的单层训练 G3a、各层训练 G3b、真实推理 G3c 与质量成本 G4-lite 见第四至七课，不混入本课主表。</p>
 </div>
 </div>
 </div>
