@@ -1,5 +1,35 @@
 # 接力状态
 
+## 2026-10-19 当前复审收尾：仅修未来预算互斥与计时说明
+
+PR #16追加预算独占修复 `d2353ae`；PR #17通过保留历史的依赖合入提交 `4c862e5`同步，PR #18再接续该提交。没有rebase、force push或GitHub PR合并。当前#18仅补全阶段历史核验及计时措辞；正式实验仍对应原执行提交和归档hash，未倒填版本。
+
+[历史账核对](reports/campaign_budget_history_audit.json)：5次运行均与归档逐字节对应，账本3897.345024秒等于逐项之和；按UTC整秒记录保守扩展结束边界1秒后，最小间隔114秒，没有记录到运行重叠。manifest外层计时总和比预算账多0.003818秒，来源是外层计时覆盖预算上下文前后的记账边界；保留原账，不将两个计时口径硬改成相同。原G3a账hash一致。结论针对这5份既有记录，不冒充独立OS进程监测。
+
+9项预算契约（包括真实双进程）通过；旧源码在新并发测试下的2项负对照失败，补丁后通过。强制终止会释放OS锁但保留未完成登记，下一运行必须先核清。完整核验说明见[收尾报告](reports/campaign_budget_closeout.md)。报告与第七课将“计时外的保护检查”明确为资源/预算检查；参数/缓存身份检查仍计入D/D0前向，没有据此归因性能。
+
+下一步仅独立复审三个更新PR；无活动模型作业，本轮新增真实设备运行0秒、现金0。CPU/CI与第七课导出完成情况在收尾报告；整页/窄屏仍未验。不恢复训练、测试采样或速度优化，不自动合并。只读复核：`python scripts/audit_campaign_budget.py --verify-local`（有本地旧run时）及`python scripts/check_provenance.py`。
+
+以下保留上一轮研究交付状态与对应旧head，最新修复以上段为准。
+
+## 当前连续目标已完成：G3b-lite / G3c / G4-lite
+
+本轮按用户授权连续完成了三个缩减任务，下一步是独立复审，**不自动合并或扩展实验**。PR #12已按授权用merge commit合并为`0dd6b73`，Issue #11已关闭且分支保留。新任务Issue #13/#14/#15均已有交付；Issue保持OPEN直到关联PR按授权合并。
+
+- G3b [PR #16](https://github.com/wlvh/attention-lab/pull/16)，head `c8b5dd6`，base main `0dd6b73`，两项CI成功。27层新训练、第14层复用，28层开发指标均优于D0；旧开发资料不算新验证。[第五课](reports/05_training_all_layer_indexers.html)、[报告](reports/g3b_mac_m4max.md)。
+- G3c [PR #17](https://github.com/wlvh/attention-lab/pull/17)，head `1b54be8`，base `task/g3b-lite`固定`c8b5dd6`，两项CI成功。4份旧开发资料、612条控制步记录；成功和一次失败都保留。排序修复不改入选集合/预算，修后单层/全层全选51步logits逐位一致。[第六课](reports/06_from_teacher_features_to_sparse_states.html)、[报告](reports/g3c_mac_m4max.md)。
+- G4-lite [PR #18](https://github.com/wlvh/attention-lab/pull/18)已提交待审，分支`task/g4-lite`，base `task/g3c-real-sparse`固定`1b54be8`。run `g4lite-20261018T155038Z`，源码 `27e787f`。32份新约2K T1、160条独立自由回答：A 21/32，B 1/32，C 0/32，D0 0/32，D 17/32。D与A同对15题、A对/D错6题、A错/D对2题、同错9题；保留所有A错误。[第七课](reports/07_trained_sparse_quality_and_cost.html)、[报告](reports/g4lite_mac_m4max.md)、[逐题原文](reports/g4lite_answers_mac_m4max.json)。
+
+成本是4份预定资料、每方法1轮预热+3轮测量的同token输入对照，96条记录完整。32次控制前向中位A 0.366s、D 0.581s，配对D/A中位1.579；新缓存请求中位A 1.085s、A-best 0.759s、D 1.549s。主模型bf16/MPS/eager、索引fp32，输入搬运/日志/资源与预算检查在成本计时外（D/D0参数及缓存身份检查仍在前向内计时）；自由生成时间另存且有不同长度/argmax开销，不混用。精确KV+z分配中位A 231.4MiB、D 289.3MiB；RSS/MPS仅采样，不冒充峰值。支持本轮训练收益，未获得约2K速度收益，也未完全保住A逐题能力。
+
+共享新增设备账：`runs/g3bg4lite-20261018-budget.json`，3897.345/14400秒（约65分钟，含预检、失败、27层训练与全部推理），现金0，无活动PID；旧G3a 313.801秒账单未改。成功run、失败run、参数、数据、源码/config hash归档在`reports/provenance/g3b_*`、`g3c_*`、`g4lite_*`。G3b完整特征按运行前磁盘政策只保留每层0/48审计资料，其余hash后释放；不声称远端精简归档支持全部特征级再审计。旧run、manifest、模型缓存、环境和worktree未删。
+
+本机验证：最终25项三阶段相关CPU检查通过，其中15项G4/推理检查，包括160条原回答冻结重判、同预算/固定集合/合法位置名单位图、现有本地tokenizer对全部160条token解码核对。G3c/G3b的额外CPU与真实数值证据在各报告。报告可在禁用site-packages的Python重建；Notebook05/06/07从新内核执行（6/6/8代码单元），默认只读数据和小规模CPU。05/06/07的PNG均实际查看过：逐层指标、状态差异、选位目标带、质量与成本图的坐标/图例/标注可读。整页入口仍返回queued，整页与窄屏布局未验；PNG与单元执行不代替整页验收。
+
+下一条只读命令：`python scripts/check_provenance.py`，或打开第七课。PR #6—#10保持原状，旧交接中的未授权/停止段保留历史时间点，不覆盖本节。停止本轮设备运行，不追加训练、ρ、T2、长上下文、Metal/CUDA、云或付费API。后续PR合并必须另有明确授权，采用merge commit并保留分支。
+
+以下保留阶段检查点和历史交付记录；其中“测试未评分/待执行”等只指对应旧时点。
+
 ## 当前持续目标：G3b-lite → G3c → G4-lite（2026-10-18）
 
 用户已明确授权连续研发，三阶段共享新增14400秒真实设备运行预算、现金0；完成各里程碑提交PR后继续已授权下游，后续PR不自行合并。PR #12 在已审 head 45adb93、两项CI成功且无冲突时以 merge commit 合并为 `0dd6b73`，分支保留，Issue #11 已关闭。本地main已快进并核对父提交。
@@ -29,6 +59,12 @@ G3b [PR #16](https://github.com/wlvh/attention-lab/pull/16)已提交，两项CI�
 证据：[G3c报告](reports/g3c_mac_m4max.md)、[归档](reports/provenance/g3c_evidence_20261018.tar.gz)、[第六课](reports/06_from_teacher_features_to_sparse_states.html)。新增8项推理CPU契约，旧wrapper/选择器CPU检查28项及12子检查通过；归档和保存向量另用NumPy float64重算（沿用G3a指标审计绝对容差1e-4，不是全选门槛）。Notebook6个代码单元新内核执行；两联图已实际检查坐标、图例与第14层标记。整页入口返回queued，整页/窄屏仍未验。
 
 下一步：提交G3c待审PR后从固定提交建立G4分支；仅32份预登记新T1自由生成与前4份同token成本，保留全部成绩、不调参、不增加训练。只读复核：`python scripts/g3c_report.py`。
+
+## G4-lite 执行前登记
+
+G3c [PR #17](https://github.com/wlvh/attention-lab/pull/17)待审；当前分支`task/g4-lite`固定基于`1b54be8`。32份新测试仍未评分，新增脚本只做已登记的160条自由生成和4份×6方法×4轮成本（1预热、3测量），共用原设备账。细化计时与顺序见`configs/g4lite_execution.json`，不改变数据、模型、ρ、种子、评分或训练参数。
+
+下一条命令（CPU协议检查、提交后）：`.venv/bin/python bench/g4lite_quality_cost.py`。结果差仍照实交付，不重新训练或挑题。
 
 ## 2026-10-18 PR #12 复审补丁：预检绑定执行源码
 

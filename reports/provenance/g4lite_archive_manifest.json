@@ -1,0 +1,778 @@
+{
+  "archive": "reports/provenance/g4lite_evidence_20261018.tar.gz",
+  "sha256": "8d9d6666e9e8fc150c1516047f0a250cd65d3130a205e219237f6074898d9cd3",
+  "formal_run": "g4lite-20261018T155038Z",
+  "runs": [
+    "g4lite-20261018T155038Z"
+  ],
+  "files": {
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-23-C.npz": {
+      "bytes": 36943,
+      "sha256": "805365d10a20c60578fbfda889f58d933cd517dfc716eb7e181899e6bbcf6a25"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-07-B.npz": {
+      "bytes": 1308,
+      "sha256": "55762e8cd91e500127f9346a80bd60267a2303fe697f704822c67a0ead363fe7"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-21-A.npz": {
+      "bytes": 1196,
+      "sha256": "9506c98003f553c2fd3a9ace9af78579d34beb171bf3a494055f8f96b2208270"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-01-D.npz": {
+      "bytes": 28885,
+      "sha256": "003f4b1875a23eb1f2c6f6723a36ec5b89e3c51fba78e0d4dbf463e6cc3cde08"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-25-D.npz": {
+      "bytes": 28283,
+      "sha256": "b7a905ccc54bc25b3026c15545108385b78f1c8ebfb23bf4229d44e547612188"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-07-C.npz": {
+      "bytes": 37222,
+      "sha256": "25fb069e0d3ff8a890339e7e41d40931bb5aab3fd48d5e876b332a390695398b"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-23-B.npz": {
+      "bytes": 1197,
+      "sha256": "43560b53bb6365163c5106a71017ef9dc3bb46bd3faa295f300206a9a30a6d8b"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-05-A.npz": {
+      "bytes": 1225,
+      "sha256": "d5413b3aa1aca305ef563ba83023fecdd81effc2f82ce357945f10419d3f4e5c"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-18-D.npz": {
+      "bytes": 28777,
+      "sha256": "0fda4192d3429b4f038d993dd73563b7f2989309566890d787fc553448ae5c63"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-10-D0.npz": {
+      "bytes": 34430,
+      "sha256": "f487b12e44c6a1c1d270bb63828fb78438100c27b05afad7d24a6f9823b723c7"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-05-C.npz": {
+      "bytes": 38237,
+      "sha256": "a7b2235c5d08da49f0cdeb34f9a4179b83006a807db2935ccf56646a53693687"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-21-B.npz": {
+      "bytes": 1195,
+      "sha256": "766443396467d42e816750c45b685f86c8160247461f4a67d7f2d621f9386368"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-07-A.npz": {
+      "bytes": 1197,
+      "sha256": "3473116c64706a34dc2a7fdbc4a5b6fe3665e55fcd9b398b0034e3bcb8aa9db2"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-02-D0.npz": {
+      "bytes": 34838,
+      "sha256": "026dc023f67b4c300afd6cd65c07d438616a48ed8316a420210c2b536b37b8ab"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-27-D.npz": {
+      "bytes": 28904,
+      "sha256": "3d115075bd0dcea8d2adb6ab9329815eef0377ece10ac6e752cf552478375f1f"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-03-D.npz": {
+      "bytes": 28832,
+      "sha256": "4841fa5e37642c712c61cdf4821e72fa2e1154258749d5d49ad1b8cb64ea94bf"
+    },
+    "g4lite-20261018T155038Z/quality.jsonl": {
+      "bytes": 188648,
+      "sha256": "931705b92f197ef8b539e4c9a4358fa61b2fa319e6f57afa0fce4d9c5bbd5219"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-21-C.npz": {
+      "bytes": 36474,
+      "sha256": "38eece7088526f1cebead3ec9b9636431d0ed62b9990ef9221725bf3268f157c"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-26-D0.npz": {
+      "bytes": 34163,
+      "sha256": "db5f17eff58e10164c237bb61757c8c2a91d9a25dd40503d2983c4ef680a4951"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-05-B.npz": {
+      "bytes": 1225,
+      "sha256": "ded625f75459ce32411d351d8836d22798facf7640f92e84002798d4977d26da"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-23-A.npz": {
+      "bytes": 1196,
+      "sha256": "780baee641173d959fbd2adbbb6507287a4b3e4e49e185ca4670d43dc1490103"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-18-C.npz": {
+      "bytes": 36849,
+      "sha256": "3ac621fd1735e2bd71b36be4f6a91dd141163275c4ee9fabfd3cf069be6ac0d6"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-07-D.npz": {
+      "bytes": 29145,
+      "sha256": "681ce4a090cb8beea0a3bec84674e85fddc56b5ff315446407cf7591878fa2d7"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-00-D0.npz": {
+      "bytes": 34239,
+      "sha256": "05b4ee5c100a89a95f1a216712ef5c56d8c312d86cc53bfcd978c5e0337aaeec"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-01-B.npz": {
+      "bytes": 1195,
+      "sha256": "6c0adde0b5a72843db25e367c7378260b209f6db3b3600e143ecd13fdee37373"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-27-A.npz": {
+      "bytes": 1197,
+      "sha256": "4b83a8005b73a576c023f98f36b100eaf3aaac31d8659a25d733846b12815aa6"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-12-D0.npz": {
+      "bytes": 35634,
+      "sha256": "7721591ffdf6dbf584133851c0dce0637ef543bedaa798875c3cc35206772a45"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-25-C.npz": {
+      "bytes": 36702,
+      "sha256": "2f4e594045e2e05e00e944c151219962d47a08bad7d0f45d3155cc3fc8d76db1"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-25-B.npz": {
+      "bytes": 1198,
+      "sha256": "1fd99cc4610d2b8d44439377cf24aca23a18d03de8b0449713273040dc1ced95"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-03-A.npz": {
+      "bytes": 1195,
+      "sha256": "869cd193a782375c36f978c049513c16b0af82885339cdab7b6ba54dec449851"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-01-C.npz": {
+      "bytes": 37037,
+      "sha256": "0f9be4277d5b23bbe436a5af0267633e9653cc6aa79c7db5b124262c10083f18"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-24-D0.npz": {
+      "bytes": 34332,
+      "sha256": "8c22e5664f7e49dfee4e7ee1f0482a0b286463ab20e55f01788daf80b22eb763"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-28-D0.npz": {
+      "bytes": 34345,
+      "sha256": "0fdc3d5144cf31806c86193cff1d4ba63c4cf3dd737dbaa719b262f513903f24"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-23-D.npz": {
+      "bytes": 28851,
+      "sha256": "52544326ff85e9379e9a674feb1d534eef96f0d307f098e9dfcb9ec60fe41b2f"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-18-B.npz": {
+      "bytes": 1196,
+      "sha256": "fa528f2058676286521123c65a807d1b07cb461aa30e06721dd2645f10aa9625"
+    },
+    "g4lite-20261018T155038Z/data.jsonl": {
+      "bytes": 1083813,
+      "sha256": "1e17405456f75bedecee2863eb31faf7c34b957ce5da7134887dbfbefc825633"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-21-D.npz": {
+      "bytes": 28500,
+      "sha256": "05550e26811affcfe8e5f5de4f301188fc5f9d68711f06c87fe3f1a0f53ebe7a"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-27-B.npz": {
+      "bytes": 1195,
+      "sha256": "e7f2d8437733b63564c49729160835ec08c6b4a2035af2e216fa8a9dc45e3e41"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-01-A.npz": {
+      "bytes": 1194,
+      "sha256": "179647d48b4c3b4c506c8449637c692890224cddfe3fc0aa15cade77cf461423"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-03-C.npz": {
+      "bytes": 36909,
+      "sha256": "b16684b14f4ab3b58850485dc96ec9c408cac6f9db63a3d89f0958a0abde241c"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-03-B.npz": {
+      "bytes": 1196,
+      "sha256": "fa528f2058676286521123c65a807d1b07cb461aa30e06721dd2645f10aa9625"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-25-A.npz": {
+      "bytes": 1198,
+      "sha256": "22241b3d71e8da626d869fac7b8b239873e36e9db68d3b89d37aa596ff65fefb"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-27-C.npz": {
+      "bytes": 36900,
+      "sha256": "4f5bd2594432bbfcf3621d70430d4aa3383549778fc61b798c737732594ef917"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-05-D.npz": {
+      "bytes": 29734,
+      "sha256": "696c2186117e10ff9a83a24357938cac0103c26ee1b953e747309a0abc5787bd"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-18-A.npz": {
+      "bytes": 1195,
+      "sha256": "869cd193a782375c36f978c049513c16b0af82885339cdab7b6ba54dec449851"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-26-D.npz": {
+      "bytes": 28387,
+      "sha256": "d4e5c44f54acd1de7bda1e1774a93da63353393904edc673198d0f07bc272287"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-20-B.npz": {
+      "bytes": 1198,
+      "sha256": "b14e94140bd8b9f86801cca19a0c0e94472d57b8ba4ba82c10a7d3309d2763d6"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-06-A.npz": {
+      "bytes": 1196,
+      "sha256": "25c9e93cecd18f927fa6cd69806e23f98ee227d1c923651788dda6ce6bf0b055"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-20-D0.npz": {
+      "bytes": 34273,
+      "sha256": "179c17f5c08236f17f6dd4d847ceb0cdfddce6564f37fb48bd22ad953b27e97b"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-04-C.npz": {
+      "bytes": 36791,
+      "sha256": "155cb19b08f5c9e62f9331f115d70b77553ff5dc16302436ebfde218e5162505"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-04-B.npz": {
+      "bytes": 1198,
+      "sha256": "6bbd7f9f50bb96cbc657ecb41a80ccee81faa7cac8c7d051e20e7f3bf7caa7ee"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-22-A.npz": {
+      "bytes": 1197,
+      "sha256": "91f0767c889618c0cca8d0f93605b5b8a6463d7fdec670186cb234d85d0d10da"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-08-D0.npz": {
+      "bytes": 34450,
+      "sha256": "fbb5f9d592fb4d4cd4c004cbc78164bb928b1d3637549ba6c2c73fbd9e16b95c"
+    },
+    "g4lite-20261018T155038Z/config.json": {
+      "bytes": 2462,
+      "sha256": "000df6758b794fc2923c1dc26cc8330baedc9b1a1f0b6e7fa8c9a4132dff3e94"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-16-D0.npz": {
+      "bytes": 34088,
+      "sha256": "2b8977ff35236950bf87e6dae5d0568b1d1c1d58bf89f36f2a4244ebeb05ba75"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-20-C.npz": {
+      "bytes": 36775,
+      "sha256": "6e9673a90e030e9218cc639f9e2bc6307758a7f66ab169ce733381fc2efe28ef"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-02-D.npz": {
+      "bytes": 28996,
+      "sha256": "01441733b12ea10c1f71b080946adacf9b2c3c7aa6a0c63718ecae9626800d3d"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-04-D0.npz": {
+      "bytes": 34320,
+      "sha256": "31c110466579544927f5b49ec78e04a4a3fa59c3ddcd31663845e21693d17188"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-00-D.npz": {
+      "bytes": 28436,
+      "sha256": "b8584ab3e42c1f668ca14dce3e9fc9e78049909ce6dd3bfbe2c5e8e4313ef89f"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-06-B.npz": {
+      "bytes": 1197,
+      "sha256": "7fde60a2875fa5b5f8fd3fe46ad458990b7a738c7b745c807c4bc20dec84faf3"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-20-A.npz": {
+      "bytes": 1197,
+      "sha256": "1dd132c71d38474eefb7885518d316de1c358f22bd68f4df2087d0fedacd503c"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-22-C.npz": {
+      "bytes": 36634,
+      "sha256": "a21fa247a2c4d54c52c46bd5f6022d6a76a354496f0d9c368db997cf2eb8812e"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-22-B.npz": {
+      "bytes": 1198,
+      "sha256": "b552c2376462084fbaf80157b97664fe9cbbb0cf7308c6325558d1d57695eba6"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-04-A.npz": {
+      "bytes": 1198,
+      "sha256": "ac095fe94387a81dd7c89249de6cc3f904dd0e19e9ff031b1c147f608796f9c0"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-19-D.npz": {
+      "bytes": 28636,
+      "sha256": "4a291211d2ecee92f257d830fc448f6049caa0984442f876fbad6febc1f36c59"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-06-C.npz": {
+      "bytes": 36912,
+      "sha256": "01e17acf23e42ffec38424a6fa0deb25854ead1be4dd8a583a0897fc0135fb90"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-24-D.npz": {
+      "bytes": 28489,
+      "sha256": "2e3cc8557418a5a987296c1683c819aafbb4ce4bc1a59d7b5a26b251fea8f704"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-02-C.npz": {
+      "bytes": 37240,
+      "sha256": "552c11024be2c604abb0c186c474d9af5b5ac2f6b7802705a584977edc6e2f15"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-26-B.npz": {
+      "bytes": 1198,
+      "sha256": "b552c2376462084fbaf80157b97664fe9cbbb0cf7308c6325558d1d57695eba6"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-00-A.npz": {
+      "bytes": 1198,
+      "sha256": "0307967bd4ce0dfcfac35ee26b87805c4ac88f7c3bd11e61bafedcf73f22fe7b"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-20-D.npz": {
+      "bytes": 28433,
+      "sha256": "9fc802aae8866a579ebd26709ac016ea36ceca88941502db70e566815d782b8d"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-04-D.npz": {
+      "bytes": 28570,
+      "sha256": "a27ad1a1b7dd68027345a9b691698c1f9c757de7d62b2fc0fc3f40cc1288f710"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-19-A.npz": {
+      "bytes": 1197,
+      "sha256": "7005b8bb56a0637cb624c33731801496bf596f1190e73b7696735a6d40680c70"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-26-C.npz": {
+      "bytes": 36588,
+      "sha256": "7196b5b7d3d6f8bdd2476057604d3505f1e342e9ee944af26b4d4303f91f5dac"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-02-B.npz": {
+      "bytes": 1204,
+      "sha256": "e25c43e3ee8f18218570155af71e32666e7ff406d206c58f9ceb8aab15d56965"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-24-A.npz": {
+      "bytes": 1197,
+      "sha256": "2e72eb3ce607f2aecec72cdd78ffcac0bdbef7249c2fd3073779e1d22e65e197"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-22-D0.npz": {
+      "bytes": 34171,
+      "sha256": "fe31075517351c14732decda9254d4ae068ee90bdff7c8580e4935aa2c0ced9d"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-24-C.npz": {
+      "bytes": 36820,
+      "sha256": "6d910705d1774c55e691be5f6a10f4004f2c8d0afb16013c265e1ef3cf56bbb1"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-00-B.npz": {
+      "bytes": 1197,
+      "sha256": "e1655457728ca8aed399ac281f3aed333cb18f5a4e25aca8a786ed3ba7a1899f"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-26-A.npz": {
+      "bytes": 1197,
+      "sha256": "91f0767c889618c0cca8d0f93605b5b8a6463d7fdec670186cb234d85d0d10da"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-30-D0.npz": {
+      "bytes": 34345,
+      "sha256": "6a7312d864237f3b75db84c242c4a4861ae36d8cc836037101252d6c9a0cd77a"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-06-D.npz": {
+      "bytes": 28710,
+      "sha256": "49b436abcd024cf63d9c0da3b8d538019a5f741450b74569e9910df8cc06aade"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-19-C.npz": {
+      "bytes": 37125,
+      "sha256": "c39daa25d78d4907bdefa6b8bafef6e8de9e9fdee917c628a9c473fd31976ed8"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-22-D.npz": {
+      "bytes": 28298,
+      "sha256": "580e2ecf7ecd9a3b4eace9a5dc70908ba3e6fb1645d7bc97d30929b3df15fbe0"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-06-D0.npz": {
+      "bytes": 34541,
+      "sha256": "6521d7ec43e837e0757abcfbbcb15342d85dae3728f1b35b985d4fa1337da382"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-19-B.npz": {
+      "bytes": 1307,
+      "sha256": "99e46d2ca1266a82d1c3231056e70c0bf485ee2ed0a37b9cf917dac5790b726e"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-18-D0.npz": {
+      "bytes": 34420,
+      "sha256": "e42846c830752e4bfc9f33576da504849aa2c5fc3ee3c2d6e6e865be0b7f8dc9"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-14-D0.npz": {
+      "bytes": 34536,
+      "sha256": "fb498143848672e67f9ef413725a2b91ff8394b59cc29e43d64d4d0888458703"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-00-C.npz": {
+      "bytes": 36778,
+      "sha256": "5c7697979ea627fd73f36eae6aabfcd9f5d9113b1727bcefa745d88fce411100"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-24-B.npz": {
+      "bytes": 1197,
+      "sha256": "870c9cad00011551e5947e6042c8739fa1b4eebcbcaf71b28f25d130ca136290"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-02-A.npz": {
+      "bytes": 1196,
+      "sha256": "64a626c4a2b034a485366c8dd78b34fbb2259a590eefeb152811d695c521b6bb"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-28-B.npz": {
+      "bytes": 1196,
+      "sha256": "681ad739ed17acfc382ec2398b5d5044c4a0b6df11f68902ccd7b699aa06d542"
+    },
+    "g4lite-20261018T155038Z/cost_sequences.json": {
+      "bytes": 2593,
+      "sha256": "56eaf6cc2b9b4e5f7c4975e5612a6d8144cfb013969e3fd25b25fd23fba1fcb3"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-13-D.npz": {
+      "bytes": 29183,
+      "sha256": "ce22e4e8773e4aa4f0d4875d32dc84f32a5be31810a4f39bac9d77548fb46c60"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-15-B.npz": {
+      "bytes": 1197,
+      "sha256": "870c9cad00011551e5947e6042c8739fa1b4eebcbcaf71b28f25d130ca136290"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-27-D0.npz": {
+      "bytes": 34505,
+      "sha256": "6248beb7ec4e2cded8c9c6327344cc705d355d4e019090eb067fe7da44023cd3"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-31-C.npz": {
+      "bytes": 37041,
+      "sha256": "eef984054e441e2cea67a626e826492d7c5c9b467d132b32001be860370c8929"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-17-A.npz": {
+      "bytes": 1195,
+      "sha256": "4fe93fbc6d882d91682141d6ac081706af6a84865fe3d29f1af55bcda026030f"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-31-B.npz": {
+      "bytes": 1195,
+      "sha256": "6c0adde0b5a72843db25e367c7378260b209f6db3b3600e143ecd13fdee37373"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-15-C.npz": {
+      "bytes": 36788,
+      "sha256": "635f04524873e38046acdfa8fc3e0f8c32ccf1fd7c17e0a5500ad3a275809216"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-11-D0.npz": {
+      "bytes": 34243,
+      "sha256": "c8ff863f65afdd10866a4c46d57afacc977e4571c94fb799db368940d7b9488a"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-28-C.npz": {
+      "bytes": 36779,
+      "sha256": "b4bc7891b631cddda02b6ee7f332d5dbbd72bb628d41ff0c9cf5857249295e1a"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-03-D0.npz": {
+      "bytes": 34493,
+      "sha256": "2c301b2e211298dbc21c07e6753f24a4c2eb876ab1fa22b97bcc0cfef188335e"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-28-A.npz": {
+      "bytes": 1198,
+      "sha256": "513db4bea8c05674066ac671b0fbb9af3a9a933af34d47d2472db01bb1cdc5cb"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-08-D.npz": {
+      "bytes": 28879,
+      "sha256": "acc74195e1969c7f186ca968cb590b3556bcbd50e9924130efeac795d16c5f0a"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-15-A.npz": {
+      "bytes": 1197,
+      "sha256": "2e72eb3ce607f2aecec72cdd78ffcac0bdbef7249c2fd3073779e1d22e65e197"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-17-C.npz": {
+      "bytes": 36593,
+      "sha256": "8385077dfc45ad4b65221682a52af54a162650ffca9ccc14530ffebd385f2dba"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-31-A.npz": {
+      "bytes": 1194,
+      "sha256": "179647d48b4c3b4c506c8449637c692890224cddfe3fc0aa15cade77cf461423"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-17-B.npz": {
+      "bytes": 1196,
+      "sha256": "d2cdbd44274004b344656bee083a674176f81f51c4bfa179650f2bb31986b1fa"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-11-D.npz": {
+      "bytes": 28414,
+      "sha256": "1d5918d65cbdb6998ef93939c95e1d59d6f00cb87d49cee1fb5e7fadc21969da"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-28-D.npz": {
+      "bytes": 28443,
+      "sha256": "3f38b45c66ac0acc02af4eeea2e30d488cb1efc5180b6ee7c19ddb52eaac172b"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-13-B.npz": {
+      "bytes": 1198,
+      "sha256": "0cc6678d16a3ba98a394f74dacc076fcd7fc5575f22d32cd18dcd34fe19eedb5"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-08-A.npz": {
+      "bytes": 1197,
+      "sha256": "c41e9eff6059a648497736d9741921478fae67327149bd65467ba57c8d441b82"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-15-D.npz": {
+      "bytes": 28656,
+      "sha256": "7dbb611cc5a1e31e75c7698fe1976e3439fc5ed22b930888c2e04c48a8763fa3"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-31-D.npz": {
+      "bytes": 28986,
+      "sha256": "980e8c613b4ea53908d27a03f7e2c9b883209b39037013db9f7da8460767dbfd"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-13-C.npz": {
+      "bytes": 36997,
+      "sha256": "2066507c8158f172407d46cf48cde0ca9195abb0f8e943a3e6d53c15b92f9b0a"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-11-A.npz": {
+      "bytes": 1197,
+      "sha256": "2e72eb3ce607f2aecec72cdd78ffcac0bdbef7249c2fd3073779e1d22e65e197"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-25-D0.npz": {
+      "bytes": 34149,
+      "sha256": "73c4570c60611c97e5b63ad4968807006cf82282d1bdbe89a0a5ac396c0c0811"
+    },
+    "g4lite-20261018T155038Z/manifest.json": {
+      "bytes": 93549,
+      "sha256": "09de39b9d8ca831ea72e083cf1243d039c51a7d797c42818ced7264a0813a6ad"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-11-C.npz": {
+      "bytes": 36803,
+      "sha256": "d35e86eb2e924c546ef5c7dc64e28c3ddea67bb9ba92ff1123a8c87e41bf1102"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-13-A.npz": {
+      "bytes": 1197,
+      "sha256": "c41e9eff6059a648497736d9741921478fae67327149bd65467ba57c8d441b82"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-08-B.npz": {
+      "bytes": 1198,
+      "sha256": "0cc6678d16a3ba98a394f74dacc076fcd7fc5575f22d32cd18dcd34fe19eedb5"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-29-D0.npz": {
+      "bytes": 34450,
+      "sha256": "dbe5300c8efe09f8228771236b7f3051f954519d2306ca0c349f1c3fcebf33f7"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-17-D.npz": {
+      "bytes": 28546,
+      "sha256": "2ce3ad034a089452c9ae101373e5b28f897d9133a4d5e8cb05117fd092602b9c"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-01-D0.npz": {
+      "bytes": 34538,
+      "sha256": "46c8e5c8d84ab0e43eded84485c7dc49cf9648a96278234607e3b67e03e77580"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-08-C.npz": {
+      "bytes": 36910,
+      "sha256": "238d44df876ff61b7d3df1a7ed1717ee4ef28d188400e834e2b40fd913ea6eb2"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-13-D0.npz": {
+      "bytes": 34479,
+      "sha256": "96bf36a78e8de1e81d3ec46f0782d220057c0b10db08c22390befc6eaceeef32"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-11-B.npz": {
+      "bytes": 1197,
+      "sha256": "870c9cad00011551e5947e6042c8739fa1b4eebcbcaf71b28f25d130ca136290"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-16-C.npz": {
+      "bytes": 36616,
+      "sha256": "43017a3c99887fe9e3213a91d00bdc5934fb07ff4967c656f2dc3281130d8849"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-09-D.npz": {
+      "bytes": 29017,
+      "sha256": "f24145cf355693c837b859ebba634b231d40175db8a467fe19ffd7b1b21e5403"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-14-A.npz": {
+      "bytes": 1197,
+      "sha256": "41d229dbf10ad5feaf8046fdee1b02a82427d98c35638a94fbef4e0b009c1357"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-29-A.npz": {
+      "bytes": 1197,
+      "sha256": "2e72eb3ce607f2aecec72cdd78ffcac0bdbef7249c2fd3073779e1d22e65e197"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-10-D.npz": {
+      "bytes": 28733,
+      "sha256": "790a232642a2e2de363e48fadbda527eac0a37a904e069127e8c23729dfc1acd"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-30-A.npz": {
+      "bytes": 1198,
+      "sha256": "524000b6f2378c5105265e877890aa0a81c1323d0d2f1a79c7adf95906e0ff19"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-16-B.npz": {
+      "bytes": 1195,
+      "sha256": "c6d0f60978453141470d60a232c964d050b414cc4e7bfeecce2daaa13eb2ad9b"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-30-C.npz": {
+      "bytes": 36681,
+      "sha256": "86d48eec4cd14ac3a43f7b6919fa5322918e7eca955cfa2d448e5f412be5a395"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-17-D0.npz": {
+      "bytes": 34264,
+      "sha256": "337d17cd21ca9a4851c6875ed745592ca88fd43207aa0b82cd7939012a7662ba"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-14-B.npz": {
+      "bytes": 1199,
+      "sha256": "ee3cd59a5d8baae00d388e233dd7299d32ca3dc48d236525afa8124e379c3ccd"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-09-D0.npz": {
+      "bytes": 34270,
+      "sha256": "ff722a515a5dad85ac4223c585c419a345ac19ec0affc0f419babeee6e41cf02"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-29-B.npz": {
+      "bytes": 1197,
+      "sha256": "870c9cad00011551e5947e6042c8739fa1b4eebcbcaf71b28f25d130ca136290"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-12-D.npz": {
+      "bytes": 29824,
+      "sha256": "f5bf7da8984874a43c3488da2ea9b22be8b57045e7bab64394fad3fbb2a2f9dc"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-05-D0.npz": {
+      "bytes": 35725,
+      "sha256": "60f421e1bbc9db1d2ef09f7467594e0f668ea4a2a29f2089494826299e7bfadb"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-29-C.npz": {
+      "bytes": 36843,
+      "sha256": "ba9faadb6461b45b44b2411bcc930a25c5f915ce9d3db8932e4b0a86e7bc598e"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-14-C.npz": {
+      "bytes": 36946,
+      "sha256": "e40cfc705e84c09c081a6e666e147c73c0471a2bd459aa3469f9e44654819891"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-21-D0.npz": {
+      "bytes": 34113,
+      "sha256": "588b561304e79d59c9b7afb024d1e44a2a13d16afd62a2a6a2347f264b682949"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-16-A.npz": {
+      "bytes": 1194,
+      "sha256": "40607838318c351669edf9335ac44d9b009884bd2a3d50bdfe04429f985193fc"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-30-B.npz": {
+      "bytes": 1195,
+      "sha256": "5c627e7edc05db29ed77a098d7707c9870a97c4d867c1c1592be9aee736699df"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-19-D0.npz": {
+      "bytes": 34701,
+      "sha256": "95ecba9df2bb6ac062c18ced25db2e9128e405491a27a379dda63e485819eeb9"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-09-B.npz": {
+      "bytes": 1195,
+      "sha256": "c6d0f60978453141470d60a232c964d050b414cc4e7bfeecce2daaa13eb2ad9b"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-07-D0.npz": {
+      "bytes": 34770,
+      "sha256": "ce37f4f86449e2ec8451c0d173413c740e6c4b29807500db105e31963a67a86f"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-12-A.npz": {
+      "bytes": 1223,
+      "sha256": "515cfed39fbdacc133e9e891aad0a4529543842860fd00a3e5bda7062bfb97be"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-10-C.npz": {
+      "bytes": 36839,
+      "sha256": "676ef3fc5faa81326815f2527fc9b2fbc59fdc5917ede1ff62c2b7cd1ff33b2c"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-15-D0.npz": {
+      "bytes": 34357,
+      "sha256": "24f624ff2e0415166526e60b82ccdf28719c5a6f9c670f66b0d7db65870d4d99"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-10-B.npz": {
+      "bytes": 1197,
+      "sha256": "870c9cad00011551e5947e6042c8739fa1b4eebcbcaf71b28f25d130ca136290"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-23-D0.npz": {
+      "bytes": 34446,
+      "sha256": "c983faf741978f5c3d2e7b2ad5c80aaea329c89718ab4bd247f3c71cfc5021dc"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-09-C.npz": {
+      "bytes": 36626,
+      "sha256": "f92a00a433e3440c5d7d1c9494681a975c8125a2d8abcd8363660386974cf993"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-16-D.npz": {
+      "bytes": 28839,
+      "sha256": "8b9bf38e335fd29aaf11cefc6846d9d91dddff5a30df9aa6dca4d6ca728f13aa"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-31-D0.npz": {
+      "bytes": 34664,
+      "sha256": "3f7111fe2791ab90a32f10e8191878c82937568938a4578903ca519996403263"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-09-A.npz": {
+      "bytes": 1194,
+      "sha256": "40607838318c351669edf9335ac44d9b009884bd2a3d50bdfe04429f985193fc"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-14-D.npz": {
+      "bytes": 29060,
+      "sha256": "9306f5bf100f4d5ae28ef1ebcecf930b04d8abb23a3c5043409f58a398a10f14"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-29-D.npz": {
+      "bytes": 28356,
+      "sha256": "d00a1eec64f9e9bf0d5ec77cbbe3769a25242d8e98ff5b88b69ce59b2bb69f9f"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-12-B.npz": {
+      "bytes": 1234,
+      "sha256": "5dfe2a4d2aaba253e87c9d0dc67c4abfb11d8ceff64c2732ff74e09ff22a1881"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-10-A.npz": {
+      "bytes": 1197,
+      "sha256": "2e72eb3ce607f2aecec72cdd78ffcac0bdbef7249c2fd3073779e1d22e65e197"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-12-C.npz": {
+      "bytes": 38228,
+      "sha256": "471ab3f5bec6f1f94970bf4d814ae3876959e52223142d86123e43739ea3cb0b"
+    },
+    "g4lite-20261018T155038Z/cost.jsonl": {
+      "bytes": 51974,
+      "sha256": "011cf65f7a4966683ca4dcd0432dd3bf1e4a898bd23527e4ff6b322c421c36ad"
+    },
+    "g4lite-20261018T155038Z/positions-G4lite-T1-2K-30-D.npz": {
+      "bytes": 28280,
+      "sha256": "6e5ab83927ccbd9b3947401239947e664476577b4ed4305e2965fd9789b42d75"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/src/attention_lab/__init__.py": {
+      "bytes": 2265,
+      "sha256": "a3caef5cc422372c40988102cde6b7b41b8ef610b2fc62c5ff6a5ddfccbebcf6"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/src/attention_lab/campaign.py": {
+      "bytes": 5420,
+      "sha256": "9872ca481b09df4e1d6bb9e86ed85a135a2f33b13a875725d6c0fb5672297ab3"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/src/attention_lab/decode.py": {
+      "bytes": 10206,
+      "sha256": "ded8ef3c1c92cedc6d3d47074b35439e89e5c497321ae3149e29f7c9e3562d2c"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/src/attention_lab/full.py": {
+      "bytes": 2567,
+      "sha256": "b3b0f6c8cce5f5abecc55dd07a0aaa14afdc305da5df7a6d2502168ef479d23a"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/src/attention_lab/g2lite_control.py": {
+      "bytes": 3450,
+      "sha256": "5c3a5ad264bb5d62703620f3afca5eacd030277daaf590425c29f242765ed092"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/src/attention_lab/g2lite_data.py": {
+      "bytes": 18883,
+      "sha256": "7a82de22754a838768607e3e2b1789e9ce4a82d7e284e614be5897ab84a7ceff"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/src/attention_lab/g2lite_eval.py": {
+      "bytes": 16635,
+      "sha256": "7464b52612a470c7e9e8360b334af6357d447b588ffbb273f478a196d447f3d4"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/src/attention_lab/g3a.py": {
+      "bytes": 10329,
+      "sha256": "c8014658e1d6c4914fcb3dfd713d16c9de63d9de2f635918759621ca06f6adb0"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/src/attention_lab/g3b.py": {
+      "bytes": 6982,
+      "sha256": "4bcf12742a9d9a968c98326dd5f8d826246e74c0f4af0801b77cd1e91659ba1b"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/src/attention_lab/indexer.py": {
+      "bytes": 3756,
+      "sha256": "911db9e5af2b6ddf81fe1424369a55baf60fc878ec849c92b6bfdc860b2dcf85"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/src/attention_lab/inference.py": {
+      "bytes": 5502,
+      "sha256": "d86ac21e1d227b46b2e25961d267ef25e2c9a2cedca8f459bdacd2e47a908c77"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/src/attention_lab/metal_attend.py": {
+      "bytes": 15174,
+      "sha256": "21f0e4f8b8f16e46abd74b1bd32865a565012e9bae754bd8985e495da1b9ac6e"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/src/attention_lab/metal_score.py": {
+      "bytes": 18727,
+      "sha256": "f4ec5b2daeda24e5776d62913350e3c3c0a1069ac65d06f2937831490472b4bd"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/src/attention_lab/qwen_wrap.py": {
+      "bytes": 36309,
+      "sha256": "672229b862a638ee0e06304e0a5cdbdaaa6e42be20f9902abd7a4aed81a9bb48"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/src/attention_lab/reference.py": {
+      "bytes": 4785,
+      "sha256": "bdd13df4ed5ced09a7e56d9227a480837b63049ebb4b68145d07f6eb5683c2ec"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/src/attention_lab/runinfo.py": {
+      "bytes": 4356,
+      "sha256": "9d38b853cf6b30557e31d0ea9d7624aa8c227fa3938a9454327c4bd406f83b41"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/src/attention_lab/selection.py": {
+      "bytes": 3465,
+      "sha256": "a0dbe7aa0f0b586c358d633b276c0ed9baf3bbaed18d88d57fbfe9434cea9cfd"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/src/attention_lab/sparse.py": {
+      "bytes": 3302,
+      "sha256": "bbe8805b45a4f95ff2aed9c31cdb906fce66ecf4e7e6b31632584abd569aeb55"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/src/attention_lab/trained.py": {
+      "bytes": 4123,
+      "sha256": "eed5a4aaea9e510bc66cadfe69470729bd313e3d155ba46fe575949a670c6956"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/bench/g4lite_quality_cost.py": {
+      "bytes": 13844,
+      "sha256": "cb5d7d9bdaa231b44e3bd2db8f26533e34dcaab3fd9b53c6eedf21bccf33d5e3"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/configs/mac_g3bg4lite.json": {
+      "bytes": 2462,
+      "sha256": "000df6758b794fc2923c1dc26cc8330baedc9b1a1f0b6e7fa8c9a4132dff3e94"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/configs/mac_g2lite.json": {
+      "bytes": 13028,
+      "sha256": "83f1bd6a87b031de827618b32843fe2857402fe59a67a44165508ca8f15c7a0c"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/configs/mac_g3a.json": {
+      "bytes": 1422,
+      "sha256": "96b071c79b5e956a6daec3f404a959c63e7ff2872d6ab097e0d267c934769456"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/configs/g4lite_execution.json": {
+      "bytes": 1854,
+      "sha256": "0256d8a1f73c6809814d77b6c80f34d82fc075257d2bf54a746e0708516b7ad0"
+    },
+    "source/27e787fd72b4aba5f8fe51c7e756b43825a10f61/configs/g3bg4lite_test_plan.json": {
+      "bytes": 10345,
+      "sha256": "496f2c3e2d0dd65d49c84bf549032a2c228358b9c94a9661b1c4335099a2e0fc"
+    },
+    "budget_at_stage_completion.json": {
+      "bytes": 1155,
+      "sha256": "7d8830fd2f0eb2384e821863640054835dc7dde64c956a60b9baf0ddccd3902f"
+    }
+  }
+}

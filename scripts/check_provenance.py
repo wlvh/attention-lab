@@ -212,6 +212,28 @@ def main() -> int:
             print(f"G3c successful/failed source snapshots and {len(e3c['rows'])} controlled step records verified.")
         except Exception as exc:
             errors.append(f"G3c evidence: {exc}")
+    if (PROV / "g4lite_archive_manifest.json").exists():
+        try:
+            from g4lite_report import read_evidence as read_g4
+            eg4 = read_g4()
+            print(f"G4 frozen data/source, {len(eg4['quality'])} regraded free answers and {len(eg4['costs'])} cost records verified.")
+        except Exception as exc:
+            errors.append(f"G4 evidence: {exc}")
+    budget_audit = ROOT / "reports/campaign_budget_history_audit.json"
+    if budget_audit.exists():
+        try:
+            from audit_campaign_budget import audit
+            actual = audit()
+            if actual != json.loads(budget_audit.read_text()):
+                raise ValueError("saved budget audit differs from immutable archive recomputation")
+            lock_checks = json.loads((ROOT / "reports/campaign_budget_lock_checks.json").read_text())
+            for field, path in (("implementation_sha256", "src/attention_lab/campaign.py"),
+                                ("tests_sha256", "tests/test_campaign.py")):
+                if sha256(ROOT / path) != lock_checks[field]:
+                    raise ValueError("budget lock check source changed: " + path)
+            print(f"Campaign budget: {len(actual['runs'])} recorded runs, no overlap, {actual['ledger_total_seconds']:.6f}s preserved.")
+        except Exception as exc:
+            errors.append(f"Campaign budget closeout: {exc}")
     if errors:
         print("\n".join(errors))
         return 1

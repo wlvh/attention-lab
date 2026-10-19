@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "upstream_g3c_commit": "1b54be8",
+  "g3c_run": "runs/g3c-20261018T153929Z",
+  "g3b_run": "runs/g3b-20261018T142640Z-formal",
+  "final_data_plan": "configs/g3bg4lite_test_plan.json",
+  "quality_order": "rotate A/B/C/D0/D by doc_index modulo 5",
+  "cost_order": "rotate A/A-best/B/C/D0/D by (doc_index + repetition) modulo 6; repetition 0 is warmup, 1..3 measured",
+  "cost_sequence": "independent A greedy exactly 32 tokens, ignore EOS only for controlled inputs; never grade these as answers",
+  "cost_decode": "feed all 32 controlled tokens once, one forward each; first answer prediction belongs to question phase; no argmax or token extraction inside timed controlled decode",
+  "cost_input_transfers": "prepare prefix/suffix/controlled token tensors on MPS outside phase timers",
+  "cost_timers": "synchronize before and after setup/prefill/question/controlled decode; guards, selection capture, parsing and file IO outside timers",
+  "quality_timers": "synchronized setup, full prefix, question, free generation separately; free generation includes argmax/token transfer and per-step resource guard; score/selection capture outside",
+  "fresh_request_cost": "new empty cache allocation plus full prefill plus question plus controlled decode, with warm process/allocator; no prefix clone or rollback",
+  "memory": "exact allocated KV/z bytes per method; observed RSS/MPS snapshots after requests are not per-method peaks; shared model and both index banks stay resident",
+  "development_local_metrics": "G3b fixed-feature coverage/error and G3c actual-state differences remain separate linked diagnostics; neither is final-test answer accuracy",
+  "failure_rule": "preserve all rows and stop on resource or correctness failure; never tune from final test; no automatic retraining",
+  "status_before_execution": "NOT_RUN"
+}
