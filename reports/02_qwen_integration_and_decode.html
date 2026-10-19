@@ -7802,29 +7802,9 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="02-%C2%B7-%E6%8A%8A%E7%B4%A2%E5%BC%95%E6%B3%A8%E6%84%8F%E5%8A%9B%E8%A3%85%E8%BF%9B%E7%9C%9F%E5%AE%9E%E6%A8%A1%E5%9E%8B%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8D%95%E5%B1%82%E5%BF%AB%E4%B8%8D%E7%AD%89%E4%BA%8E%E6%95%B4%E6%A8%A1%E5%9E%8B%E5%BF%AB">02 · 把索引注意力装进真实模型：为什么单层快不等于整模型快<a class="anchor-link" href="#02-%C2%B7-%E6%8A%8A%E7%B4%A2%E5%BC%95%E6%B3%A8%E6%84%8F%E5%8A%9B%E8%A3%85%E8%BF%9B%E7%9C%9F%E5%AE%9E%E6%A8%A1%E5%9E%8B%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8D%95%E5%B1%82%E5%BF%AB%E4%B8%8D%E7%AD%89%E4%BA%8E%E6%95%B4%E6%A8%A1%E5%9E%8B%E5%BF%AB">¶</a></h1><p>上一类实验只测一层里的读取操作；本课把它装进 <strong>Qwen3-0.6B</strong>，一个约 6 亿参数的已训练语言模型，检查整个模型处理一个新输入位置要多久。Qwen3 是模型系列名，0.6B 表示约 0.6 十亿参数。本项目把“真实模型接入、数值检查和整步测速”编号为 <strong>G1b</strong>；它承接的“单层注意力对照”编号为 <strong>G1a</strong>，第一课介绍过，但本课也会解释所需名称。</p>
-<p><strong>本课的 A 是完整读取，D 是先用小索引器挑位置再读取。这里的 D 仍未训练</strong>，不是第四课以后用 D 表示的训练后参数。所谓封装，就是在保留原模型参数的情况下替换读取实现；原生路径指模型库本来的实现。</p>
-<p>本页回答三个问题：</p>
-<ol>
-<li><strong>接入后有没有把原模型算错？</strong> 比较未改模型、替换读取实现的完整路径、以及加入自有缓存后的结果。</li>
-<li><strong>单层省下的时间放进完整模型还剩多少？</strong> 对照单层外推与整步实测。</li>
-<li><strong>连续推进时缓存和执行效率是否稳定？</strong> 观察处理 128 个后续输入位置时的耗时与内存。</li>
-</ol>
-<p><strong>默认只读保存结果并运行 CPU 小例子。</strong> CPU 是中央处理器；例子使用随机初始化的 2 层小模型，只演示计算，不具备真实模型的答题能力。真实性能数字来自 Mac M4 Max 的 GPU（图形处理器），经 PyTorch 张量计算库的 MPS 后端执行；CUDA 是 NVIDIA GPU 的另一条执行路径，本课结果不能直接外推到它。<code>torch</code> 是 PyTorch 的代码名，<code>transformers</code> 是提供 Qwen 模型结构的库。本页不加载 0.6B 权重、不下载或训练模型、不启动 GPU 基准。</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=terms-02-01-b0">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="%E4%BB%8E%E6%96%87%E5%AD%97%E5%88%B0%E7%BC%93%E5%AD%98%EF%BC%8C%E6%9C%AC%E8%AF%BE%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%AF%B9%E8%B1%A1">从文字到缓存，本课的基本对象<a class="anchor-link" href="#%E4%BB%8E%E6%96%87%E5%AD%97%E5%88%B0%E7%BC%93%E5%AD%98%EF%BC%8C%E6%9C%AC%E8%AF%BE%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%AF%B9%E8%B1%A1">¶</a></h3><p>文本先被分成 <strong>token</strong>，即模型处理的文本单元，不一定是完整词；token id 是它在词表里的整数编号。**前向计算（forward）**指把输入送过模型得到输出；<strong>logits / 词表分数</strong>是模型对每个可能的下一个 token 给出的原始分数。</p>
-<p>注意力用当前查询 <strong>Q</strong> 与历史键 <strong>K</strong> 算匹配程度，再据此组合内容向量 <strong>V</strong>。保存已经计算过的历史 K/V，叫 <strong>KV 缓存</strong>。完整处理已知输入并建立缓存的阶段叫 <strong>Prefill</strong>；此后一次处理一个新位置叫 <strong>decode / 解码步</strong>。本课用事先固定的 token 驱动步骤，并非让模型自由回答。</p>
-<p><strong>合法长度 L</strong>是当前允许读取的有效位置数；<strong>容量 C</strong>是预留空间，未写入槽不能读。<strong>静态缓存 StaticCache</strong>先分配容量再原位写入；<strong>动态缓存 DynamicCache</strong>随输入追加扩展。回退（rollback）是把有效长度退回旧位置，后续重算会覆盖旧后缀，不表示把预留内存释放掉。</p>
-<p>读到数据格式时：<code>bf16/bfloat16</code> 每个浮点数 2 字节，<code>fp32/float32</code> 为 4 字节，<code>float64</code> 为 8 字节。低精度会有舍入差。时间 <code>µs</code> 是微秒，<code>ms</code> 是毫秒；8K/16K 约指 8192/16384 个历史位置，本课“32K”实际取 32256，为后续步骤留出空间。</p>
+<h1 id="02-%C2%B7-%E6%8A%8A%E7%B4%A2%E5%BC%95%E6%B3%A8%E6%84%8F%E5%8A%9B%E8%A3%85%E8%BF%9B%E7%9C%9F%E5%AE%9E-Qwen%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8D%95%E5%B1%82%E5%BF%AB%E4%B8%8D%E7%AD%89%E4%BA%8E%E6%95%B4%E6%A8%A1%E5%9E%8B%E5%BF%AB">02 · 把索引注意力装进真实 Qwen：为什么单层快不等于整模型快<a class="anchor-link" href="#02-%C2%B7-%E6%8A%8A%E7%B4%A2%E5%BC%95%E6%B3%A8%E6%84%8F%E5%8A%9B%E8%A3%85%E8%BF%9B%E7%9C%9F%E5%AE%9E-Qwen%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8D%95%E5%B1%82%E5%BF%AB%E4%B8%8D%E7%AD%89%E4%BA%8E%E6%95%B4%E6%A8%A1%E5%9E%8B%E5%BF%AB">¶</a></h1><p>本课对应 <strong>G1b：真实 Qwen 接入、数值检查与整模型测速</strong>。上一课的 <strong>G1a</strong> 只测单层注意力读取。这里 <strong>A</strong> 仍是完整读取，<strong>D</strong> 是尚未训练的索引读取；后续训练课才用 D0/D 区分训练前后。</p>
+<p>本课比较三件事：接入后是否仍与原模型数值对应；单层节省是否能兑现为整步节省；连续 128 步时缓存、索引和耗时是否稳定。</p>
+<p>结果来自 Qwen3-0.6B / Mac M4 Max / MPS。默认只读保存记录，并用随机初始化的 2 层小 Qwen3 在 CPU 上检查接入，不下载权重、不运行真实模型或基准。随机 token 只驱动执行，本课没有答题成绩。</p>
 </div>
 </div>
 </div>
@@ -7835,19 +7815,7 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="0.-%E5%AE%9A%E4%BD%8D%E4%BB%93%E5%BA%93%E3%80%81%E5%8A%A0%E8%BD%BD%E5%B7%B2%E4%BF%9D%E5%AD%98%E7%BB%93%E6%9E%9C%E3%80%81%E6%A0%B8%E5%AF%B9%E6%BA%90%E7%A0%81%E7%89%88%E6%9C%AC">0. 定位仓库、加载已保存结果、核对源码版本<a class="anchor-link" href="#0.-%E5%AE%9A%E4%BD%8D%E4%BB%93%E5%BA%93%E3%80%81%E5%8A%A0%E8%BD%BD%E5%B7%B2%E4%BF%9D%E5%AD%98%E7%BB%93%E6%9E%9C%E3%80%81%E6%A0%B8%E5%AF%B9%E6%BA%90%E7%A0%81%E7%89%88%E6%9C%AC">¶</a></h2><p>结果与代码必须锁在同一版本：下面把当前源码的哈希与测速时 manifest 记录的哈希逐个对照，也核对 manifest 记录的模型 / tokenizer revision。</p>
-<p><strong>怎样读下面的来源记录。</strong> 一次实际执行叫一次运行（<code>run</code>），<code>run_id</code> 是它的编号；<code>manifest</code> 是随运行保存的清单，记录数据、配置和源码来自哪里。文件的哈希（<code>hash</code> / <code>SHA-256</code> / <code>digest</code>）可理解为按文件内容算出的指纹，用来核对文件是否改变，不是成绩。<code>commit</code> / <code>revision</code> 是保存代码或模型的版本编号；<code>dirty diff</code> 是运行时尚未提交的修改记录，<code>None</code> 表示此项没有内容。<code>tokenizer</code> 是把文本拆成模型输入单元的分词器。<code>source_hashes</code> 列的是源码文件指纹；<code>HF_HUB_OFFLINE</code> 表示模型库是否处于离线模式。这里保留编号是为了追溯，不需要读者记住长字符串。</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=terms-02-02-b0">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>模型形状输出中的 <code>num_hidden_layers</code> 是层数，<code>num_attention_heads</code> 是查询头数，<code>num_key_value_heads</code> 是共享 K/V 的组数，<code>head_dim</code> 是每头向量宽度，<code>hidden_size</code> 是模型位置表示的宽度，<code>vocab_size</code> 是可输出 token 种类数。<strong>注意力头</strong>是一路查询计算；一组 K/V 可服务多个查询头，这种共享方式称 <strong>GQA</strong>。</p>
+<h2 id="0.-%E5%8A%A0%E8%BD%BD%E7%BB%93%E6%9E%9C%E4%B8%8E%E6%BA%90%E7%A0%81%E7%89%88%E6%9C%AC">0. 加载结果与源码版本<a class="anchor-link" href="#0.-%E5%8A%A0%E8%BD%BD%E7%BB%93%E6%9E%9C%E4%B8%8E%E6%BA%90%E7%A0%81%E7%89%88%E6%9C%AC">¶</a></h2><p>下面加载数值检查和测速记录，核对模型、tokenizer 及源码版本。机制讲解从第 1 节开始；这些加载单元仍是执行后续代码的前置步骤。</p>
 </div>
 </div>
 </div>
@@ -7966,20 +7934,20 @@ src/attention_lab/sparse.py     测速时 bbe8805b45a4  当前 bbe8805b45a4  一
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>读法。</strong> 当前源码与历史记录不必全相同：在代码合并申请及评审（PR）之后，接入实现和检查脚本有过修复，后续课程也会继续修改当前文件。产生这次测速的源码快照（当时文件的副本）与修改记录保存在 <code>reports/provenance/g1b/</code>；旧 manifest 不改。</p>
-<p>本课的性能表只读旧记录；下面标明“安装库/当前封装”的代码用于理解当前对应实现，不能因显示了新代码就把它说成旧实验重新运行过。评审后的最小旧对照记录为 A 21.76 / D 19.25 ms，阶段判定不变。</p>
+<p>当前接入代码已经演进；旧测速源码、评审后的修复差异保存在 <code>reports/provenance/g1b/</code>，旧运行清单不改。性能表读取旧记录，标为“安装库/当前封装”的源码则用于解释当前对应实现，不能混称为旧实验重新运行。</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=terms-02-05-b0">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=context-02-05-0">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="%E5%BC%80%E5%A7%8B%E7%9C%8B%E6%A3%80%E6%9F%A5%E6%95%B0%E5%80%BC%E4%B9%8B%E5%89%8D">开始看检查数值之前<a class="anchor-link" href="#%E5%BC%80%E5%A7%8B%E7%9C%8B%E6%A3%80%E6%9F%A5%E6%95%B0%E5%80%BC%E4%B9%8B%E5%89%8D">¶</a></h3><p><strong>容差</strong>是运行前允许的数值差范围；<code>max|Δ|</code> 是两个数组中最大的逐项绝对差，<strong>相对范数</strong>是差向量长度除以参照向量长度。<strong>argmax</strong>取词表分数最高的 token；“argmax 一致”是两条路径选出的 token 相同，不是回答正确率。<code>1e-3</code> 表示 0.001。<strong>噪声底</strong>在本课指原模型因计算顺序或平台而已有的数值差，不是随机生成噪声；<code>ulp</code> 指这种数值格式在当前大小附近相邻可表示数的间距。</p>
-<p><strong>全选 D</strong>是让筛选路径取到全部合法位置，检查它能否对应完整路径；不代表正常小预算也等价。给未选行写入 <strong>NaN</strong>（无效数值标记）是测试工具，用来检测是否错误读取了这些位置。</p>
+<p><strong>本课的路径与预算。</strong> “原生”指 transformers 的实现；“封装”指复用原参数、替换注意力读取的本项目实现。三段数值对照依次检查未改模型、封装完整读取、封装静态缓存。<strong>全选 D</strong>则把名额给足，使 D 路径读取全部合法位置，作为实现等价性检查。</p>
+<p>本项目 D 固定保留 <strong>F=首4∪近64</strong>，其余为候选；<code>k0=min(round(ρ*N0), 起始候选数)</code> 在请求内固定，本步 k 不超过当前候选数。索引表 <code>zT</code> 来自 RoPE 前的 K，不是主 K 缓存；<code>StepPlan</code> 保存当前合法范围、F 与候选名额，各层共用规则、各自选位。</p>
+<p>本课的<strong>噪声底</strong>特指未改模型自身在“一次处理/逐 token 处理”之间的数值差，用来对照封装增加了多少偏差；不是放宽所有误差的通用理由。</p>
 </div>
 </div>
 </div>
@@ -7990,12 +7958,8 @@ src/attention_lab/sparse.py     测速时 bbe8805b45a4  当前 bbe8805b45a4  一
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="1.-%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E6%8E%A5%E5%85%A5%E5%90%8E%E6%9C%89%E6%B2%A1%E6%9C%89%E6%8A%8A%E5%8E%9F%E6%A8%A1%E5%9E%8B%E7%AE%97%E9%94%99">1. 问题一：接入后有没有把原模型算错<a class="anchor-link" href="#1.-%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E6%8E%A5%E5%85%A5%E5%90%8E%E6%9C%89%E6%B2%A1%E6%9C%89%E6%8A%8A%E5%8E%9F%E6%A8%A1%E5%9E%8B%E7%AE%97%E9%94%99">¶</a></h2><p><strong>运行前的预测</strong>（<code>reports/cards/G1b_mac_m4max.md</code>）：float32 的三段对照全部落在预设容差内（词表分数 max|Δ| ≤ 1e-2、相对范数 ≤ 1e-3、argmax 一致 ≥ 99%，缓存 K/V ≤ 1e-3），且观测差别比容差小一个量级；bf16 的 max|Δ| 在 0.1 到 0.5，argmax 一致 ≥ 97%；全选 D 对封装 A 同量级；回退后重算逐位相同。</p>
+<h2 id="1.-%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E6%8E%A5%E5%85%A5%E5%90%8E%E6%9C%89%E6%B2%A1%E6%9C%89%E6%8A%8A%E5%8E%9F%E6%A8%A1%E5%9E%8B%E7%AE%97%E9%94%99">1. 问题一：接入后有没有把原模型算错<a class="anchor-link" href="#1.-%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E6%8E%A5%E5%85%A5%E5%90%8E%E6%9C%89%E6%B2%A1%E6%9C%89%E6%8A%8A%E5%8E%9F%E6%A8%A1%E5%9E%8B%E7%AE%97%E9%94%99">¶</a></h2><p><strong>运行前的预测</strong>（保存在本项目的预测卡片 <code>reports/cards/G1b_mac_m4max.md</code>）：float32 的三段对照全部落在预设容差内（词表分数 max|Δ| ≤ 1e-2、相对范数 ≤ 1e-3、argmax 一致 ≥ 99%，缓存 K/V ≤ 1e-3），且观测差别比容差小一个量级；bf16 的 max|Δ| 在 0.1 到 0.5，argmax 一致 ≥ 97%；全选 D 对封装 A 同量级；回退后重算逐位相同。</p>
 <p><strong>正式代码。</strong> 封装只替换一处：每层 <code>self_attn</code> 的"读"。投影、归一化、RoPE、输出投影全部复用原模块对象。下面并排打印封装的前向与安装库里的原前向，看差别在哪里。</p>
-<p>先读源码中的几个名称：<strong>投影</strong>是用权重矩阵把表示变成 Q/K/V；<strong>归一化</strong>调整向量尺度。**RoPE（旋转位置编码）**按原始位置旋转 Q/K，让匹配分数带有位置关系；<code>q_pre/k_pre</code> 是旋转前的特征，<code>q_main/k_main</code> 是旋转后供主注意力使用的特征，不能互换。<code>self_attn</code> 是一层的注意力模块，<code>o_proj</code> 是把多个头的读出合并回模型表示的输出投影。<code>hidden_states</code> 是进入该层的位置表示，<code>attention_mask</code> 是禁止非法读取的遮罩，<code>past_key_values</code> 是库使用的历史缓存入口。</p>
-<p>本课的索引器另用小矩阵 Wq/Wk，将查询变成 u、历史键变成 z，再用它们打分。<strong>zT 是索引键表的转置布局</strong>，不是主 K 缓存。r 是索引向量宽度；它们在下一格代码中出现。</p>
-<p><strong>固定集合 F</strong>是首 4 与最近 64 个合法位置的并集（重叠去重）；剩余位置是<strong>候选域</strong>。ρ（rho）是名额参数，在请求开始时按合法长度 N0 得到 <code>k0=min(round(ρ×N0), 起始候选数)</code>，后续 k0 不变；本步 k 受当前候选数限制。<strong>top-k</strong>取分数最高的 k 个候选，总读取数 S=|F|+k。<code>StepPlan</code> 就是记录本步合法范围、F 和 k 的计划对象，各层共用规则，但各层选中的具体位置可以不同。</p>
-<p>源码里的 <code>backend</code> 是具体执行路径，<code>SDPA</code> 是 PyTorch 的缩放点积注意力接口；它先算 Q/K 匹配、归一成权重，再组合 V。<code>softmax</code> 是把分数转成非负且总和为 1 的权重的函数。</p>
 </div>
 </div>
 </div>
@@ -8148,7 +8112,7 @@ src/attention_lab/sparse.py     测速时 bbe8805b45a4  当前 bbe8805b45a4  一
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>形状与数据流。</strong> 方括号按数组维度顺序写形状：B 是同时处理的输入份数（batch），H 是查询头数，G 是共享 K/V 的组数，h=H/G 是每组查询头数，T 是本次输入 token 数，L 是合法长度，C 是分配容量，d 是头向量宽度，r 是索引宽度。S 是入选位置总数，l 是层下标；下标从 0 开始。<code>view/reshape/transpose</code> 是重排或重新解释数组维度，<code>matmul</code> 是矩阵乘法。</p>
+<p><strong>形状与数据流。</strong> 记 B 批、H 查询头、G KV 组、h = H/G、T 本次输入长度、L 合法长度、C 分配容量、d 头维度、r 索引宽度。</p>
 <table>
 <thead>
 <tr>
@@ -8176,7 +8140,7 @@ src/attention_lab/sparse.py     测速时 bbe8805b45a4  当前 bbe8805b45a4  一
 <tr>
 <td>索引表 <code>zT[l]</code></td>
 <td><code>[B,G,r,C]</code> 连续</td>
-<td><code>Wk · k_pre</code>，本机基础测量阶段（G0）选定的转置布局，一步打分是一次 matmul</td>
+<td><code>Wk · k_pre</code>，本机基础测量阶段（G0）选定的预转置布局，一步打分是一次 matmul</td>
 </tr>
 <tr>
 <td><code>q5</code></td>
@@ -8191,7 +8155,6 @@ src/attention_lab/sparse.py     测速时 bbe8805b45a4  当前 bbe8805b45a4  一
 </tbody>
 </table>
 <p>一步解码里每层只写一次：<code>K/V</code> 的新行由封装写入，<code>z</code> 的新列由 G1a 的 <code>sparse_decode_step_kernel</code> 写入它自己的列（<code>write_col = L-1</code>）。<code>StepPlan</code> 在模型层面每步建一次、28 层共用，固定行号在设备上由 <code>arange</code> 平移得到，不做主机到设备的拷贝。</p>
-<p><code>valid_length</code> 对应 L，<code>append</code> 是在新位置写一次缓存，<code>writes</code> 计写入次数，<code>last_write=(start,T)</code> 记录最后一次写入的起点与长度；<code>lo/hi</code> 是候选起止位置，<code>write_col</code> 是本步写入索引表的列。区间 <code>[lo,hi)</code> 含 lo、不含 hi。<code>register_forward_hook</code> 只是在计算时记录中间数组，不更新参数。</p>
 </div>
 </div>
 </div>
@@ -8258,18 +8221,7 @@ F 的原位置（第 0 组，行号减去组偏移）: [0, 1, 2, 3, 37, 38] ... 
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p><strong>观察（真实模型，<code>reports/g1b_numerics_mac_m4max.json</code>）。</strong> 下表是 Qwen3-0.6B 在 MPS（float32、bfloat16）与 CPU（float32）上的检查；<code>预设</code> 是运行前写下的绝对容差判定，<code>修订</code> 是 bf16 的噪声底判据（见卡片：封装偏差 ≤ 2 × 未改模型自身逐 token 路径的偏差）。</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=terms-02-10-b0">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>数值表里 <code>dev</code> 是设备，<code>dtype</code> 是数据格式，<code>L</code> 是输入/合法长度。检查名中的 <code>unmodified</code> 指未改模型、<code>wrapped</code> 指封装、<code>full_selection</code> 指全选、<code>cache</code> 指缓存、<code>prefill</code> 指建立缓存阶段、<code>step/tokenwise</code> 指逐位置推进。<code>numerics_pass</code> 是数值检查总判定；“门控检查”只指必须满足才能继续的检查。<code>top-5</code> 列出分数最高的五个 token，不是选五条历史。</p>
-<p>检查名按组件读即可：<code>vs</code> 是“与……比较”，<code>one_shot</code> 是一次处理全部输入，<code>chunked</code> 是分块，<code>incremental</code> 是逐 token 推进，<code>hf_cache</code> 是 transformers 原生缓存，<code>rollback_redecode</code> 是回退后重算，<code>information_only</code> 表示只记录差异、不作为通过门槛。例如 <code>wrapped_incremental_vs_one_shot_logits</code> 比较封装逐步路径与一次处理路径的词表分数。</p>
+<p>检查名的项目内组合：<code>one_shot</code> 一次处理、<code>incremental</code> 逐 token、<code>chunked</code> 分块、<code>hf_cache</code> 库原生缓存、<code>rollback_redecode</code> 回退后重算；<code>information_only</code> 表示仅记录，不作为门槛。</p>
 </div>
 </div>
 </div>
@@ -8522,21 +8474,14 @@ float32  cpu    128  D_rho_1_8_vs_unmodified_logits_information_only            
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=terms-02-14-b0">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=context-02-14-0">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="%E8%AF%BB%E6%95%B4%E6%AD%A5%E8%80%97%E6%97%B6%E8%A1%A8%E9%9C%80%E8%A6%81%E7%9A%84%E5%90%8D%E7%A7%B0">读整步耗时表需要的名称<a class="anchor-link" href="#%E8%AF%BB%E6%95%B4%E6%AD%A5%E8%80%97%E6%97%B6%E8%A1%A8%E9%9C%80%E8%A6%81%E7%9A%84%E5%90%8D%E7%A7%B0">¶</a></h3><ul>
-<li><strong>四条路径</strong>：<code>native_dynamic</code> 是库原生完整读取＋动态缓存；<code>native_static</code> 是库原生完整读取＋静态缓存；<code>wrapped_full</code> 是本项目封装后的完整读取 A；<code>sparse</code> 是本课尚未训练的索引读取 D。</li>
-<li><strong>SDPA</strong>是 PyTorch 的缩放点积注意力接口；<code>enable_gqa</code> 是该接口支持共享 K/V 组的开关。<strong>eager</strong>是普通直接执行，<strong>compile</strong>是先将部分计算编成优化执行图。本课的块编译只覆盖 MLP（逐位置的前馈网络）和 RMSNorm（按均方根调整尺度的归一化），不表示整个模型都融合了。</li>
-<li><strong>算子</strong>是矩阵乘法、取行等基本操作，<strong>核/内核</strong>是设备上执行操作的程序；<code>aten</code> 是 PyTorch 日志中基本算子的名称前缀。一次算子事件不必等于一个 GPU 核启动。</li>
-<li><strong>同步</strong>是等 GPU 完成已提交工作再停表；<strong>墙钟时间</strong>是外部钟表经过的总时长，不能用各操作 CPU 自时间（排除嵌套子调用后的 CPU 事件时长）相加替代。</li>
-<li><strong>固定 N 单步</strong>每次回到同一历史长度再测一步；<strong>连续序列</strong>让历史随步增长。<strong>配对比值</strong>先在同一轮对照里算 D/A，再汇总；中位数是排序后的中间值，<strong>p95</strong>是 95% 测量值不超过的时间，n 是测量次数。≤0.90 是至少节省 10% 时间的继续研究门槛。</li>
-</ul>
-<p>这里单层表中的 D_full 表示“选择加读取的完整链”，不是读取全部历史。<code>kernel</code> 指核，<code>gather/index_select</code> 指按名单实际取出 K/V 行。</p>
-<p><strong>融合</strong>指把若干小操作合进较少的设备程序，减少中间处理与调用；它是不是更快仍要测。源码的类型注解不决定本次使用了什么后端，具体执行路径以表中 MPS / SDPA 记录为准。</p>
+<p><strong>四条测速路径</strong>为库原生完整读取＋DynamicCache、库原生完整读取＋StaticCache、本项目封装完整读取 A、本项目索引读取 D。它们分别维护缓存。</p>
+<p><strong>固定 N 单步</strong>在每轮恢复同一历史长度后测一步；<strong>连续 128 步</strong>不恢复，历史持续增长。报告中的<strong>配对 D/A</strong>先在同一轮计算比值，再汇总，不能用两个总体中位数相除替代。<strong>块编译</strong>在本实验仅指对四条路径共同的 MLP/RMSNorm 部分使用 <code>torch.compile</code>，不是把整条注意力链融合了。</p>
 </div>
 </div>
 </div>
@@ -8786,8 +8731,7 @@ float32  cpu    128  D_rho_1_8_vs_unmodified_logits_information_only            
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="3.-%E9%97%AE%E9%A2%98%E4%B8%89%EF%BC%9A%E8%BF%9E%E7%BB%AD%E6%8E%A8%E8%BF%9B%E6%97%B6%E7%BC%93%E5%AD%98%E3%80%81%E7%B4%A2%E5%BC%95%E8%A1%A8%E5%92%8C%E6%89%A7%E8%A1%8C%E6%95%88%E7%8E%87%E6%98%AF%E5%90%A6%E7%A8%B3%E5%AE%9A">3. 问题三：连续推进时缓存、索引表和执行效率是否稳定<a class="anchor-link" href="#3.-%E9%97%AE%E9%A2%98%E4%B8%89%EF%BC%9A%E8%BF%9E%E7%BB%AD%E6%8E%A8%E8%BF%9B%E6%97%B6%E7%BC%93%E5%AD%98%E3%80%81%E7%B4%A2%E5%BC%95%E8%A1%A8%E5%92%8C%E6%89%A7%E8%A1%8C%E6%95%88%E7%8E%87%E6%98%AF%E5%90%A6%E7%A8%B3%E5%AE%9A">¶</a></h2><p><strong>运行前的预测</strong>：封装两条路径每步耗时在 128 步内平坦（首 16 步与末 16 步中位相差 ≤ 5%，斜率 |slope| ≤ 20 µs/步），k 恒等于 k0，读取数 68 + k0 恒定，合法长度每步加一；<code>current_allocated_memory</code> 对封装路径恒定，对 DynamicCache 随步上升并抖动；eager 无重编译；块编译后无重编译（<code>error_on_recompile=True</code> 守卫）。</p>
 <p><strong>正式代码。</strong> 连续步的驱动：同一串固定的 128 个后续 token，每次只送一个；D 在每步前由 <code>build_step_plan</code> 更新合法长度与候选域；K/V 与 z 各写一次。</p>
-<p><strong>内存与编译字段。</strong> <code>current_allocated_memory</code> 是 PyTorch 当时统计的已分配 GPU 张量内存，<code>driver_allocated_memory</code> 是驱动占用的更大范围；二者都不能直接替代每条方法自身的峰值。<strong>分配器</strong>是管理并复用内存块的组件；<strong>有效载荷</strong>只数当前真正使用的数据。图的 GB 是十进制十亿字节，B 在内存数值后表示字节，和形状里的批大小 B 不同。</p>
-<p><strong>重编译</strong>指后续步骤又产生新的执行图；<code>dynamo</code> 是 PyTorch 的计算图捕获组件，<code>error_on_recompile=True</code> 会在意外重编译时报告错误。<code>slope</code> 是每前进一步，耗时线性趋势改变多少，不是某一步的耗时。</p>
+<p>本课“内存恒定”对应 <code>current_allocated_memory</code> 和 <code>driver_allocated_memory</code> 的采样值；四套路径同时常驻，不能读成某方法独占内存不变或全部有效载荷不增长。图中 <code>rotating</code> 若引用第一课数据，指 36 套预生成层数据依次访问，不是本课真实模型的层数。</p>
 </div>
 </div>
 </div>
@@ -9030,9 +8974,9 @@ g1b-mac-20261016T202847Z-formal N0=32256：
 | 128 步平坦、k 恒定、内存恒定、无重编译 | 是 | 是 | 成立 |
 | 数值 fp32 过且余量一个量级；bf16 max|Δ| 0.1–0.5 | 是 | 词表分数两个量级、缓存 1.56 倍；0.16–0.30 | 部分成立（缓存一项失效；bf16 容差本身定错，见问题一） |
 | 块编译能编、A 降到 20–35 ms | 五成；是 | 能编；A 只降 2–5% | 能编成立；前提失效 |</p>
-<p><strong>决策（<code>reports/cards/G1b_mac_m4max.md</code>）。</strong> 工程完成：数值对应、缓存与索引连接正确、连续 128 步与回退通过、结果可从记录重生成。性能：<code>correct_but_not_faster</code>（所测长上下文设置观察到约 7% 的耗时改善，未达到预先约定的 10% 投资门槛，因此不继续追加速度优化；索引器未训练、无任务质量评测，7% 不是可实际使用的提速方案）——没有设置呈现每个循环都 ≤ 0.90 的整步收益；32K ρ = 1/32 是"有收益但不足 10%"的临界档（0.930，范围 0.87–0.99）。预登记的修正（块编译）两边同测后格局不变；剖析指向 D 链的核数量，同形状探针显示少两个核只能到 0.915，所以没有为它跑正式一轮，也没有改缓存布局。按预登记规则收口速度主线：不以速度为前提进入任务质量对照阶段（G2，第三课是其缩减版），不训练，不换更大模型（更大模型基底更大）。要越过门槛需要把 D 的 14 个小核融合成少数核（使用 Apple 的 GPU 编程技术 Metal 自定义内核）或换到核启动成本不同的 CUDA 轨道，两者都不在本关授权内，由用户决定。</p>
+<p><strong>决策（<code>reports/cards/G1b_mac_m4max.md</code>）。</strong> 工程完成：数值对应、缓存与索引连接正确、连续 128 步与回退通过、结果可从记录重生成。性能：<code>correct_but_not_faster</code>（所测长上下文设置观察到约 7% 的耗时改善，未达到预先约定的 10% 投资门槛，因此不继续追加速度优化；索引器未训练、无任务质量评测，7% 不是可实际使用的提速方案）——没有设置呈现每个循环都 ≤ 0.90 的整步收益；32K ρ = 1/32 是"有收益但不足 10%"的临界档（0.930，范围 0.87–0.99）。预登记的修正（块编译）两边同测后格局不变；剖析指向 D 链的核数量，同形状探针显示少两个核只能到 0.915，所以没有为它跑正式一轮，也没有改缓存布局。按预登记规则收口速度主线：不以速度为前提进入任务质量对照（G2，第三课），不训练，不换更大模型（更大模型基底更大）。要越过门槛需要把 D 的 14 个小核融合成少数核（自定义 Metal 核）或换到核启动成本不同的 CUDA 轨道，两者都不在本关授权内，由用户决定。</p>
 <p><strong>这一课的结论。</strong> 单层微基准回答的是"读取阶段少了多少"，整模型回答的是"一步里这点节省占多少"。在 0.6B 模型、MPS、bf16 上，一步约 10 ms 的基底把注意力节省的百分比摊薄到整步 7%，而绝对节省从单层外推的 3.1 ms 缩到 1.5 ms 的原因只观察到候选（D 链在模型内每层更贵）、尚未分离；比值随 N 的走向与 G1a 完全一致，量级却被摊薄。这不是 CUDA 结论，也不是质量结论。</p>
-<p>本节“下一步/授权内”的文字描述当时阶段的决定。后续已经完成的质量、训练和推理工作见第三至七课；不要把历史停止点误读成现在尚未完成实验。</p>
+<p>这里的阶段决定对应当时的实验时点。后来另行授权的训练与质量结果见第三至七课，本课只保留这次接入和测速证据。</p>
 </div>
 </div>
 </div>

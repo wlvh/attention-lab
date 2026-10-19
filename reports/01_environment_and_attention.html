@@ -7802,29 +7802,15 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="01-%C2%B7-%E5%B0%91%E8%AF%BB%E5%8E%86%E5%8F%B2%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%98%E5%8F%AF%E8%83%BD%E6%9B%B4%E6%85%A2%EF%BC%9F%E4%BB%8E%E6%9C%AC%E6%9C%BA%E6%B5%8B%E9%87%8F%E5%88%B0%E5%8D%95%E5%B1%82%E6%B3%A8%E6%84%8F%E5%8A%9B">01 · 少读历史为什么还可能更慢？从本机测量到单层注意力<a class="anchor-link" href="#01-%C2%B7-%E5%B0%91%E8%AF%BB%E5%8E%86%E5%8F%B2%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%98%E5%8F%AF%E8%83%BD%E6%9B%B4%E6%85%A2%EF%BC%9F%E4%BB%8E%E6%9C%AC%E6%9C%BA%E6%B5%8B%E9%87%8F%E5%88%B0%E5%8D%95%E5%B1%82%E6%B3%A8%E6%84%8F%E5%8A%9B">¶</a></h1><p>模型生成下一个文本单元时，需要从已经处理的历史中读取信息。本课研究一个具体问题：<strong>先挑少量历史位置，再读取它们，能不能节省计算时间？</strong></p>
-<p>本项目把实验分阶段编号：<strong>G0 是“本机环境与基础操作测量”</strong>，检查这台 Mac 能运行什么、复制和读取数据各要多久；<strong>G1a 是“单层注意力对照”</strong>，把完整读取与先筛选再读取放到同一条件下计时。它们只是本项目的阶段标签，不是模型名称，也不是读者应当知道的通用术语。第一课同时使用这两个阶段的结果。</p>
-<p>本页回答三个问题：</p>
+<h1 id="01-%C2%B7-%E5%90%8C%E4%B8%80%E4%BB%BD%E5%8E%86%E5%8F%B2%E4%BD%8D%E7%BD%AE%E5%90%8D%E5%8D%95%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%96-K/V-%E7%9A%84%E5%86%99%E6%B3%95%E8%83%BD%E7%9B%B8%E5%B7%AE-25-%E5%80%8D%EF%BC%9F">01 · 同一份历史位置名单，为什么取 K/V 的写法能相差 25 倍？<a class="anchor-link" href="#01-%C2%B7-%E5%90%8C%E4%B8%80%E4%BB%BD%E5%8E%86%E5%8F%B2%E4%BD%8D%E7%BD%AE%E5%90%8D%E5%8D%95%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%96-K/V-%E7%9A%84%E5%86%99%E6%B3%95%E8%83%BD%E7%9B%B8%E5%B7%AE-25-%E5%80%8D%EF%BC%9F">¶</a></h1><p>本课包含两个阶段的已保存实验：<strong>G0 是本机基础操作测量</strong>，测索引打分、选位、K/V 取行等操作；<strong>G1a 是单层注意力对照</strong>，测这些操作连起来后，与完整读取相比要多少时间。编号仅用于对应项目记录。</p>
+<p>本课 <strong>A</strong> 表示完整注意力，<strong>D</strong> 表示先用索引器选历史位置，再对入选的 K/V 做主注意力。这里 D 的参数还没有训练，只检查执行成本；第四课以后才用 D0/D 区分训练前后。</p>
+<p>三个问题依次是：</p>
 <ol>
-<li><strong>同样是取出一个子集，为什么两种写法相差 25 倍？</strong></li>
-<li><strong>主注意力少读了约 96% 的历史位置，为什么仍然可能更慢？</strong></li>
-<li><strong>把各段单独计时再相加，为什么不等于完整执行的时间？</strong></li>
+<li><strong>同一份位置名单，为什么两种 K/V 取行写法相差 25 倍？</strong></li>
+<li><strong>主注意力只取约 3.3% 的历史位置，为什么总耗时不一定下降？</strong></li>
+<li><strong>为什么分段时间之和不能替代整条读取路径的时间？</strong></li>
 </ol>
-<p><strong>阅读与执行范围。</strong> 页面读取 <code>reports/</code> 中保存的结果，并运行小型教学计算。性能数字来自 Mac M4 Max；教学例子由中央处理器（CPU）运行。真实测速使用图形处理器（GPU），通过 PyTorch（代码中写作 <code>torch</code>，一个张量计算库）的 <strong>MPS 后端</strong>调用 Apple GPU。后端是把同一个计算交给具体硬件执行的软件路径；NVIDIA GPU 常用的 CUDA 是另一条路径，本课没有测它。</p>
-<p>这里不下载模型、不启动 GPU 基准或研究训练。基准是按固定输入和重复次数专门测量速度的程序；本课只读它已保存的结果。代码、表格与图像用于分清“实际观察到什么”和“还不能推出什么”。</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=terms-01-01-b0">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="%E5%85%88%E8%AE%A4%E8%AF%86%E6%9C%AC%E8%AF%BE%E8%A6%81%E8%AF%BB%E5%8F%96%E7%9A%84%E4%B8%9C%E8%A5%BF">先认识本课要读取的东西<a class="anchor-link" href="#%E5%85%88%E8%AE%A4%E8%AF%86%E6%9C%AC%E8%AF%BE%E8%A6%81%E8%AF%BB%E5%8F%96%E7%9A%84%E4%B8%9C%E8%A5%BF">¶</a></h3><p>模型把文本拆成 <strong>token</strong>（文本单元，可能是一个字、数字或词的一部分）；“位置”就是它在输入序列中的编号，不等于整条资料记录。每次注意力读取使用三种向量：**Q（查询）**表示当前需要匹配什么，**K（键）**用于与查询计算匹配分数，**V（值）**是按权重取回并组合的内容。历史位置已经算好的 K、V 会保存成 <strong>KV 缓存</strong>，下次可以读取。</p>
-<p>本课用 <strong>A 表示完整读取</strong>：读取全部合法历史位置；用 <strong>D 表示索引筛选读取</strong>：一个较小的打分模块（索引器）先决定位置名单，再读取那些位置的原 K/V。<strong>本课的 D 尚未训练</strong>，只测计算成本；第四课以后会另用 D0 / D 区分训练前后，不能把那里的 D 解释倒套到这里。“合法”指已写入缓存且没有位于当前查询的未来位置。</p>
-<p><strong>单层</strong>是模型的一层计算；本课只测其中的注意力读取部分，不是完整语言模型。<strong>一步</strong>指处理一个新位置的查询。</p>
+<p>真实测速条件是 Mac M4 Max / PyTorch MPS。默认执行只读保存结果、展示源码、运行 CPU 小例子，不重新测速或训练。</p>
 </div>
 </div>
 </div>
@@ -7835,8 +7821,7 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="0.-%E8%AF%BB%E5%8F%96%E5%B7%B2%E6%9C%89%E7%BB%93%E6%9E%9C%EF%BC%8C%E5%B9%B6%E8%AF%B4%E6%98%8E%E5%AE%83%E4%BB%AC%E5%AF%B9%E5%BA%94%E5%93%AA%E7%89%88%E4%BB%A3%E7%A0%81">0. 读取已有结果，并说明它们对应哪版代码<a class="anchor-link" href="#0.-%E8%AF%BB%E5%8F%96%E5%B7%B2%E6%9C%89%E7%BB%93%E6%9E%9C%EF%BC%8C%E5%B9%B6%E8%AF%B4%E6%98%8E%E5%AE%83%E4%BB%AC%E5%AF%B9%E5%BA%94%E5%93%AA%E7%89%88%E4%BB%A3%E7%A0%81">¶</a></h2><p>下面两格用于核对来源，之后进入取行实验。代码会比较当前文件和运行时保存的文件；不同不自动表示旧结果无效，需要查看保留的旧源码与修改记录。</p>
-<p><strong>怎样读下面的来源记录。</strong> 一次实际执行叫一次运行（<code>run</code>），<code>run_id</code> 是它的编号；<code>manifest</code> 是随运行保存的清单，记录数据、配置和源码来自哪里。文件的哈希（<code>hash</code> / <code>SHA-256</code> / <code>digest</code>）可理解为按文件内容算出的指纹，用来核对文件是否改变，不是成绩。<code>commit</code> / <code>revision</code> 是保存代码或模型的版本编号；<code>dirty diff</code> 是运行时尚未提交的修改记录，<code>None</code> 表示此项没有内容。<code>tokenizer</code> 是把文本拆成模型输入单元的分词器。<code>source_hashes</code> 列的是源码文件指纹；<code>HF_HUB_OFFLINE</code> 表示模型库是否处于离线模式。这里保留编号是为了追溯，不需要读者记住长字符串。</p>
+<h2 id="0.-%E5%8A%A0%E8%BD%BD%E7%BB%93%E6%9E%9C%E4%B8%8E%E6%BA%90%E7%A0%81%E7%89%88%E6%9C%AC">0. 加载结果与源码版本<a class="anchor-link" href="#0.-%E5%8A%A0%E8%BD%BD%E7%BB%93%E6%9E%9C%E4%B8%8E%E6%BA%90%E7%A0%81%E7%89%88%E6%9C%AC">¶</a></h2><p>G0/G1a 的运行清单保留数据、配置与源码指纹；下面核对当前文件与历史文件。理解取行机制可以直接读第 1 节，运行 Notebook 时仍需先执行这些加载单元。</p>
 </div>
 </div>
 </div>
@@ -7939,23 +7924,7 @@ src/attention_lab/sparse.py     跑分时 bbe8805b45a4  当前 bbe8805b45a4  一
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>读法。</strong> 表中“一致/不同”比较的是当前文件与历史文件。基准脚本后来修过保存路径的处理，运行信息模块后来修过环境检查，包入口也可能随之后课程更新；所以不能把“其余文件都一致”写成永久成立的断言。产生旧结果的基准源码快照和修改记录保存在 <code>reports/provenance/</code>，旧运行清单保持原样。</p>
-<p>下文展示的取行与单步读取函数可与上表逐项对应。<strong>快照</strong>指当时文件的保存副本；<strong>PR</strong> 是代码合并申请及其评审记录，<code>PR #1</code> 只是本阶段交付的历史编号，不是额外的实验条件。</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=terms-01-05-b0">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="%E5%8F%96%E8%A1%8C%E4%BB%A3%E7%A0%81%E5%92%8C%E5%8D%95%E4%BD%8D%E6%80%8E%E4%B9%88%E8%AF%BB">取行代码和单位怎么读<a class="anchor-link" href="#%E5%8F%96%E8%A1%8C%E4%BB%A3%E7%A0%81%E5%92%8C%E5%8D%95%E4%BD%8D%E6%80%8E%E4%B9%88%E8%AF%BB">¶</a></h3><p><strong>张量</strong>就是有多个维度的数值数组。下面的 <code>[B,G,C,d]</code> 分别表示：B 份同时处理的输入、G 个共享 K/V 的注意力组、C 个预留位置、每个向量 d 个数值；S 是实际取出的行数。一个注意力头是一路独立的查询计算，多个查询头可以共用一组 K/V。这里形状里的 B、C 是维度字母，不是后续课程的方法代号。</p>
-<p>**按名单取行（gather）**是通用动作；<code>torch.gather</code> 是其中一个具体 API。<code>index_select</code> 按整行编号取数；高级索引是 <code>x[一组编号]</code> 这样的数组取法。<code>view</code> / 拉平只重新解释连续数据的形状；<code>expand</code> / 展开让同一个下标在多个维度上被重复使用，不等于已经复制了它。下标是位置编号；<code>int64</code> 表示每个编号占 8 字节。</p>
-<p>计时单位 <strong>µs 是微秒</strong>（百万分之一秒），<strong>ms 是毫秒</strong>（千分之一秒）；<strong>MiB = 2²⁰ 字节</strong>，不同于十进制 MB。历史长度的 <strong>8K/16K/32K 分别为 8192/16384/32768 个位置</strong>，不是模型参数量。<code>bf16</code> / <code>bfloat16</code> 是每个数占 2 字节的浮点格式；<code>fp32</code> / <code>float32</code> 是每个数占 4 字节的格式。</p>
-<p><code>int32</code> 是每个下标占 4 字节的整数格式；<code>API</code> 是库对外提供的调用接口。下文的 <code>JSON</code> 指按字段名保存数据的文本格式，不是另一轮实验。</p>
-<p><code>dtype</code> 是数组元素的存储格式，决定一个数占多少字节、能保留多少精度；源码中的 <code>torch.long</code> 对应 64 位整数下标。</p>
+<p>当前源码后来有过修改，旧测量对应的源码和修改记录保留在 <code>reports/provenance/</code>。上表用于核对版本，不改变旧结果；“不同”需要对照快照，不能靠改写旧清单消除。下文展示的读取函数与历史测速的对应关系由这些记录约束。</p>
 </div>
 </div>
 </div>
@@ -7966,8 +7935,15 @@ src/attention_lab/sparse.py     跑分时 bbe8805b45a4  当前 bbe8805b45a4  一
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="1.-%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E5%90%8C%E6%A0%B7%E5%8F%96%E5%AD%90%E9%9B%86%EF%BC%8C%E4%B8%A4%E7%A7%8D%E5%86%99%E6%B3%95%E4%B8%BA%E4%BD%95%E7%9B%B8%E5%B7%AE-25-%E5%80%8D">1. 问题一：同样取子集，两种写法为何相差 25 倍<a class="anchor-link" href="#1.-%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E5%90%8C%E6%A0%B7%E5%8F%96%E5%AD%90%E9%9B%86%EF%BC%8C%E4%B8%A4%E7%A7%8D%E5%86%99%E6%B3%95%E4%B8%BA%E4%BD%95%E7%9B%B8%E5%B7%AE-25-%E5%80%8D">¶</a></h2><p><strong>这项发现是怎样来的。</strong> 在本机基础测量阶段（G0），我们原本只想量“按名单取出历史 K/V 的若干行”要多少时间。运行前写下预期、运行后对照结果的记录叫<strong>预测卡片</strong>；当时的卡片没有预料到两种取行写法会相差这么大。第一版实现用了 <code>torch.gather</code> 配展开下标，测出来 32K 时 673 µs 一层，比把整层 64 MiB 的 K 扫一遍（172 µs）还慢。这不符合"少读就该更快"的直觉，于是补了三种写法对照。<strong>这是一个预测之外的发现。</strong></p>
-<p><strong>正式代码。</strong> 下面是单层对照阶段（G1a）实际使用的取行函数。注意它做的事：把 <code>[B,G,C,d]</code> 的缓存视为 <code>[B*G*C, d]</code> 的二维表（不复制），把"第 g 组第 j 个位置"换算成一个行号，再用一次 <code>index_select</code> 把所有行取出。</p>
+<h2 id="1.-%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E6%8C%89%E5%90%8C%E4%B8%80%E4%BB%BD%E4%BD%8D%E7%BD%AE%E5%90%8D%E5%8D%95%E5%8F%96%E5%87%BA%E5%8E%86%E5%8F%B2-K/V%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%A4%E7%A7%8D%E5%86%99%E6%B3%95%E7%9B%B8%E5%B7%AE-25-%E5%80%8D%EF%BC%9F">1. 问题一：按同一份位置名单取出历史 K/V，为什么两种写法相差 25 倍？<a class="anchor-link" href="#1.-%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E6%8C%89%E5%90%8C%E4%B8%80%E4%BB%BD%E4%BD%8D%E7%BD%AE%E5%90%8D%E5%8D%95%E5%8F%96%E5%87%BA%E5%8E%86%E5%8F%B2-K/V%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%A4%E7%A7%8D%E5%86%99%E6%B3%95%E7%9B%B8%E5%B7%AE-25-%E5%80%8D%EF%BC%9F">¶</a></h2><p><strong>具体取的是什么？</strong> 以 32K 档为例，一套 K、一套 V 的形状各是 <code>[8, 32768, 128]</code>：8 个 KV 组，每组有 32768 个历史位置，每个位置保存一个 128 维向量。本节给每组一份含 1024 个位置的名单 <code>I[g]</code>，取出这些位置的<strong>完整 K 行和 V 行</strong>：</p>
+<div class="highlight"><pre><span></span><span class="n">K_sub</span><span class="p">[</span><span class="n">g</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">K</span><span class="p">[</span><span class="n">g</span><span class="p">,</span> <span class="n">I</span><span class="p">[</span><span class="n">g</span><span class="p">,</span> <span class="n">t</span><span class="p">],</span> <span class="p">:]</span>
+<span class="n">V_sub</span><span class="p">[</span><span class="n">g</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">V</span><span class="p">[</span><span class="n">g</span><span class="p">,</span> <span class="n">I</span><span class="p">[</span><span class="n">g</span><span class="p">,</span> <span class="n">t</span><span class="p">],</span> <span class="p">:]</span>
+<span class="c1"># K_sub、V_sub 各为 [8, 1024, 128]</span>
+</pre></div>
+<p>因此这里的“子集”是按历史位置选出的 K/V 行。两种写法使用同一份输入、同一份名单，输出形状和值相同；比较的是怎样把这些行取出来。</p>
+<p><strong>名单已经在计时前算好。</strong> 基准用随机生成的索引特征给出 <code>I</code>，各组名单可不同；三种取行实现、36 套 K/V 都复用这份 <code>I</code>。这一项耗时只包含取 K 和取 V，不含索引打分、top-k 或主注意力。本节名额为 <code>k=N/32=1024</code>，还没有加入第 2 节的首部/近期固定位置。</p>
+<p><strong>为何做这组对照？</strong> G0 起初只测“按名单取 K/V 行”的成本，结果慢于预想，才追加不同写法。运行前预测及事后对照保存在项目称作“预测卡片”的文件中；25 倍差距是原预测未列出的发现。</p>
+<p>下面是 G1a 采用的取行函数。它把 <code>[B,G,C,d]</code> 看成 <code>[B*G*C,d]</code>，把每组的原位置换成 <code>g*C+j</code> 行号后使用 <code>index_select</code>。这里 B 是 batch，G 是 KV 组数，C 是每组缓存容量，d 是头维度，S 是入选数；<strong>它们是数组轴，不是后续课程的方法代号</strong>。</p>
 </div>
 </div>
 </div>
@@ -8029,7 +8005,7 @@ def gather_rows(x: torch.Tensor, selected: torch.Tensor, offsets=None) -&gt; tor
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>形状与数据流（CPU 小例子）。</strong> 三种写法取同一批行，结果必须逐位相同；不同的是中间量的形状与字节数。</p>
+<p><strong>CPU 缩小例子。</strong> 下面用 <code>[1,2,16,4]</code> 的 K 和每组 8 个位置的名单，对照三种实现：拉平后的 <code>index_select</code>、<code>torch.gather</code>、高级索引。实际测速对 K、V 各做一次同样的取行；本格只需用 K 核对位置映射和输出一致性。</p>
 </div>
 </div>
 </div>
@@ -8088,8 +8064,17 @@ def gather_rows(x: torch.Tensor, selected: torch.Tensor, offsets=None) -&gt; tor
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>观察（本机基础测量 G0）。</strong> 下表使用 bf16，单位是每层微秒。<strong>36 层轮换</strong>指轮流读取 36 组模拟层的数据，避免总是反复访问同一小块内存；它没有运行一个 36 层语言模型。表中 N 是历史长度，k 是这项取行探针指定的子集大小；这一表还没有加入下一节的首部/近期固定保留规则。</p>
-<p>同一行的三种写法使用同一份名单、同一份 K/V；最后一列 <code>q·Kᵀ</code> 表示让一个查询与全部历史键做点积打分，作为读取整张 K 表的成本参照。</p>
+<p><strong>这里的“36 层轮换”究竟怎样计时？</strong> 基准预先独立分配 36 套同形状的 K/V 数组，记为 <code>K[0],V[0]</code> 到 <code>K[35],V[35]</code>。这 36 次取行之间没有 Transformer 层间依赖，前一次输出不会送给下一次；“层”只是基准把一套数组记作一层的简称。</p>
+<div class="highlight"><pre><span></span><span class="c1"># I 在计时前给定，各方法使用同一份名单</span>
+<span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">36</span><span class="p">):</span>
+    <span class="n">take_rows</span><span class="p">(</span><span class="n">K</span><span class="p">[</span><span class="n">layer</span><span class="p">],</span> <span class="n">I</span><span class="p">)</span>
+    <span class="n">take_rows</span><span class="p">(</span><span class="n">V</span><span class="p">[</span><span class="n">layer</span><span class="p">],</span> <span class="n">I</span><span class="p">)</span>
+<span class="c1"># 测完整循环：预热 2 轮，计量 8 轮，每轮前后同步</span>
+<span class="n">per_layer_us</span> <span class="o">=</span> <span class="n">median</span><span class="p">(</span><span class="n">pass_seconds</span><span class="p">)</span> <span class="o">/</span> <span class="mi">36</span> <span class="o">*</span> <span class="mf">1e6</span>
+</pre></div>
+<p>对 32K / bf16，每套 K+V 占 128 MiB，36 套合计 4.5 GiB；一次只取其中 4 MiB 的 K/V 行。一轮依次访问第 0、1、…、35 套，下一轮才再次访问第 0 套。这样拉开了同一内存地址被再次访问的间隔。后续 G1a 的 <code>hot</code> 对照使用 <code>0→0→…→0</code> 共 36 次，而 <code>rotating</code> 使用 <code>0→1→…→35</code>；本节 G0 的取行表只有后一种访问方式。</p>
+<p>这里要区分<strong>保存模型历史的 K/V 数组</strong>和 <strong>GPU 硬件缓存</strong>：改变数组访问顺序，是为了检查反复读取同一地址带来的硬件缓存复用。没有测硬件缓存命中率，因此“轮换”不保证每次都从主存读取。<code>rotating</code> 就是上面这个访问顺序，不是模型在生成 36 个 token。</p>
+<p><strong>G0 取行实测如下</strong>，bf16，单位为上述每套 K/V 的微秒。N 是每组历史位置数，k 是每组取出的行数。最后一列是完整 K 表的 QK 扫描参照，不包含取 V。</p>
 </div>
 </div>
 </div>
@@ -8139,30 +8124,9 @@ def gather_rows(x: torch.Tensor, selected: torch.Tensor, offsets=None) -&gt; tor
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>这里的执行词汇。</strong> 一个算子是“矩阵乘法、取行”等基本操作；内核是实际在设备上执行该操作的程序。<code>stride</code> 是沿数组某维移动一步时跨过的存储距离；0 步长表示多个下标指向同一处数据。<strong>物化</strong>指把这样的视图真正复制成数组；<code>dtype</code> 指数值或下标的数据格式。下面的解释涉及实现路径，不能仅凭耗时差确认每一步内部行为。</p>
-<p><strong>检查。</strong> 上面 CPU 例子证明三种写法在数学上等价；G0 的 JSON 里 <code>gather_kv</code> 与 <code>gather_index_select_flat</code> 的输入也是同一组张量与同一份名单。所以 25 倍不是"多读了数据"，而是<strong>内核路径不同</strong>：<code>torch.gather</code> 配 stride 为 0 的展开 int64 下标走通用内核，并可能先物化一个 <code>[G, k, d]</code> 的下标张量；<code>index_select</code> 走专用的行拷贝内核。</p>
-<p><strong>反例与边界。</strong> 这是 torch 2.14.1 在 MPS 上的行为。CUDA 上两种写法的差距可能完全不同，G0 报告也写明"不推 CUDA"。替代解释（未排除）：差距可能与下标 dtype（int64 对 int32）或 expand 产生的 stride 有关，而不是 gather 算子本身。</p>
-<p><strong>解释与它不能推出什么。</strong> 同样的数学机制，因数据布局与原语选择不同，成本可以差一个量级。所以 G1a 把"拉平 index_select、用于选位的压缩键连续存放、只在可选历史中做一次排序筛选"写成三条实现约束：<strong>分析“D 更慢”时，必须先区分当前实现的成本和读取策略本身的取舍，不能直接推出这类架构没有价值。</strong></p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=terms-01-12-b0">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="%E6%80%8E%E6%A0%B7%E4%BB%8E%E5%8E%86%E5%8F%B2%E4%B8%AD%E6%8C%91%E5%87%BA%E4%B8%80%E5%B0%8F%E9%83%A8%E5%88%86">怎样从历史中挑出一小部分<a class="anchor-link" href="#%E6%80%8E%E6%A0%B7%E4%BB%8E%E5%8E%86%E5%8F%B2%E4%B8%AD%E6%8C%91%E5%87%BA%E4%B8%80%E5%B0%8F%E9%83%A8%E5%88%86">¶</a></h3><ul>
-<li><strong>固定集合 F</strong>：每一步必读的首 4 个位置和最近 64 个位置，重叠只算一次；短历史不足时按实际存在的位置保留。</li>
-<li><strong>候选域</strong>：合法历史去掉 F 后剩下的位置，数量记作 M。符号 <code>∪</code> 表示合并两个集合并去重，<code>|F|</code> 表示 F 中的位置数。</li>
-<li><strong>ρ（rho）</strong>：用来计算候选名额的比例参数。请求刚开始时，以合法长度 N0 算 <code>k0=min(round(ρ×N0), 起始候选数)</code>；之后 k0 固定，本步实际 k 不能超过本步候选数。ρ 不是包含 F 的总读取比例。</li>
-<li><strong>top-k</strong>：从候选分数中取最高的 k 个位置。最后读取的总数 <strong>S=|F|+k</strong>。一次请求是同一份问题及其后续回答过程；它会包含多个计算步骤。</li>
-<li><strong>u、z、r</strong>：索引器把当前查询压缩为 u，把每个历史键压缩为 z；r 是压缩向量的宽度。<code>zT</code> 是把许多 z 排成便于打分的表，T 表示转置布局。它们只决定名单，主注意力仍用原 Q/K/V 重新打分并组合 V。</li>
-</ul>
-<p>表中的 <strong>D_full</strong> 指 D 的完整选择与读取成本，包含建立本步索引、打分、选位、取 K/V 和子集注意力，<strong>不是“完整读取所有位置”</strong>。若出现 D_read，它只表示名单已经给定后的取行与注意力部分。</p>
-<p>源码参数 <code>backend="sdpa"</code> 指使用 PyTorch 的缩放点积注意力接口（SDPA）执行子集主注意力；后端就是具体执行路径。</p>
-<p>单步函数中的形状 <code>[B,G,h,T,d]</code> 依次是输入份数、K/V组数、组内查询头数、本次输入位置数、头向量宽度；本课一步只有一个查询位置，所以 T=1。</p>
+<p>三种实现的输入、名单和输出相同；32K 档 <code>torch.gather</code> 为 673 µs，拉平 <code>index_select</code> 为 27 µs，约相差 25 倍。</p>
+<p>实现差别就在上面的代码：<code>gather</code> 接收 <code>[G,k,d]</code> 的展开下标，<code>index_select</code> 接收 <code>G*k</code> 个完整行号。<code>expand</code> 本身不分配那份完整下标数组；现有记录也没有证明后端是否将其物化、贡献多少耗时，不能把这一猜测当成 25 倍差距的已定位原因。</p>
+<p>后续单层实验因此使用实测较快的 <code>index_select</code> 路径。这个选择由当前 PyTorch/MPS 的测量支持，不把它升级为其他后端或所有 gather 实现的结论。</p>
 </div>
 </div>
 </div>
@@ -8173,9 +8137,10 @@ def gather_rows(x: torch.Tensor, selected: torch.Tensor, offsets=None) -&gt; tor
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="2.-%E9%97%AE%E9%A2%98%E4%BA%8C%EF%BC%9A%E5%B0%91%E8%AF%BB%E4%BA%86-96%25-%E7%9A%84-KV%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BB%8D%E7%84%B6%E5%8F%AF%E8%83%BD%E6%9B%B4%E6%85%A2">2. 问题二：少读了 96% 的 KV，为什么仍然可能更慢<a class="anchor-link" href="#2.-%E9%97%AE%E9%A2%98%E4%BA%8C%EF%BC%9A%E5%B0%91%E8%AF%BB%E4%BA%86-96%25-%E7%9A%84-KV%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BB%8D%E7%84%B6%E5%8F%AF%E8%83%BD%E6%9B%B4%E6%85%A2">¶</a></h2><p><strong>运行前的预测。</strong> G0 报告第 6 节（更正后）把 A 的理想读取时间与实测的索引链成本相减：8K 持平偏负，16K 持平偏正，32K 正收益。它预测 D 的成本有一个不随 N 缩小的"固定底"。</p>
-<p><strong>正式代码。</strong> 这是 G1a 计时的 D 路径，一层一步，八个相互依赖的小算子。</p>
-<p>这里 <code>G=8</code> 是 8 个 K/V 组，<code>d=128</code> 是每个主 K/V 向量的宽度，<code>r=32</code> 是索引向量宽度。<code>lo/hi</code> 是候选域起止位置，<code>[lo,hi)</code> 含起点、不含终点。下一格的 <code>q_pre</code> 是位置编码之前的查询特征，<code>q_main</code> 是供主注意力使用的查询；位置编码是在向量里加入位置关系的计算，第二课会展开。</p>
+<h2 id="2.-%E9%97%AE%E9%A2%98%E4%BA%8C%EF%BC%9A%E5%8F%AA%E5%8F%96%E7%BA%A6-3.3%25-%E7%9A%84%E5%8E%86%E5%8F%B2%E4%BD%8D%E7%BD%AE%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E6%80%BB%E8%80%97%E6%97%B6%E4%B8%8D%E4%B8%80%E5%AE%9A%E4%B8%8B%E9%99%8D%EF%BC%9F">2. 问题二：只取约 3.3% 的历史位置，为什么总耗时不一定下降？<a class="anchor-link" href="#2.-%E9%97%AE%E9%A2%98%E4%BA%8C%EF%BC%9A%E5%8F%AA%E5%8F%96%E7%BA%A6-3.3%25-%E7%9A%84%E5%8E%86%E5%8F%B2%E4%BD%8D%E7%BD%AE%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E6%80%BB%E8%80%97%E6%97%B6%E4%B8%8D%E4%B8%80%E5%AE%9A%E4%B8%8B%E9%99%8D%EF%BC%9F">¶</a></h2><p>这一节开始计量<strong>完整的 D 读取链</strong>，表中记作 <strong>D_full</strong>：本步索引追加、查询投影、候选打分、top-k、合并名单、取 K/V、子集主注意力全部计时。名字里的 full 指链路成本齐全，不是读取全历史。</p>
+<p>本实验的固定规则是：<strong>F 保留首 4 和最近 64 个合法位置</strong>，重叠去重；剩余 M 个位置为候选域。请求起始长度 N0 决定 <code>k0=min(round(ρ*N0), 起始候选数)</code>，之后 k0 固定，本步 k 不超过当前候选数；总读取数 <code>S=|F|+k</code>。因此 ρ=1/32 不等于总读取比例。在本节 32K 档，S=68+1024=1092，区别于上一节纯取行探针的 1024 行。</p>
+<p>索引器把组内查询投影为 r 维的 u，把各历史键投影为 r 维的 z，<code>zT</code> 是按 <code>[B,G,r,C]</code> 保存的索引键表。索引使用位置旋转前的 <code>q_pre/k_pre</code>，主注意力使用 <code>q_main/k_cache</code>；名单仍是原位置。函数形状里的 h 是每组查询头数，T 是本次查询数，这里 T=1。</p>
+<p><strong>运行前预测。</strong> G0 用 A 的理想读取时间减去当时实测的索引链成本，得到 8K 持平偏负、16K 持平偏正、32K 正收益；同时预测 D 有一部分不随历史长度显著改变的固定成本。下面把 D 的全部步骤算进去检查。</p>
 </div>
 </div>
 </div>
@@ -8242,7 +8207,7 @@ def select_rows_kernel(u, zT, fixed_rows, off_lo, lo: int, hi: int, k: int) -&gt
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>形状示例。</strong> 以 8 个 K/V 组、主向量宽度 128、索引宽度 32、历史长度 32768、ρ=1/32 为例：</p>
+<p><strong>本节具体形状。</strong> G=8 个 KV 组，主头维度 d=128，索引维度 r=32，N=32768，ρ=1/32。下一格列出固定位置、候选范围、入选数与打分形状。</p>
 </div>
 </div>
 </div>
@@ -8289,8 +8254,8 @@ top-k 下标 [1,8, 1024 ] → 行号 [ 8736 ] → K/V 子集 [1,8, 1092 ,128]
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>观察（单层对照 G1a 的六次独立进程运行）。</strong> 每次进程是一次独立启动的测量程序，不是同时开六个 GPU 作业。这里使用 bf16、<strong>eager</strong>（按普通执行路径直接运行，未启用图编译）、36 层数据轮换，取各次测量的中位数。图中的 <code>rotating workset</code> 就是这个轮换数据条件。</p>
-<p>A 使用 PyTorch 的 <strong>SDPA</strong>（缩放点积注意力接口）；<strong>GQA</strong> 指多个查询头共用较少的 K/V 组，本课比较它的合法实现方式后选快者。D_full/A 是耗时比，小于 1 表示 D 更快。下面“D 读取载荷”同时包含索引表和入选 K/V，不能当作只有入选 K/V 的字节数。</p>
+<p><strong>G1a 单层对照结果。</strong> bf16、eager、36 套数据依次访问。G1a 在每套数据上运行完整 A 或 D_full，一轮耗时仍除以 36；表中进一步取六次独立进程测量的中位数。每套的查询、K/V 与索引参数预先生成，前一套输出不作为后一套输入。</p>
+<p>A 是该条件下选出的最快合法完整注意力实现。D_full/A 小于 1 表示 D 更快。“D 索引+KV MiB”包含扫描候选索引表及读取入选 K/V 的字节账，不是实测内存流量。</p>
 </div>
 </div>
 </div>
@@ -8350,7 +8315,7 @@ top-k 下标 [1,8, 1024 ] → 行号 [ 8736 ] → K/V 子集 [1,8, 1092 ,128]
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>把 D 拆开看（各段单独计时，bf16，ρ=1/32）。注意哪些段随 N 增长，哪些不随 N 变：</p>
-<p>日志里八个段名按执行顺序是：<code>z_append</code> 追加最新索引键；<code>u_proj</code> 投影当前查询；<code>score_candidates</code> 为候选打分；<code>topk</code> 取最高 k 个；<code>merge_rows</code> 合并固定位置与候选名单；<code>gather_k/gather_v</code> 分别取出 K/V；<code>subset_attention</code> 在子集上重新计算主注意力。各列单位仍为微秒。图中的 <code>full attention</code> 是 A 完整读取，<code>rho</code> 是上述 ρ。</p>
+<p>日志段名对应：<code>z_append</code> 追加本步索引键；<code>u_proj</code> 查询投影；<code>score_candidates</code> 候选打分；<code>topk</code> 选位；<code>merge_rows</code> 合并 F 与候选；<code>gather_k/gather_v</code> 取 K/V；<code>subset_attention</code> 子集主注意力。</p>
 </div>
 </div>
 </div>
@@ -8445,7 +8410,7 @@ A                           109.6    202.9    405.3
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p><strong>检查。</strong> 字节比与时间比是两条不同的曲线，而字节比本身要分两个口径说。32K、ρ=1/32 时，主注意力只读 1,092 个位置，占 3.3%，入选 K/V 约 4.3 MiB；但为了决定读谁，索引器还要扫描 32,700 个候选位置的索引键，约 16 MiB。按“索引键读一次加入选 K/V 读一次”的载荷模型，上表的字节比是 0.16，不是 4%。时间比是 0.74。8K 时字节比同样是 0.16，时间比却是 1.78。<strong>名单很短，不等于得到名单很便宜：获得名单本身也要读取信息。</strong> 16% 仍是载荷账本，不是实测的内存总流量。</p>
 <p><strong>解释。</strong> A 的时间随 N 线性增长（bf16 约 330 GB/s 的有效读取），D 的时间由一条 8 个算子的链决定，其中 top-k、打分随 N 缓慢增长，其余几乎与 N 无关，所以 D 有一个约 180 到 300 µs 的固定底。两条曲线在 ρ=1/32 时于 16K 与 32K 之间交叉。<strong>"少读"只在 A 本身足够贵的时候才换得到时间。</strong> ρ=1/8 时读取数是 1/32 的 3.8 倍，gather 与子集注意力各多约 40 µs，32K 处 D_full 与 A 持平。</p>
-<p><strong>反例与边界。</strong> “读取字节比例不等于时间比例”在这里以两种方式出现：索引键字节只有 K 的 1/4，打分时间却与扫整层 K 相当；含索引扫描的读取载荷约 16%（入选位置只占 3.3%），时间却是 74%。这些是单层读取阶段的数字，不是整模型每步时间；整模型里还有权重读取、FFN（前馈网络，即每个位置自身的向量变换）等，稀疏注意力只能影响其中注意力的一份。没有模型、没有任务、没有质量结论：这个索引器是随机初始化的，它<strong>没有学会</strong>找重要信息，本页只回答"筛选路径的计算成本有没有空间"。</p>
+<p><strong>反例与边界。</strong> “读取字节比例不等于时间比例”在这里以两种方式出现：索引键字节只有 K 的 1/4，打分时间却与扫整层 K 相当；含索引扫描的读取载荷约 16%（入选位置只占 3.3%），时间却是 74%。这些是单层读取阶段的数字，不是整模型每步时间；整模型里还有权重读取、FFN 等，稀疏注意力只能影响其中注意力的一份。没有模型、没有任务、没有质量结论：这个索引器是随机初始化的，它<strong>没有学会</strong>找重要信息，本页只回答"筛选路径的计算成本有没有空间"。</p>
 </div>
 </div>
 </div>
@@ -8564,8 +8529,8 @@ float32    32768 1/8   |     500.2        606.0      1.21
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p><strong>解释，以及这次评审纠正了什么。</strong> 分段实验中，top-k 反复用同一份预先算好的分数 <code>s0</code>，合并用同一份 <code>top0</code>，取行用同一份 <code>rows0</code>，子集注意力用同一份 <code>ksub0/vsub0</code>；完整链则在链中产生并消费本层新的中间量。因此两者的差不只是"串起来"：数据依赖、临时张量的分配与释放、缓存状态、提交方式都一起变了。</p>
-<p>G1a 卡片的第一稿把这个差值写成"MPS 上依赖链没有提交与执行的重叠"。PR #1 的评审指出：现有剖析只开了 CPU 活动，没有 GPU 时间线，这个因果说得太满。修订后的表述是：<strong>已观察到完整链式执行慢于各段独立测量之和；现有证据尚不能分离依赖、缓存、分配与提交方式各自的贡献。</strong> 要归因，需要 Apple 的 Instruments 性能分析工具配合 MPS signpost（设备事件时间标记）查看 GPU 时间线，而那种诊断会改变性能，必须与正式测速分开。</p>
-<p><strong>它对下一步“真实模型接入与整步测速”（阶段编号 G1b，第二课）的要求。</strong> 整模型里的 D 必须按完整链计时，不能把分段数相加当成链式成本；也不要把"链比分段慢"当作已经解释过的 MPS 特性去推断别的平台。</p>
+<p>G1a 卡片的第一稿把这个差值写成"MPS 上依赖链没有提交与执行的重叠"。PR #1 的评审指出：现有剖析只开了 CPU 活动，没有 GPU 时间线，这个因果说得太满。修订后的表述是：<strong>已观察到完整链式执行慢于各段独立测量之和；现有证据尚不能分离依赖、缓存、分配与提交方式各自的贡献。</strong> 要归因，需要 MPS signpost 配合 Instruments 看时间线，而那种诊断会改变性能，必须与正式测速分开。</p>
+<p><strong>它对下一阶段真实模型接入与整步测速（G1b，第二课）的要求。</strong> 整模型里的 D 必须按完整链计时，不能把分段数相加当成链式成本；也不要把"链比分段慢"当作已经解释过的 MPS 特性去推断别的平台。</p>
 </div>
 </div>
 </div>
@@ -8577,8 +8542,6 @@ float32    32768 1/8   |     500.2        606.0      1.21
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="4.-%E9%A2%84%E6%B5%8B%E4%B8%8E%E8%A7%82%E5%AF%9F%EF%BC%9A%E4%B8%A4%E4%B8%AA%E5%AE%9E%E9%AA%8C%E9%98%B6%E6%AE%B5%E7%9A%84%E5%AF%B9%E7%85%A7%E8%B4%A6">4. 预测与观察：两个实验阶段的对照账<a class="anchor-link" href="#4.-%E9%A2%84%E6%B5%8B%E4%B8%8E%E8%A7%82%E5%AF%9F%EF%BC%9A%E4%B8%A4%E4%B8%AA%E5%AE%9E%E9%AA%8C%E9%98%B6%E6%AE%B5%E7%9A%84%E5%AF%B9%E7%85%A7%E8%B4%A6">¶</a></h2><p>把运行前写下的预测与运行后的结果放在一起，是这个项目要求自己的纪律。下面是 G1a 的通过判定（每个进程分别算比值，六个进程都 ≤ 0.90 才算通过），以及 G0 预测的两处失误与一次公式更正。</p>
-<p>这里“通过”只表示值得进入下一阶段：D/A≤0.90 即至少节省 10% 耗时，不是答题正确率。<code>剖析无完整QK</code> 表示在记录的算子路径中没有发现对全历史主 K 的完整打分；<strong>剖析</strong>是记录执行了哪些操作来分析成本，区别于正常计时。</p>
-<p>下一张公式核算表是<strong>载荷情景预测</strong>：用字节数除以一个带宽假设估计理想读取时间。<strong>S1</strong> 是其中“索引读一次、入选 K/V 读一次”的情景代号；<code>S1 节省</code> 已经扣掉这两项成本。Qwen3 是模型系列名，0.6B / 4B 的 B 表示十亿参数，本表只借用这些结构的层数计算假设，没有运行这两个模型。</p>
 </div>
 </div>
 </div>
@@ -8622,6 +8585,17 @@ float32    32768 1/32  D_full  |     0.30   0.27–0.39              是        
 float32    32768 1/8   D_full  |     0.42   0.40–0.46              是            是   通过
 </pre>
 </div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=context-01-29-0">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>下一张表是<strong>载荷情景预测</strong>，不是整模型实测。<strong>S1</strong> 指“索引表读一次、入选 K/V 读一次”的情景；<code>S1 节省</code> 已经扣掉这两项，不能再减一次含有它们的链路成本。表中的模型名称只提供层数与形状，未在 G0 运行这些模型。</p>
 </div>
 </div>
 </div>
@@ -8686,7 +8660,7 @@ G0 的最优链式只含索引打分、top-k、取 K/V：97 µs；G1a 的 D_full
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>G0 的两处预测失误。</strong> SDPA 的 <code>enable_gqa=True</code> 在 MPS 上可用（预测不可用）；<code>torch.compile</code>（尝试将一组计算组织成优化执行图）首次编译 1 到 4 秒（预测 20 到 90 秒）。<strong>G1a 的两处失误。</strong> 链式高于分段之和（预测低于）；32K、ρ=1/8 的 D_full 预测通过，实测持平。</p>
+<p><strong>G0 的两处预测失误。</strong> SDPA 的 <code>enable_gqa=True</code> 在 MPS 上可用（预测不可用）；<code>torch.compile</code> 首次编译 1 到 4 秒（预测 20 到 90 秒）。<strong>G1a 的两处失误。</strong> 链式高于分段之和（预测低于）；32K、ρ=1/8 的 D_full 预测通过，实测持平。</p>
 <p><strong>公式更正说明的是什么。</strong> 比较两条路径时，两边必须用同一套成本划分。S1 已经把索引读与入选 KV 读按理想载荷扣掉，再减去包含同一批工作的实测链式，就扣了两次。更正后 D 更有利，三个长度的方向不变；但 G1a 实测 8K 与 16K 比两版预测都更不利。上一格末尾给出了原因：不是 A 比带宽情景更快（A 实测 110 µs，比 86 µs 的情景值慢），而是 G0 的链式成本范围不完整，漏掉了索引查询投影、索引键追加、合并与子集注意力。这张 G0 表因此仍不是完整解码步的净收益预测。本页第一版把 110 与 86 的快慢写反了，复审指出后更正；错的那句保留在 git 历史里。</p>
 </div>
 </div>
@@ -8701,11 +8675,11 @@ G0 的最优链式只含索引打分、top-k、取 K/V：97 µs；G1a 的 D_full
 <h2 id="5.-%E8%BE%B9%E7%95%8C%E4%B8%8E%E4%B8%8B%E4%B8%80%E6%AD%A5">5. 边界与下一步<a class="anchor-link" href="#5.-%E8%BE%B9%E7%95%8C%E4%B8%8E%E4%B8%8B%E4%B8%80%E6%AD%A5">¶</a></h2><ul>
 <li><strong>平台。</strong> 全部数字来自一台 M4 Max 的 MPS 后端与 torch 2.14.1。原语成本、SDPA 内核选择、compile 行为在 CUDA 上可能不同。</li>
 <li><strong>范围。</strong> 单层、随机张量、batch 1、一步解码。整模型每步时间、连续生成、k 固定下合法长度增长、真实 Q/K 分布都留给 G1b。</li>
-<li><strong>索引器。</strong> 随机初始化，没有训练。它回答的是"筛选路径的计算成本有没有空间"，不是"模型能只看 3% 的历史而保持能力"。质量问题由“任务质量对照”阶段 G2 研究，第三课展示其缩减版。</li>
+<li><strong>索引器。</strong> 随机初始化，没有训练。它回答的是"筛选路径的计算成本有没有空间"，不是"模型能只看 3% 的历史而保持能力"。任务质量对照（G2，第三课展示其缩减版）才检查答题。</li>
 <li><strong>门槛。</strong> bf16、32K、ρ=1/32 的 D_full/A = 0.74（6/6 进程 ≤ 0.90）满足了 10% 的投资门槛。10% 是继续投入的门槛，不是架构定理。</li>
-<li><strong>补测。</strong> PR #1 评审后的轮换执行先后顺序、四种缓存容量组合、把查询头重排后计算的手写完整注意力对照见 <code>reports/g1a_supplement_mac_m4max.md</code>。</li>
+<li><strong>补测。</strong> PR #1 评审后的交错顺序、容量四格、折叠手写 A 对照见 <code>reports/g1a_supplement_mac_m4max.md</code>。</li>
 </ul>
-<p>以下仅供追溯。<strong>前两条涉及重新运行或配置基准，不是阅读本课需要执行的步骤</strong>；第三条只用旧记录重建报告：</p>
+<p>以下是复现入口；前两条涉及基准运行或配置，不是阅读步骤。只读重建报告用第三条：</p>
 <div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
 python<span class="w"> </span>scripts/g0_probe.py<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>python<span class="w"> </span>scripts/g0_report.py<span class="w">        </span><span class="c1"># G0，约 10 秒</span>
 python<span class="w"> </span>bench/microbench.py<span class="w"> </span>--help<span class="w">                                </span><span class="c1"># G1a 正式序列见 reports/provenance/</span>
