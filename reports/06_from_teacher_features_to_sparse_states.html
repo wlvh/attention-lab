@@ -7903,9 +7903,8 @@ A控制序列: 6692&lt;|im_end|&gt;
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="2.-%E5%8F%82%E6%95%B0%E5%9B%BA%E5%AE%9A%EF%BC%8C%E8%BF%98%E5%BF%85%E9%A1%BB%E4%BF%9D%E8%AF%81%E7%BC%93%E5%AD%98%E5%B1%9E%E4%BA%8E%E8%BF%99%E4%BB%BD%E5%8F%82%E6%95%B0">2. 参数固定，还必须保证缓存属于这份参数<a class="anchor-link" href="#2.-%E5%8F%82%E6%95%B0%E5%9B%BA%E5%AE%9A%EF%BC%8C%E8%BF%98%E5%BF%85%E9%A1%BB%E4%BF%9D%E8%AF%81%E7%BC%93%E5%AD%98%E5%B1%9E%E4%BA%8E%E8%BF%99%E4%BB%BD%E5%8F%82%E6%95%B0">¶</a></h2><p>z=Wk·k_pre依赖索引参数。更换参数后直接使用旧z，会让查询和历史索引处于不同规则下。本轮加载文件先验hash和形状，缓存绑定参数身份，每次写入前检查；主K/V是bf16，z与索引投影为fp32。</p>
-<p>下面展示正式运行的同一实现。默认阅读只展示源码，不建立真实模型。</p>
-<p><code>FrozenBank</code> 是本项目装载各层固定索引参数的对象。缓存“绑定参数身份”意味着加载的文件、形状和参数版本必须对应；更换 Wk 后不能继续使用旧 z。</p>
+<h2 id="2.-%E5%8F%82%E6%95%B0%E5%9B%BA%E5%AE%9A%EF%BC%8C%E8%BF%98%E5%BF%85%E9%A1%BB%E4%BF%9D%E8%AF%81%E7%BC%93%E5%AD%98%E5%B1%9E%E4%BA%8E%E8%BF%99%E4%BB%BD%E5%8F%82%E6%95%B0">2. 参数固定，还必须保证缓存属于这份参数<a class="anchor-link" href="#2.-%E5%8F%82%E6%95%B0%E5%9B%BA%E5%AE%9A%EF%BC%8C%E8%BF%98%E5%BF%85%E9%A1%BB%E4%BF%9D%E8%AF%81%E7%BC%93%E5%AD%98%E5%B1%9E%E4%BA%8E%E8%BF%99%E4%BB%BD%E5%8F%82%E6%95%B0">¶</a></h2><p>z=Wk·k_pre；更换 Wk 后沿用旧 z，会把新查询投影与旧键投影混用。本项目 <code>FrozenBank</code> 保存各层固定索引参数，加载时核对文件指纹与形状，创建缓存时绑定参数身份，写入前检查身份仍一致。</p>
+<p>本轮主 K/V 为 bf16，索引 z 和投影为 fp32。下面展示正式运行快照里的参数管理实现，不建立模型。</p>
 </div>
 </div>
 </div>
@@ -8037,9 +8036,9 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="3.-%E5%90%8C%E4%B8%80%E9%9B%86%E5%90%88%E4%B9%9F%E5%8F%AF%E8%83%BD%E6%9C%89%E4%B8%8D%E5%90%8C%E7%9A%84%E6%9C%89%E9%99%90%E7%B2%BE%E5%BA%A6%E8%AE%A1%E7%AE%97%E9%A1%BA%E5%BA%8F">3. 同一集合也可能有不同的有限精度计算顺序<a class="anchor-link" href="#3.-%E5%90%8C%E4%B8%80%E9%9B%86%E5%90%88%E4%B9%9F%E5%8F%AF%E8%83%BD%E6%9C%89%E4%B8%8D%E5%90%8C%E7%9A%84%E6%9C%89%E9%99%90%E7%B2%BE%E5%BA%A6%E8%AE%A1%E7%AE%97%E9%A1%BA%E5%BA%8F">¶</a></h2><p>初次全选检查失败：按分数排列的集合与A的原位置排列具有相同数学含义，bf16实际加总次序却不同。首次差异在第14层读出后出现，随后可能传播。记录保留，没有放宽容差。</p>
-<p>一次修复：本轮所有稀疏方法选位后按原位置升序，再实际gather和主注意力。集合、预算和选择分数保持不变。修后单层/全层全选都要通过；这不是学习带来的准确率改善。</p>
-<p>这里的<strong>全选</strong>是让候选名额覆盖所有合法位置，仍走实际 gather 和主注意力路径。表中 <code>steps</code> 是比较的输入步数，<code>max_abs_logits/max_relative_logits/argmax_agreement</code> 分别记录最大绝对分数差、最大相对分数差与选中 token 一致率。</p>
+<h2 id="3.-%E5%90%8C%E4%B8%80%E9%9B%86%E5%90%88%E4%B9%9F%E5%8F%AF%E8%83%BD%E6%9C%89%E4%B8%8D%E5%90%8C%E7%9A%84%E6%9C%89%E9%99%90%E7%B2%BE%E5%BA%A6%E8%AE%A1%E7%AE%97%E9%A1%BA%E5%BA%8F">3. 同一集合也可能有不同的有限精度计算顺序<a class="anchor-link" href="#3.-%E5%90%8C%E4%B8%80%E9%9B%86%E5%90%88%E4%B9%9F%E5%8F%AF%E8%83%BD%E6%9C%89%E4%B8%8D%E5%90%8C%E7%9A%84%E6%9C%89%E9%99%90%E7%B2%BE%E5%BA%A6%E8%AE%A1%E7%AE%97%E9%A1%BA%E5%BA%8F">¶</a></h2><p>先把候选名额给足，使 D-one/D 读取全部合法位置，仍走实际 gather 和主注意力。这是本课的<strong>全选检查</strong>。</p>
+<p>初次检查失败时，筛选结果按分数排列，A 按原位置排列；记录里的首次差异出现在第 14 层读出。随后唯一的读取修复是将已选集合按原位置升序送入主注意力，未增加位置、改变名额或放宽容差。修后单层/全层全选的 51 个输入步均与 A logits 逐位一致；51 步包括问题/模板后缀和 16 个控制 token。</p>
+<p>这证明该固定输入下的全选对应关系；正常小预算的偏差另在下一节记录，不把排序修复算成训练收益。表中 <code>max_abs_logits/max_relative_logits/argmax_agreement</code> 对应绝对分数差、相对分数差和最高分 token 一致率。</p>
 </div>
 </div>
 </div>
@@ -8082,9 +8081,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="4.-%E4%BB%8E%E7%AC%AC%E5%87%A0%E5%B1%82%E5%BC%80%E5%A7%8B%EF%BC%8C%E8%BE%93%E5%85%A5%E5%B7%B2%E7%BB%8F%E4%B8%8D%E5%90%8C%EF%BC%9F">4. 从第几层开始，输入已经不同？<a class="anchor-link" href="#4.-%E4%BB%8E%E7%AC%AC%E5%87%A0%E5%B1%82%E5%BC%80%E5%A7%8B%EF%BC%8C%E8%BE%93%E5%85%A5%E5%B7%B2%E7%BB%8F%E4%B8%8D%E5%90%8C%EF%BC%9F">¶</a></h2><p>下面只看问题最后一token，即首个答案预测前的位置。D-one前14层的Q与A相同：第14层的新信息先出现在注意力读出，下一层才改变Q。D在第一层就少读，因此第二层起Q已经可能不同。</p>
-<p>相对L2先逐资料计算，再平均4份。它是各自真实状态间的差异，不能和G3b的同特征局部误差当成同一指标，更不能直接换算为准确率损失。</p>
-<p>表中的 <strong>first_answer_prediction</strong> 是问题最后一个 token 之后，<strong>last_controlled_step</strong> 是第 16 个控制 token 之后。相对 L2 的参照和分母都来自同一步 A；第五课则给方法同一份完整路径 Q/K/V，两个指标的实验条件不同。</p>
+<h2 id="4.-%E4%BB%8E%E7%AC%AC%E5%87%A0%E5%B1%82%E5%BC%80%E5%A7%8B%EF%BC%8C%E8%BE%93%E5%85%A5%E5%B7%B2%E7%BB%8F%E4%B8%8D%E5%90%8C%EF%BC%9F">4. 从第几层开始，输入已经不同？<a class="anchor-link" href="#4.-%E4%BB%8E%E7%AC%AC%E5%87%A0%E5%B1%82%E5%BC%80%E5%A7%8B%EF%BC%8C%E8%BE%93%E5%85%A5%E5%B7%B2%E7%BB%8F%E4%B8%8D%E5%90%8C%EF%BC%9F">¶</a></h2><p>图只取问题最后一个 token，即预测首个答案的位置。图上 D-one 的第 1—14 层 Q 差异为零，第 14 层注意力读出已有差异，平均 Q 差异在第 15 层起出现。全层 D 从第 1 层读出起改变状态，第 2 层 Q 已不同。</p>
+<p>每种向量先对同一步 A 算相对 L2，再平均 4 份资料。表还列出两个对齐位置：<strong>first_answer_prediction</strong> 是问题最后一个 token 后，<strong>last_controlled_step</strong> 是第 16 个控制 token 后。第五课给各方法相同完整路径特征，这里比较各自推进产生的不同向量，二者不能当成同一个误差指标。</p>
 </div>
 </div>
 </div>
@@ -8197,9 +8195,9 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="5.-%E5%8F%AF%E4%BB%A5%E6%8E%A8%E5%87%BA%E4%BB%80%E4%B9%88%EF%BC%8C%E4%B8%8B%E4%B8%80%E6%AD%A5%E8%BF%98%E7%BC%BA%E4%BB%80%E4%B9%88%EF%BC%9F">5. 可以推出什么，下一步还缺什么？<a class="anchor-link" href="#5.-%E5%8F%AF%E4%BB%A5%E6%8E%A8%E5%87%BA%E4%BB%80%E4%B9%88%EF%BC%8C%E4%B8%8B%E4%B8%80%E6%AD%A5%E8%BF%98%E7%BC%BA%E4%BB%80%E4%B9%88%EF%BC%9F">¶</a></h2><p>D比D0更接近A，是这4份开发资料、当前位置的描述；D-one与D也不能只用最终分数代替逐层证据。控制输入保证两条路径读到相同token，却消除了自由生成的分叉，因此argmax相同率不等于答题正确率。</p>
-<p>下一步比较完整读取 A、近期窗口 B、均匀随机 C、初始索引 D0、训练后索引 D 各自自由生成，并保留A答错、D改善与D仍失败的题。先前冻结的新32份资料只在下一阶段评分，不据结果重新调ρ、改提示或追加训练。</p>
-<p>这个新题质量与成本阶段叫 <strong>G4-lite</strong>，已完成的结果见第七课。本课账单里的旧 G3a 是单层训练，共享预算则累计第五至七课实际运行。</p>
+<h2 id="5.-%E5%8F%AF%E4%BB%A5%E6%8E%A8%E5%87%BA%E4%BB%80%E4%B9%88%EF%BC%8C%E4%B8%8B%E4%B8%80%E6%AD%A5%E8%BF%98%E7%BC%BA%E4%BB%80%E4%B9%88%EF%BC%9F">5. 可以推出什么，下一步还缺什么？<a class="anchor-link" href="#5.-%E5%8F%AF%E4%BB%A5%E6%8E%A8%E5%87%BA%E4%BB%80%E4%B9%88%EF%BC%8C%E4%B8%8B%E4%B8%80%E6%AD%A5%E8%BF%98%E7%BC%BA%E4%BB%80%E4%B9%88%EF%BC%9F">¶</a></h2><p>首个答案预测处，最终词表分数相对 A 的平均 L2 差异为 D0 0.4804、D 0.1071、D-one 0.0344；控制序列末步分别约 0.2632、0.1070、0.0154。训练后的参数在这两个对齐点更接近 A，但这里只用了 4 份旧开发资料，不能推成所有层、所有步骤或新任务都更好。</p>
+<p>D 在首个预测处与 A 的 argmax 都相同，也只是 4 份资料这一位置的一致率；后续输入被固定，尚未检验各方法自由生成分叉后的答案。第七课 <strong>G4-lite</strong> 用预先固定的 32 份新 T1 比较 A/B/C/D0/D 自己回答，保留 A 错误及 D 改善/退化的题，不据结果再调参。</p>
+<p>这里 B/C 指近期窗口/均匀随机；旧 G3a 账指第四课单层训练，共享预算累计第五至七课实际运行。</p>
 </div>
 </div>
 </div>

@@ -7843,7 +7843,7 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="0.-%E5%8A%A0%E8%BD%BD%E7%BB%93%E6%9E%9C%E4%B8%8E%E6%BA%90%E7%A0%81%E7%89%88%E6%9C%AC">0. 加载结果与源码版本<a class="anchor-link" href="#0.-%E5%8A%A0%E8%BD%BD%E7%BB%93%E6%9E%9C%E4%B8%8E%E6%BA%90%E7%A0%81%E7%89%88%E6%9C%AC">¶</a></h2><p>“格子”指一个任务×长度组合，如 T1/2K。记录分为 <code>baseline</code>（完整 A 基线）、<code>comparison</code>（过基线门槛的组合上做方法对照）、<code>rewrites</code>（资料改写）；三遍对应四次实际运行，因为改写分成两组。下面核对各次数据与源码版本，不要求它们的数据指纹相同。</p>
+<h2 id="0.-%E5%8A%A0%E8%BD%BD%E7%BB%93%E6%9E%9C%E4%B8%8E%E6%BA%90%E7%A0%81%E7%89%88%E6%9C%AC">0. 加载结果与源码版本<a class="anchor-link" href="#0.-%E5%8A%A0%E8%BD%BD%E7%BB%93%E6%9E%9C%E4%B8%8E%E6%BA%90%E7%A0%81%E7%89%88%E6%9C%AC">¶</a></h2><p>基线按任务×长度分组，如 T1/2K；后面的少读比较还区分两档 ρ。记录分为 <code>baseline</code>（完整 A 基线）、<code>comparison</code>（过基线门槛的组合上做方法对照）、<code>rewrites</code>（资料改写）；三遍对应四次实际运行，因为改写分成两组。下面核对各次数据与源码版本，不要求它们的数据指纹相同。</p>
 </div>
 </div>
 </div>
@@ -7976,7 +7976,7 @@ bench/g2lite_quality.py 运行时源码核对通过 当前已修复；旧版本�
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="1.-%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E7%9A%84%E6%AD%A3%E5%BC%8F%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%A5%91%E7%BA%A6">1. 四种读取方式的正式代码与契约<a class="anchor-link" href="#1.-%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E7%9A%84%E6%AD%A3%E5%BC%8F%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%A5%91%E7%BA%A6">¶</a></h2><p><strong>运行前的预测</strong>（本项目的预测卡片 <code>reports/cards/G2lite_mac_m4max.md</code>）：B、C、D0 在同一 ρ 下读取数相同、都包含 F；全选时三者退化为 A；B 的额外行恰为最近的 k 个候选；C 的抽取由种子决定且回退重放不变；B、C 不打分。下面并排打印三个名单生成函数与共用的取行核，再在小模型上逐条验证。</p>
+<h2 id="1.-%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E7%9A%84%E6%AD%A3%E5%BC%8F%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%A5%91%E7%BA%A6">1. 四种读取方式的正式代码与契约<a class="anchor-link" href="#1.-%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E7%9A%84%E6%AD%A3%E5%BC%8F%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%A5%91%E7%BA%A6">¶</a></h2><p><strong>运行前的预测</strong>（本项目的预测卡片 <code>reports/cards/G2lite_mac_m4max.md</code>）：B、C、D0 在同一 ρ 下读取数相同、都包含 F；全选时三者退化为 A；B 的额外行恰为最近的 k 个候选；C 的抽取由种子决定且回退重放不变；B、C 不做 Q/K 内容打分；C 用 CPU 随机优先级的 top-k 实现均匀抽样。下面并排打印三个名单生成函数与共用的取行核，再在小模型上逐条验证。</p>
 </div>
 </div>
 </div>
@@ -8416,8 +8416,10 @@ T2-8K-编号 3 middle/back_far      8189   54        [225, 3914]     [1, 8]
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="3.-%E5%9F%BA%E7%BA%BF%E5%8F%AF%E7%94%A8%E6%80%A7%EF%BC%88%E7%AC%AC%E4%B8%80%E9%81%8D%EF%BC%9AA-%E5%9C%A8%E5%85%A8%E9%83%A8%E6%A0%BC%E5%AD%90%EF%BC%89">3. 基线可用性（第一遍：A 在全部格子）<a class="anchor-link" href="#3.-%E5%9F%BA%E7%BA%BF%E5%8F%AF%E7%94%A8%E6%80%A7%EF%BC%88%E7%AC%AC%E4%B8%80%E9%81%8D%EF%BC%9AA-%E5%9C%A8%E5%85%A8%E9%83%A8%E6%A0%BC%E5%AD%90%EF%BC%89">¶</a></h2><p><strong>运行前的预测</strong>（卡片原文，写于 v1 密集表设计）：T1-2K 10–12/12，T2-2K 7–11/12，T1-8K 6–11/12，T2-8K 3–9/12。<strong>校准后的修订预测</strong>（卡片附录，写于正式运行前）：T1 两档可用（2K 10–12，8K 9–12），T2 两档不可用（2K 3–7，8K 0–3）。门槛 80% 是小样本可用性检查。</p>
+<h2 id="3.-%E5%9F%BA%E7%BA%BF%E5%8F%AF%E7%94%A8%E6%80%A7%EF%BC%88%E7%AC%AC%E4%B8%80%E9%81%8D%EF%BC%9AA-%E5%9C%A8%E5%85%A8%E9%83%A8%E4%BB%BB%E5%8A%A1%C3%97%E9%95%BF%E5%BA%A6%E7%BB%84%E5%90%88%EF%BC%89">3. 基线可用性（第一遍：A 在全部任务×长度组合）<a class="anchor-link" href="#3.-%E5%9F%BA%E7%BA%BF%E5%8F%AF%E7%94%A8%E6%80%A7%EF%BC%88%E7%AC%AC%E4%B8%80%E9%81%8D%EF%BC%9AA-%E5%9C%A8%E5%85%A8%E9%83%A8%E4%BB%BB%E5%8A%A1%C3%97%E9%95%BF%E5%BA%A6%E7%BB%84%E5%90%88%EF%BC%89">¶</a></h2><p><strong>运行前的预测</strong>（卡片原文，写于 v1 密集表设计）：T1-2K 10–12/12，T2-2K 7–11/12，T1-8K 6–11/12，T2-8K 3–9/12。<strong>校准后的修订预测</strong>（卡片附录，写于正式运行前）：T1 两档可用（2K 10–12，8K 9–12），T2 两档不可用（2K 3–7，8K 0–3）。门槛 80% 是小样本可用性检查。</p>
 <p>本课“可用”仅表示该组合的 A 匹配率达到 80%；<code>baseline_too_weak</code> 表示当前提示、生成和评分协议未过这条门槛，不是一般能力结论。</p>
+<p>v1 的早期校准仍有源码快照缺口，保留已有记录而不重造当时代码；本课可逐题追溯的正式主表来自 v2。</p>
+<p>v1→v2 同时改变了记录数量、填充布局和措辞，不能把校准变化单独归因于记录密度。</p>
 </div>
 </div>
 </div>
@@ -8510,7 +8512,8 @@ T2/8K     12   1     8%        4                17%        0     0  front/back_f
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="4.-%E5%9B%9B%E6%96%B9%E6%B3%95%E8%B4%A8%E9%87%8F%E5%AF%B9%E7%85%A7%EF%BC%88%E7%AC%AC%E4%BA%8C%E9%81%8D%EF%BC%8C%E5%8F%AA%E5%9C%A8%E5%8F%AF%E7%94%A8%E6%A0%BC%E5%AD%90%EF%BC%89">4. 四方法质量对照（第二遍，只在可用格子）<a class="anchor-link" href="#4.-%E5%9B%9B%E6%96%B9%E6%B3%95%E8%B4%A8%E9%87%8F%E5%AF%B9%E7%85%A7%EF%BC%88%E7%AC%AC%E4%BA%8C%E9%81%8D%EF%BC%8C%E5%8F%AA%E5%9C%A8%E5%8F%AF%E7%94%A8%E6%A0%BC%E5%AD%90%EF%BC%89">¶</a></h2><p><strong>运行前的预测。</strong> B 由几何决定：T1 在 2K · ρ = 1/32 只对 back_near 的 2/12，其余三个设置对 back_near + back_far 的 4/12；T2 0–1/12。C 接近零（1/32 下 0/12，1/8 下 0–2/12）。D0 不优于 C（每格 0–2/12）。</p>
+<h2 id="4.-%E5%9B%9B%E6%96%B9%E6%B3%95%E8%B4%A8%E9%87%8F%E5%AF%B9%E7%85%A7%EF%BC%88%E7%AC%AC%E4%BA%8C%E9%81%8D%EF%BC%8C%E5%8F%AA%E6%AF%94%E8%BE%83%E5%9F%BA%E7%BA%BF%E8%BE%BE%E6%A0%87%E7%9A%84%E7%BB%84%E5%90%88%EF%BC%89">4. 四方法质量对照（第二遍，只比较基线达标的组合）<a class="anchor-link" href="#4.-%E5%9B%9B%E6%96%B9%E6%B3%95%E8%B4%A8%E9%87%8F%E5%AF%B9%E7%85%A7%EF%BC%88%E7%AC%AC%E4%BA%8C%E9%81%8D%EF%BC%8C%E5%8F%AA%E6%AF%94%E8%BE%83%E5%9F%BA%E7%BA%BF%E8%BE%BE%E6%A0%87%E7%9A%84%E7%BB%84%E5%90%88%EF%BC%89">¶</a></h2><p><strong>运行前的预测。</strong> B 由几何决定：T1 在 2K · ρ = 1/32 只对 back_near 的 2/12，其余三个设置对 back_near + back_far 的 4/12；T2 0–1/12。C 接近零（1/32 下 0/12，1/8 下 0–2/12）。D0 不优于 C（每格 0–2/12）。</p>
+<p>实际进入比较的是 24 份 T1 资料：2K、8K 各 12 份。每种少读方法在每份资料上分别用两档 ρ，共 48 次请求；不是 48 份独立新资料。下文“四个设置”指 2 种长度×2 档 ρ。A 每份资料只需一条对应回答。</p>
 </div>
 </div>
 </div>
@@ -8723,7 +8726,7 @@ T1/8K    D0@0.125   1023–1026 1091–1094  0/12        12       0%            
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>观察。</strong> 主表和配对结果与旧记录一致：C/D0 在四格均未答对；B 窗口内 9/14、窗口外 0/34，且有增加名额后由对变错的案例。多数失败答成问题里的编号。C 的目标位置覆盖接近对应步骤的 k/M；D0 的覆盖较高，但分数仍为零。</p>
+<p><strong>观察。</strong> 主表和配对结果与旧记录一致：C/D0 在四个长度×ρ设置中均未答对；B 窗口内 9/14、窗口外 0/34，且有增加名额后由对变错的案例。B 的 48 次请求中答对 9 次、答错 39 次，其中 38 次错误是编号回声；窗口外的 34 次只是这批请求的一个子集。C 的目标位置覆盖接近对应步骤的 k/M；D0 的覆盖较高，但分数仍为零。</p>
 <p><strong>解释的边界。</strong> 这里同时观察到了低目标位置覆盖和零分，不能仅凭这个指标确定两者的充分或必要关系。覆盖指标计算整条记录，而非仅四位答案；跨层、跨位置的信息传递也没有被分离。“没直接选到目标行”和“没有任何目标信息”不是同一件事。</p>
 <p>D0 未训练，其零分不代表训练后索引的上限。B 的结果限定于当前 F、预算和样本。计时含覆盖率记账与同步，不能作为新的速度基准。</p>
 </div>
@@ -8747,7 +8750,7 @@ T1/8K    D0@0.125   1023–1026 1091–1094  0/12        12       0%            
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="5.-%E4%BB%A3%E8%A1%A8%E6%A1%88%E4%BE%8B">5. 代表案例<a class="anchor-link" href="#5.-%E4%BB%A3%E8%A1%A8%E6%A1%88%E4%BE%8B">¶</a></h2><p>预登记的选法：每个可用格子、每一类（A 对 B 错；A 对 C 或 D0 错；四种都对）按资料序号取最多两份；存在才展示。每个案例按固定结构：资料与问题 → 运行前预测 → 四种方法实际回答 → 各自选择的位置 → 改动一处资料再检查 → 哪些解释得到支持、哪些仍不确定。下面的代码按类别打印案例；解释写在其后的文字格里。</p>
+<h2 id="5.-%E4%BB%A3%E8%A1%A8%E6%A1%88%E4%BE%8B">5. 代表案例<a class="anchor-link" href="#5.-%E4%BB%A3%E8%A1%A8%E6%A1%88%E4%BE%8B">¶</a></h2><p>预登记的选法：每个基线达标的任务×长度组合、每一类（A 对 B 错；A 对 C 或 D0 错；四种都对）按资料序号取最多两份；存在才展示。每个案例按固定结构：资料与问题 → 运行前预测 → 四种方法实际回答 → 各自选择的位置 → 改动一处资料再检查 → 哪些解释得到支持、哪些仍不确定。下面的代码按类别打印案例；解释写在其后的文字格里。</p>
 </div>
 </div>
 </div>
@@ -10019,7 +10022,8 @@ rewrites[1] | prefill ms 中位: {'2K': 369.0802920027636, '8K': 1916.1310414783
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>读法。</strong> 正式三遍 313 s，加正式前小批运行检查与校准 654 s，现金 0，分配内存峰值 3.4 GB。每步耗时：A 11–13 ms，B 与 A 相当，D0 约 18 ms（G1b 测过的小核链），C 20–36 ms——C 的额外成本是 CPU 上 numpy 的均匀抽样与 top-k（每层每步一次，8K 候选域更大），不是 GPU 属性，也不是本任务的测量对象。</p>
+<p>正式基线、方法对照与两组改写共约 313 秒；连同正式前小批检查和校准，记录累计约 654 秒。质量运行每步时间约为 A 11–13 ms、B 12 ms、D0 18 ms、C 20–36 ms。</p>
+<p>C 的实现逐层在 CPU 生成随机优先级并 top-k，再把名单送到 MPS；这是代码中实际存在的额外工作。不过本次计时还包括位置记录与同步，没有将各项贡献分离，不能把差值全归给某一步，也不能作为新的速度基准。</p>
 </div>
 </div>
 </div>
@@ -10044,7 +10048,7 @@ rewrites[1] | prefill ms 中位: {'2K': 369.0802920027636, '8K': 1916.1310414783
 <td>基线：T1 两档可用，T2 两档不可用</td>
 <td>2K 10–12 / 8K 9–12；T2 3–7 / 0–3</td>
 <td>12 / 10；8 / 1</td>
-<td>成立（T2-2K 略高于区间，仍 &lt; 80%）</td>
+<td>可用性判断成立；T2-2K 正确数超出原预测区间</td>
 </tr>
 <tr>
 <td>B 窗口外全错</td>
@@ -10061,8 +10065,8 @@ rewrites[1] | prefill ms 中位: {'2K': 369.0802920027636, '8K': 1916.1310414783
 <tr>
 <td>B 错时答窗口内近期记录的值或编造数</td>
 <td>是</td>
-<td>33/34 答编号</td>
-<td>部分成立</td>
+<td>全部39次错误中38次答编号；窗口外子集为33/34</td>
+<td>主要错误类型预测不符</td>
 </tr>
 <tr>
 <td>移近后 B 变对 ≥ 3/4</td>
@@ -10085,7 +10089,7 @@ rewrites[1] | prefill ms 中位: {'2K': 369.0802920027636, '8K': 1916.1310414783
 <tr>
 <td>D0 不优于 C；覆盖率 ≈ k/M</td>
 <td>六成</td>
-<td>0/12 ×4；覆盖率 1.2–2.2 × k/M</td>
+<td>0/12 ×4；首个答案预测处覆盖率约 1.2–2.2 × k/M</td>
 <td>成绩成立；覆盖率均值失效</td>
 </tr>
 <tr>
