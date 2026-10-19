@@ -2,7 +2,7 @@
 
 ## 2026-10-19 第四课教学补充：发布共享版本
 
-按用户本轮要求推送`teaching/lesson04-cpu`并提交小型教学PR，不新建研究Issue，不自动合并。原本地提交`9f74db7`已推送；本次沿相同的12参数CPU算例增加输入、初始参数、u/z投影、索引分数、逐头教师概率、每步真实梯度、Adam实际改变量、更新后参数和最终名单。初始化、种子、学习率和20步定义不变；新增记录前后原有全部数值逐项一致。
+按用户本轮要求推送`teaching/lesson04-cpu`并提交[教学PR #19](https://github.com/wlvh/attention-lab/pull/19)，当前开放待审，不新建研究Issue，不自动合并。原本地提交`9f74db7`已推送；本次沿相同的12参数CPU算例增加输入、初始参数、u/z投影、索引分数、逐头教师概率、每步真实梯度、Adam实际改变量、更新后参数和最终名单。初始化、种子、学习率和20步定义不变；新增记录前后原有全部数值逐项一致。
 
 入口仍是第四课3a节：[Notebook](notebooks/04_can_an_indexer_learn.ipynb)、[HTML](reports/04_can_an_indexer_learn.html)、[Python实现](scripts/g3a_cpu_lesson.py)、[完整20步记录](reports/lesson04_cpu_trace.json)。数学边界明确：无固定集合F、只选一个候选，两个主注意力头的softmax权重都为1，读出直接等于该位置的V；未展示多个入选位置之间的权重分配。Wq×2只是独立缩放对照，不是学习更新，也不保证KL下降。
 

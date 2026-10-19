@@ -8269,7 +8269,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="3a.-%E5%B1%95%E5%BC%80%E4%B8%80%E6%AC%A112%E5%8F%82%E6%95%B0%E7%9A%84CPU%E5%AD%A6%E4%B9%A0%E8%BF%87%E7%A8%8B">3a. 展开一次12参数的CPU学习过程<a class="anchor-link" href="#3a.-%E5%B1%95%E5%BC%80%E4%B8%80%E6%AC%A112%E5%8F%82%E6%95%B0%E7%9A%84CPU%E5%AD%A6%E4%B9%A0%E8%BF%87%E7%A8%8B">¶</a></h2><p>沿用上面的两个查询头、三个位置和二维Q/K/V。这里只有1个KV组，位置编号从0开始；三个位置全部视为候选，没有固定保留集合F，每次只选1个。这个简化算例不模拟真实2K资料的首4/近64规则，也不代表任务答题成绩。</p>
-<p>索引器的Wq形状为[1,2,4]，Wk为[1,2,2]，共12个可训练数值。Q/K/V保持固定。正式实现仍在Python文件中：本节调用<a href="../scripts/g3a_cpu_lesson.py">CPU教学入口</a>，复用项目实际的teacher、TrainableIndexer、kl_rows、gather_attention；不会加载Qwen或修改正式索引参数。</p>
+<p>索引器的Wq形状为[1,2,4]，Wk为[1,2,2]，共12个可训练数值。下面的矩阵与参数表省略唯一的组维；Wq的行是两个索引坐标，列依次对应两个查询头拼接后的四个坐标。Q/K/V保持固定。正式实现仍在Python文件中：本节调用<a href="../scripts/g3a_cpu_lesson.py">CPU教学入口</a>，复用项目实际的teacher、TrainableIndexer、kl_rows、gather_attention；不会加载Qwen或修改正式索引参数。</p>
 <p>下面直接运行并解释，不要求读者先回答。先观察Wq×2的缩放，再从原初始化做既有CPU测试使用的20步Adam更新，学习率0.02。</p>
 </div>
 </div>
