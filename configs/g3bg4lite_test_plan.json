@@ -1,0 +1,301 @@
+{
+  "status_at_registration": "FROZEN_NOT_EVALUATED",
+  "data_seed": 2026101804,
+  "count": 32,
+  "base_config_sha256": "83f1bd6a87b031de827618b32843fe2857402fe59a67a44165508ca8f15c7a0c",
+  "data_sha256": "1e17405456f75bedecee2863eb31faf7c34b957ce5da7134887dbfbefc825633",
+  "local_data": "runs/g3bg4lite-frozen-test-20261018/data.jsonl",
+  "known_old_prefix_count": 124,
+  "old_prefix_overlap": 0,
+  "old_record_bindings_overlap": 0,
+  "documents": [
+    {
+      "doc_id": "G4lite-T1-2K-00",
+      "prefix_sha256": "f1d5fbea27569f244a13020cd36cd3dd2964b9288ed1ade54f2b7e1a0e09877c",
+      "prompt_sha256": "82df9472df81cc3a1e15337c2e123116d9a9a4979b3e4d80a149039a110a167e",
+      "prefix_token_count": 2008,
+      "buckets": [
+        "front"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-01",
+      "prefix_sha256": "33b70823c71d05b783bcff4cc2a5949d3ba4241789322fa908b654663b0e9d73",
+      "prompt_sha256": "6ef6b103d39f12884ebd2a925e89f68ee87ac1e62ada5574ac0b0a41aac763cc",
+      "prefix_token_count": 2021,
+      "buckets": [
+        "middle"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-02",
+      "prefix_sha256": "18568c6e8d836ce72c3dd6d4bb1719050e5842e97ccd60dd32a34462b795b76b",
+      "prompt_sha256": "5eb0bcf2e9f97ed2776100cc7227dfdf373f7c3b2c9db9ed5f132a423cbc8e3c",
+      "prefix_token_count": 2034,
+      "buckets": [
+        "back_near"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-03",
+      "prefix_sha256": "54f20eab01e43a4d38372c6ec6109d49c31ad1609411193bd2f64bb26ef87cdc",
+      "prompt_sha256": "32e057ab78fa6ab9428e6709bae6c1368ab778c9fc0a5ad9542a2174ae140ff8",
+      "prefix_token_count": 2013,
+      "buckets": [
+        "back_far"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-04",
+      "prefix_sha256": "8ec1d4f2a7083752f68fb06d94b746710a1b78c666025c7e22b4a9c478752673",
+      "prompt_sha256": "de04f90c8928148162cd9a14ca9fa672cc0999c8659af4ec4cd9f863078e1c22",
+      "prefix_token_count": 2007,
+      "buckets": [
+        "front"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-05",
+      "prefix_sha256": "6425f28e1dd74139f8b75b57db3ddffddfb620399d57aef54bcad6ffab17c57b",
+      "prompt_sha256": "f76c969ade9dff357bbde74126fa25b0014dfd7a53f4fabb314b351094076b4f",
+      "prefix_token_count": 2090,
+      "buckets": [
+        "middle"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-06",
+      "prefix_sha256": "2db8cf047374faaad54af577869a9f6b5659f9e7c70661f12e4294e85c1e6a93",
+      "prompt_sha256": "cc2b29be934793a832a8ffd0badb32bd4e34e58582f1930573ea29efe46a32e7",
+      "prefix_token_count": 2018,
+      "buckets": [
+        "back_near"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-07",
+      "prefix_sha256": "f2693f09fc09d90ecbcd0ab3f57019933f7bcc67481c1eba8291034609db3c1e",
+      "prompt_sha256": "9a2d0f9af8d5be329201f5c875771896dc9a9773ad19d90f2f072bde30c3ae92",
+      "prefix_token_count": 2027,
+      "buckets": [
+        "back_far"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-08",
+      "prefix_sha256": "bc4d5b0df7e1af787075f61fc120da5211498a85c6f07c88fb8bf40362dcf01c",
+      "prompt_sha256": "bce0bf36ba1c0416cdd6a1731cb7b27096417228ad4f217c712f7dde5ada1342",
+      "prefix_token_count": 2016,
+      "buckets": [
+        "front"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-09",
+      "prefix_sha256": "50f585f99e6b9ee0cecd7801a69c0229d6941e1e8824275938ed038a0f5c0698",
+      "prompt_sha256": "3aeeec7cf4a5a9a147a35925f9beac259ce7ded1b2dec093303dfeabdc32a516",
+      "prefix_token_count": 1997,
+      "buckets": [
+        "middle"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-10",
+      "prefix_sha256": "d40368fe570f2ab5ca452dd23578de6336fd8509d441b2fa8c780fe3c9fb4145",
+      "prompt_sha256": "f6580f7a41e64af267a5547ea0485b3f6698cd7a378b394f3a52c042c4ec18fc",
+      "prefix_token_count": 2010,
+      "buckets": [
+        "back_near"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-11",
+      "prefix_sha256": "a326ab2a0fc0a72b1d57f69189567e166fb2d9b8b4d2787f5c68e4ee868b998a",
+      "prompt_sha256": "4260223a92e53d590717fd5e05fc42677f66df617f9a72094f08aa8de6a9c74d",
+      "prefix_token_count": 2010,
+      "buckets": [
+        "back_far"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-12",
+      "prefix_sha256": "9165ee27f477692e17fea732fa181b51a74a30e97698c8b675769cbe7189f04f",
+      "prompt_sha256": "11cfb95f9910b40cd605ab3f2d10a6c5b811d5b4dc1eb97a9c0eb7c8588f9867",
+      "prefix_token_count": 2084,
+      "buckets": [
+        "front"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-13",
+      "prefix_sha256": "ea5d9554386bbecd5c5ae74f1315e6b93941a281f08bb9497c049ac8bb605dd0",
+      "prompt_sha256": "7b989116844cb589ab984943ca8fcb1532f06015e2ff0eea37f79a64ebdc40a1",
+      "prefix_token_count": 2016,
+      "buckets": [
+        "middle"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-14",
+      "prefix_sha256": "46c1ece408b298b7582399bf77c1c083d920ebff2025a177618bd4f885470ba5",
+      "prompt_sha256": "1b261cd89cf1f231dc514815527f4b43d6ce6ae17105dd8e043c6fa54ab10232",
+      "prefix_token_count": 2015,
+      "buckets": [
+        "back_near"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-15",
+      "prefix_sha256": "e84dd644d46b83df43db5b3f79cde0d95ffe5028e93e93921a340a4baabe78b9",
+      "prompt_sha256": "188489a2fa3b70d6f0c7a4980cdeb8f260f731d142a8701d5bb57ba4ea179bc5",
+      "prefix_token_count": 2010,
+      "buckets": [
+        "back_far"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-16",
+      "prefix_sha256": "78867b836e938f3415d20655c661f4ab2baf1c5ae13a609a67e79360cd2dfd01",
+      "prompt_sha256": "ec9e5a724df670900f13afac943a3150e4ac6d766df3bd9b68cc8f425e1df1cc",
+      "prefix_token_count": 1997,
+      "buckets": [
+        "front"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-17",
+      "prefix_sha256": "c0df5bd3f8b2b5b54297eed06bec1cf846d9d1fa4075bcdc7a49afa223bcdedf",
+      "prompt_sha256": "3b5e1db95cd376d527d2753c2fad59fc7fb56d1d69fca2a3ede236ac0eb301d0",
+      "prefix_token_count": 1996,
+      "buckets": [
+        "middle"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-18",
+      "prefix_sha256": "759da0f47c3c82ce05351ea2707655ea8c85d8b0c3fc28cfefd343577c1524ab",
+      "prompt_sha256": "cd2f34debbbcbbf9acdcc09b8dc88d47a0cc71b7f651d8103f057b3083452b4c",
+      "prefix_token_count": 2013,
+      "buckets": [
+        "back_near"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-19",
+      "prefix_sha256": "7a78c1bdcf3dd30d4b3b105e9cd267537c3a3e8dc09dace7505873c81eb35c77",
+      "prompt_sha256": "4e564a24cf6bb30e5e1f67334d475ef6817cc5e7a1433ebfb1d76833f5bc0087",
+      "prefix_token_count": 2026,
+      "buckets": [
+        "back_far"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-20",
+      "prefix_sha256": "5d159e1917671e1b24b0420ef5eeb398640ef7c0040ed83638b71afd0de382dd",
+      "prompt_sha256": "958209279bad922745cf2b064fbfcc2156212b6468fb173d6d74ff02b12eee2d",
+      "prefix_token_count": 2006,
+      "buckets": [
+        "front"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-21",
+      "prefix_sha256": "5c1f9b8e29974f7292fe5534dbec8b3177ca74fea76515507645b669b6bc2cc6",
+      "prompt_sha256": "865bc76962ce701fef9c1bc1b3915a2df7341bbd2e6f4df2af3a32c8e2565138",
+      "prefix_token_count": 1990,
+      "buckets": [
+        "middle"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-22",
+      "prefix_sha256": "4a77d4dd2a9a8e1390f36d5534d1720a9ba84190ca3bbd97330bde6429f813ba",
+      "prompt_sha256": "8089af6334dac492903cb1fa003b8b9d0af95e4a0b402cca5699c597e4e047d0",
+      "prefix_token_count": 1998,
+      "buckets": [
+        "back_near"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-23",
+      "prefix_sha256": "658d1019d95714a27f7e1f031a05e7d90e75715f1562d6bf3d4669051bfe988f",
+      "prompt_sha256": "945b35cfa9e8f6ef440b7cb928f31a79b327e1b4a0af347c5c16ce1febbfd34a",
+      "prefix_token_count": 2019,
+      "buckets": [
+        "back_far"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-24",
+      "prefix_sha256": "2963bf9f2d0b6f17b91b3234a974cbbff523b5e37b38b3bc5fa4b555c34d487a",
+      "prompt_sha256": "0c1d81cc41939f3104029649169825b1b784cb4650faf5045100f6b9d21cf451",
+      "prefix_token_count": 2010,
+      "buckets": [
+        "front"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-25",
+      "prefix_sha256": "178d865cafaf88f4aab0205a56aeed4a4765e93726351547523664a86a634029",
+      "prompt_sha256": "395fe5bccf593283954ea055e1b82889dd9bee6498e9e6dfbf5b47cd0897eb90",
+      "prefix_token_count": 2000,
+      "buckets": [
+        "middle"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-26",
+      "prefix_sha256": "bd7a1946ac25867d3afafb7404de5458601c3ac1c0755cd3e90b33cf9c6abb15",
+      "prompt_sha256": "774cc0a67c8e620a461699d761a0436d3ed530c0deb1afe3bf65c83e609a4628",
+      "prefix_token_count": 1998,
+      "buckets": [
+        "back_near"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-27",
+      "prefix_sha256": "646e245957277a2a91bfde72cc19874574da6ee30d0acbd24ca7db7f0a2858da",
+      "prompt_sha256": "6c4351f1604b29eba7ae926db99f0076cf06b529d6ad484ad5ea67ee5faea0fc",
+      "prefix_token_count": 2017,
+      "buckets": [
+        "back_far"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-28",
+      "prefix_sha256": "1c28ea9ab968da752d227289751ab64773f59c3536c65742189bacf2d2a6f01b",
+      "prompt_sha256": "483bc109a22ee3eea332e21ea520fdf7ba5323eb8f7b644caf820dd0b7a81cf4",
+      "prefix_token_count": 2009,
+      "buckets": [
+        "front"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-29",
+      "prefix_sha256": "2545ef6fc8a022061c1b0dc4557c2bbd2c9de9fe88e6f1c44c1a7cefb2818881",
+      "prompt_sha256": "558c4a00ac44ef545e4c30b26236b8dbc1d85d6f2c43a78c2c448deda075c5c2",
+      "prefix_token_count": 2010,
+      "buckets": [
+        "middle"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-30",
+      "prefix_sha256": "8d0728ff71cfc5f85651df149f45b11b49a4cbe3e46f3d3a2306989f9a1a72a4",
+      "prompt_sha256": "337bb459d7df8e38a7e6c33161d973dc6c57f3a9a7f60b257464f6ecd43bfc94",
+      "prefix_token_count": 2001,
+      "buckets": [
+        "back_near"
+      ]
+    },
+    {
+      "doc_id": "G4lite-T1-2K-31",
+      "prefix_sha256": "7df912d18acfa8f43304dd9dd6b9e2fcb8acbe173268d404aa02fc7c4e93059c",
+      "prompt_sha256": "9ae14807efc5b64e16fb44050b70f535ad05e75cb4d8f47cb78d6fee1a6f4676",
+      "prefix_token_count": 2021,
+      "buckets": [
+        "back_far"
+      ]
+    }
+  ]
+}

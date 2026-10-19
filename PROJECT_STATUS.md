@@ -1,5 +1,25 @@
 # 接力状态
 
+## 当前持续目标：G3b-lite → G3c → G4-lite（2026-10-18）
+
+用户已明确授权连续研发，三阶段共享新增14400秒真实设备运行预算、现金0；完成各里程碑提交PR后继续已授权下游，后续PR不自行合并。PR #12 在已审 head 45adb93、两项CI成功且无冲突时以 merge commit 合并为 `0dd6b73`，分支保留，Issue #11 已关闭。本地main已快进并核对父提交。
+
+任务队列：
+
+- [g3b](https://github.com/wlvh/attention-lab/issues/13)
+- [g3c](https://github.com/wlvh/attention-lab/issues/14)
+- [g4](https://github.com/wlvh/attention-lab/issues/15)
+
+固定条件与预测见 `docs/tasks/07_G3B_LITE.md`、`08_G3C_REAL_SPARSE.md`、`09_G4_LITE.md` 和 `configs/mac_g3bg4lite.json`。当前分支 `task/g3b-lite` 基于main `0dd6b73`。G3a旧48份训练可复用，旧16份降格为开发诊断；新32份最终测试先登记再封存，首次评分到G4。主体冻结、P0/r32/rho=1/8，一个种子；第14层复用已审相同条件参数，其余27层训练。
+
+磁盘仅余约23GiB：逐层内存处理，只保留每层固定2份完整审计特征，其余数组记录hash后释放；全部指标、参数及输入可追溯，不删除旧run/缓存。共享预算账将单独写入 `runs/g3bg4lite-20261018-budget.json` 并引用旧G3a账，不重置或覆盖旧账。
+
+G3b已完成：`runs/g3b-20261018T142640Z-formal`，运行源码 `2b6db0bc95641403ce5d728bcdbc4a16c209cf4a`。28层参数齐全：27层各50轮新训练，第14层复用已审G3a。28层开发资料平均KL、coverage、局部相对L2均优于D0；这不代表整模型自由生成已恢复。主体前后hash相同。共享新增设备时间3537.07/14400秒（含预检），现金0；没有活跃作业。账本实际路径为 `runs/g3bg4lite-20261018-budget.json`，归档包含截至G3b结束的快照。
+
+证据：[报告](reports/g3b_mac_m4max.md)、[各层参数身份](reports/g3b_parameters.json)、[精简归档](reports/provenance/g3b_evidence_20261018.tar.gz)及清单，全部逐查询指标重算一致。归档约38MiB；完整审计数组仅在本机保留，不宣称远端材料可直接重做全部特征级审计。26项CPU契约/归档检查通过。第五课6个代码单元从新内核顺序执行并导出[HTML](reports/05_training_all_layer_indexers.html)，三联图实际检查过标题、坐标、图例与第14层标记；整页入口返回queued，整页与窄屏布局仍未验。
+
+下一步：提交G3b待审PR后，从固定提交建立G3c依赖分支；先CPU检查单层/全层接入与全选等价，再用4份旧开发资料和固定token序列检查真实状态差异。32份新最终测试还未评分。报告复核命令：`python scripts/g3b_report.py`，不会运行模型。页面预览、PR #10与历史诊断归档不阻挡研发；Metal/CUDA、更长上下文、T2、付费服务仍未授权。以下各节保留此前交付时点，旧停止点由本节限定授权取代。
+
 ## 2026-10-18 PR #12 复审补丁：预检绑定执行源码
 
 本轮只修 P2 预检复用条件，未运行模型或训练，未合并 PR。`bench/g3a_train.py` 现在同时读取预检 summary/manifest，检查完成状态、记录配对、G3a 配置与基础数据配置的 SHA-256，以及 12 个本地执行源文件（运行器、特征/教师/索引训练、数据生成、完整注意力及依赖）。缺失或不一致拒绝；Git 提交号不作为门槛，文档、Notebook、报告和无关实验文件的提交不影响有效预检。
@@ -116,3 +136,9 @@ python scripts/g2lite_report.py --review-card reports/cards/G2lite_mac_m4max.md
 ## 接力格式
 
 每次记录分支、代码 SHA、run_id、实际命令、证据路径、失败/未测项、剩余预算与下一条命令。未完成进程的 PID 与主机路径保存在本地忽略目录，不直接写进公开报告；公开接力只提供去标识化状态。
+
+## 2026-10-19 复审收尾：共享预算跨进程独占
+
+PR #16追加未来运行的预算保护：在读取/检查/登记之前取得同一账本的POSIX独占锁，持有到退出累计写回完成，竞争者立即拒绝。锁文件保留，避免换inode；正常与可捕获异常都记账并释放，强制终止或写盘失败后保留未完成登记，下一作业必须先核清，不自动猜测用时。
+
+[CPU检查记录](reports/campaign_budget_lock_checks.json)：9项预算契约通过，含真实双进程同时启动、顺序启动、10+20=30的合成计时、失败/强制中断和锁释放；连同G3b回归共14项通过。新测试在旧源码上复现两项并发失败。这里只修未来保护；原run、manifest、参数和成绩保持不变，5次历史运行的完整对账随PR #18交付。后续按依赖同步到#17/#18并提交复审，不执行GitHub合并，不新增模型实验。
