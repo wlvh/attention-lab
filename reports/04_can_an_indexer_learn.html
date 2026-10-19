@@ -7803,7 +7803,7 @@ a.anchor-link {
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h1 id="%E5%AE%9E%E9%AA%8C%E8%AF%BE-04%EF%BC%9A%E5%8D%95%E5%B1%82%E7%B4%A2%E5%BC%95%E5%99%A8%E7%AC%AC%E4%B8%80%E6%AC%A1%E5%AD%A6%E4%BC%9A%E9%80%89%E6%8B%A9%E4%BA%86%E5%90%97%EF%BC%9F">实验课 04：单层索引器第一次学会选择了吗？<a class="anchor-link" href="#%E5%AE%9E%E9%AA%8C%E8%AF%BE-04%EF%BC%9A%E5%8D%95%E5%B1%82%E7%B4%A2%E5%BC%95%E5%99%A8%E7%AC%AC%E4%B8%80%E6%AC%A1%E5%AD%A6%E4%BC%9A%E9%80%89%E6%8B%A9%E4%BA%86%E5%90%97%EF%BC%9F">¶</a></h1><p>本课读 G3a 的真实保存结果：Qwen3-0.6B 主体冻结，只训练第 14 层的一个分组索引器。新 T1 资料 48 份训练、16 份留出；固定 P0、r=32、ρ=1/8。</p>
-<p>默认执行只读归档、画图和做一个 CPU 张量检查，不下载模型、不训练、不启动 GPU。它回答“更像完整注意力了吗”，不回答“整模型答题恢复了吗”。</p>
+<p>默认执行读取归档、画图并运行一个12参数的CPU教学算例，不下载或训练真实模型、不启动GPU。它回答“更像完整注意力了吗”，不回答“整模型答题恢复了吗”。</p>
 </div>
 </div>
 </div>
@@ -8255,7 +8255,252 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>两头各自分配: [[0.40111207962036133, 0.19777581095695496, 0.40111207962036133], [0.19777581095695496, 0.40111207962036133, 0.40111207962036133]]
 组平均: [[0.29944396018981934, 0.29944396018981934, 0.40111207962036133]]
-逐头归一化，再平均：检查通过。
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>逐头归一化，再平均：检查通过。
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0888e60c">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="3a.-%E6%8A%8A%E4%B8%80%E6%AC%A1%E5%AD%A6%E4%B9%A0%E8%BF%87%E7%A8%8B%E7%BC%A9%E5%88%B012%E4%B8%AACPU%E5%8F%82%E6%95%B0">3a. 把一次学习过程缩到12个CPU参数<a class="anchor-link" href="#3a.-%E6%8A%8A%E4%B8%80%E6%AC%A1%E5%AD%A6%E4%B9%A0%E8%BF%87%E7%A8%8B%E7%BC%A9%E5%88%B012%E4%B8%AACPU%E5%8F%82%E6%95%B0">¶</a></h2><p>沿用上面的两个查询头、三个位置与二维Q/K/V。本节把三个位置视为候选、只选一个，便于看清“分布—名单—读出”的区别；它不模拟真实2K资料的首4/近64规则，也不是新增模型实验。</p>
+<p>小索引器Wq形状为[1,2,4]，Wk为[1,2,2]，一共12个可变数。Q/K/V全部固定。下面调用独立的Python教学入口，入口内部复用正式的teacher、TrainableIndexer、kl_rows与gather_attention；不加载Qwen，不修改任何已训练索引参数。</p>
+<p>先仅将Wq乘2观察数值缩放，再从原始初始化做既有CPU测试使用的20步Adam更新（学习率0.02）。这20步只更新这12个临时CPU参数。</p>
+<p>实现见<a href="../scripts/g3a_cpu_lesson.py">CPU教学入口</a>。下面展示的更新循环直接从该文件读取，Notebook不另维护一份训练算法。</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=4af404b1">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">demo_source</span><span class="o">=</span><span class="p">(</span><span class="n">ROOT</span><span class="o">/</span><span class="s1">'scripts/g3a_cpu_lesson.py'</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+<span class="n">start</span><span class="o">=</span><span class="n">demo_source</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">'    optimizer=torch.optim.Adam'</span><span class="p">)</span>
+<span class="n">end</span><span class="o">=</span><span class="n">demo_source</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">'    for x,before'</span><span class="p">,</span><span class="n">start</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Code</span><span class="p">(</span><span class="n">demo_source</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">],</span><span class="n">language</span><span class="o">=</span><span class="s1">'python'</span><span class="p">))</span>
+<span class="n">spec_demo</span><span class="o">=</span><span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">spec_from_file_location</span><span class="p">(</span><span class="s1">'g3a_cpu_lesson'</span><span class="p">,</span><span class="n">ROOT</span><span class="o">/</span><span class="s1">'scripts/g3a_cpu_lesson.py'</span><span class="p">)</span>
+<span class="n">lesson</span><span class="o">=</span><span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">module_from_spec</span><span class="p">(</span><span class="n">spec_demo</span><span class="p">);</span><span class="n">spec_demo</span><span class="o">.</span><span class="n">loader</span><span class="o">.</span><span class="n">exec_module</span><span class="p">(</span><span class="n">lesson</span><span class="p">)</span>
+<span class="n">demo</span><span class="o">=</span><span class="n">lesson</span><span class="o">.</span><span class="n">run_demo</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'设备:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'device'</span><span class="p">],</span><span class="s1">'临时参数数:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'parameter_count'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'固定教师分布:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'teacher'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'完整主注意力的两头输出:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'full_main_output'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Q/K/V未变且没有收到梯度:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'body_features_unchanged'</span><span class="p">])</span>
+<span class="n">rows</span><span class="o">=</span><span class="p">[</span><span class="s1">'| 状态 | 索引概率（位置0/1/2） | KL | 入选位置 | 主注意力输出 | 相对输出误差 |'</span><span class="p">,</span><span class="s1">'|---|---|---:|---|---|---:|'</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">label</span><span class="p">,</span><span class="n">key</span> <span class="ow">in</span> <span class="p">[(</span><span class="s1">'初始化'</span><span class="p">,</span><span class="s1">'initial'</span><span class="p">),(</span><span class="s1">'只把Wq乘2'</span><span class="p">,</span><span class="s1">'scaled_Wq_times_2'</span><span class="p">),(</span><span class="s1">'20步CPU更新'</span><span class="p">,</span><span class="s1">'trained'</span><span class="p">)]:</span>
+ <span class="n">r</span><span class="o">=</span><span class="n">demo</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+ <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"| </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="mi">6</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">r</span><span class="p">[</span><span class="s1">'probabilities'</span><span class="p">]]</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'kl'</span><span class="p">]</span><span class="si">:</span><span class="s2">.9f</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'positions'</span><span class="p">]</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'main_output'</span><span class="p">]</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'relative_output_error'</span><span class="p">]</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2"> |"</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rows</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<style>pre { line-height: 125%; }
+td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.output_html .hll { background-color: #ffffcc }
+.output_html { background: #f8f8f8; }
+.output_html .c { color: #3D7B7B; font-style: italic } /* Comment */
+.output_html .err { border: 1px solid #F00 } /* Error */
+.output_html .k { color: #008000; font-weight: bold } /* Keyword */
+.output_html .o { color: #666 } /* Operator */
+.output_html .ch { color: #3D7B7B; font-style: italic } /* Comment.Hashbang */
+.output_html .cm { color: #3D7B7B; font-style: italic } /* Comment.Multiline */
+.output_html .cp { color: #9C6500 } /* Comment.Preproc */
+.output_html .cpf { color: #3D7B7B; font-style: italic } /* Comment.PreprocFile */
+.output_html .c1 { color: #3D7B7B; font-style: italic } /* Comment.Single */
+.output_html .cs { color: #3D7B7B; font-style: italic } /* Comment.Special */
+.output_html .gd { color: #A00000 } /* Generic.Deleted */
+.output_html .ge { font-style: italic } /* Generic.Emph */
+.output_html .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.output_html .gr { color: #E40000 } /* Generic.Error */
+.output_html .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.output_html .gi { color: #008400 } /* Generic.Inserted */
+.output_html .go { color: #717171 } /* Generic.Output */
+.output_html .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.output_html .gs { font-weight: bold } /* Generic.Strong */
+.output_html .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.output_html .gt { color: #04D } /* Generic.Traceback */
+.output_html .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.output_html .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.output_html .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.output_html .kp { color: #008000 } /* Keyword.Pseudo */
+.output_html .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.output_html .kt { color: #B00040 } /* Keyword.Type */
+.output_html .m { color: #666 } /* Literal.Number */
+.output_html .s { color: #BA2121 } /* Literal.String */
+.output_html .na { color: #687822 } /* Name.Attribute */
+.output_html .nb { color: #008000 } /* Name.Builtin */
+.output_html .nc { color: #00F; font-weight: bold } /* Name.Class */
+.output_html .no { color: #800 } /* Name.Constant */
+.output_html .nd { color: #A2F } /* Name.Decorator */
+.output_html .ni { color: #717171; font-weight: bold } /* Name.Entity */
+.output_html .ne { color: #CB3F38; font-weight: bold } /* Name.Exception */
+.output_html .nf { color: #00F } /* Name.Function */
+.output_html .nl { color: #767600 } /* Name.Label */
+.output_html .nn { color: #00F; font-weight: bold } /* Name.Namespace */
+.output_html .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.output_html .nv { color: #19177C } /* Name.Variable */
+.output_html .ow { color: #A2F; font-weight: bold } /* Operator.Word */
+.output_html .w { color: #BBB } /* Text.Whitespace */
+.output_html .mb { color: #666 } /* Literal.Number.Bin */
+.output_html .mf { color: #666 } /* Literal.Number.Float */
+.output_html .mh { color: #666 } /* Literal.Number.Hex */
+.output_html .mi { color: #666 } /* Literal.Number.Integer */
+.output_html .mo { color: #666 } /* Literal.Number.Oct */
+.output_html .sa { color: #BA2121 } /* Literal.String.Affix */
+.output_html .sb { color: #BA2121 } /* Literal.String.Backtick */
+.output_html .sc { color: #BA2121 } /* Literal.String.Char */
+.output_html .dl { color: #BA2121 } /* Literal.String.Delimiter */
+.output_html .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.output_html .s2 { color: #BA2121 } /* Literal.String.Double */
+.output_html .se { color: #AA5D1F; font-weight: bold } /* Literal.String.Escape */
+.output_html .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.output_html .si { color: #A45A77; font-weight: bold } /* Literal.String.Interpol */
+.output_html .sx { color: #008000 } /* Literal.String.Other */
+.output_html .sr { color: #A45A77 } /* Literal.String.Regex */
+.output_html .s1 { color: #BA2121 } /* Literal.String.Single */
+.output_html .ss { color: #19177C } /* Literal.String.Symbol */
+.output_html .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.output_html .fm { color: #00F } /* Name.Function.Magic */
+.output_html .vc { color: #19177C } /* Name.Variable.Class */
+.output_html .vg { color: #19177C } /* Name.Variable.Global */
+.output_html .vi { color: #19177C } /* Name.Variable.Instance */
+.output_html .vm { color: #19177C } /* Name.Variable.Magic */
+.output_html .il { color: #666 } /* Literal.Number.Integer.Long */</style><div class="highlight"><pre><span></span>    <span class="n">optimizer</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span><span class="n">lr</span><span class="o">=</span><span class="mf">.02</span><span class="p">)</span>
+    <span class="n">trace</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">):</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">();</span><span class="n">current_loss</span><span class="o">=</span><span class="n">loss</span><span class="p">(</span><span class="n">index</span><span class="p">);</span><span class="n">current_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">torch</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">index</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">();</span><span class="n">trace</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="o">**</span><span class="n">observe</span><span class="p">(</span><span class="n">index</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>设备: cpu 临时参数数: 12
+固定教师分布: [0.29944396018981934, 0.29944396018981934, 0.40111207962036133]
+完整主注意力的两头输出: [[1.203336238861084, 0.7966637015342712], [0.7966637015342712, 1.203336238861084]]
+Q/K/V未变且没有收到梯度: True
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output" data-mime-type="text/markdown" tabindex="0">
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>索引概率（位置0/1/2）</th>
+<th style="text-align:right">KL</th>
+<th>入选位置</th>
+<th>主注意力输出</th>
+<th style="text-align:right">相对输出误差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>初始化</td>
+<td>[0.333288, 0.333375, 0.333337]</td>
+<td style="text-align:right">0.010033935</td>
+<td>[1]</td>
+<td>[[0.0, 2.0], [0.0, 2.0]]</td>
+<td style="text-align:right">1.000000</td>
+</tr>
+<tr>
+<td>只把Wq乘2</td>
+<td>[0.333243, 0.333417, 0.33334]</td>
+<td style="text-align:right">0.010032952</td>
+<td>[1]</td>
+<td>[[0.0, 2.0], [0.0, 2.0]]</td>
+<td style="text-align:right">1.000000</td>
+</tr>
+<tr>
+<td>20步CPU更新</td>
+<td>[0.290737, 0.293121, 0.416141]</td>
+<td style="text-align:right">0.000471562</td>
+<td>[2]</td>
+<td>[[1.0, 1.0], [1.0, 1.0]]</td>
+<td style="text-align:right">0.199259</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=97b34a22">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E5%8F%AA%E7%9B%AF%E7%9D%80%E6%8D%9F%E5%A4%B1%E4%B8%8B%E9%99%8D%EF%BC%9F">为什么不能只盯着损失下降？<a class="anchor-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E5%8F%AA%E7%9B%AF%E7%9D%80%E6%8D%9F%E5%A4%B1%E4%B8%8B%E9%99%8D%EF%BC%9F">¶</a></h3><p>Wq乘2使索引分数乘2，softmax分布和KL随之变化；正比例缩放保留排序，因此名单与重新计算的主注意力输出保持不变。此例KL略微下降，但“分数越尖越好”不是定律：方向取决于教师分布与当前分数的关系。</p>
+<p>20步更新使用KL的梯度，改变Wq和Wk，从原初始化重新计算投影和索引表。下面同时查看损失与名单：连续损失可以变化很多次，离散名单只在位置排序发生变化时改变。选位之后，主注意力用原Q/K重新计算权重，不能拿索引概率直接加权V。</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=59501c71">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">previous</span><span class="o">=</span><span class="kc">None</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'只列名单首次出现或改变的步：'</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">step</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="o">**</span><span class="n">demo</span><span class="p">[</span><span class="s1">'initial'</span><span class="p">]),</span><span class="o">*</span><span class="n">demo</span><span class="p">[</span><span class="s1">'trace'</span><span class="p">]]:</span>
+ <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="s1">'positions'</span><span class="p">]</span><span class="o">!=</span><span class="n">previous</span><span class="p">:</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s1">'step'</span><span class="p">,</span><span class="n">item</span><span class="p">[</span><span class="s1">'step'</span><span class="p">],</span><span class="s1">'KL'</span><span class="p">,</span><span class="nb">round</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s1">'kl'</span><span class="p">],</span><span class="mi">9</span><span class="p">),</span><span class="s1">'positions'</span><span class="p">,</span><span class="n">item</span><span class="p">[</span><span class="s1">'positions'</span><span class="p">],</span><span class="s1">'main output'</span><span class="p">,</span><span class="n">item</span><span class="p">[</span><span class="s1">'main_output'</span><span class="p">])</span>
+  <span class="n">previous</span><span class="o">=</span><span class="n">item</span><span class="p">[</span><span class="s1">'positions'</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'最后一步KL:'</span><span class="p">,</span><span class="n">demo</span><span class="p">[</span><span class="s1">'trained'</span><span class="p">][</span><span class="s1">'kl'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'这段演示没有调用真实模型、下载权重、MPS或研究训练入口。'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>只列名单首次出现或改变的步：
+step 0 KL 0.010033935 positions [1] main output [[0.0, 2.0], [0.0, 2.0]]
+step 1 KL 0.010008007 positions [0] main output [[2.0, 0.0], [2.0, 0.0]]
+step 2 KL 0.009875745 positions [2] main output [[1.0, 1.0], [1.0, 1.0]]
+最后一步KL: 0.00047156214714050293
+这段演示没有调用真实模型、下载权重、MPS或研究训练入口。
 </pre>
 </div>
 </div>
@@ -8278,7 +8523,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="s1">'### 留出 16 份资料</span><span class="se">\n\n</span><span class="s1">'</span> <span class="o">+</span> <span class="n">report</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="s1">'heldout'</span><span class="p">)))</span>
@@ -8431,7 +8676,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">lines</span><span class="o">=</span><span class="p">[</span><span class="s1">'| 资料 | ΔKL (D−D0) | Δcoverage | Δ相对输出误差 |'</span><span class="p">,</span> <span class="s1">'|---|---:|---:|---:|'</span><span class="p">]</span>
@@ -8594,7 +8839,7 @@ k/M 范围: 0.12684365781710916 0.12893243940175347
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [10]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="k">for</span> <span class="n">case</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s1">'cases'</span><span class="p">]:</span>
@@ -8742,7 +8987,7 @@ k/M 范围: 0.12684365781710916 0.12893243940175347
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [11]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">lines</span><span class="o">=</span><span class="p">[</span><span class="s1">'| KV组 | m_C | KL：D0→D | coverage：D0→D | 相对输出误差：D0→D |'</span><span class="p">,</span> <span class="s1">'|---|---:|---:|---:|---:|'</span><span class="p">]</span>
@@ -8875,7 +9120,7 @@ D 平均遗漏的完整权重: 0.01444
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [10]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [12]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s1">'正式运行：'</span><span class="p">,</span> <span class="n">summary</span><span class="p">[</span><span class="s1">'run_id'</span><span class="p">])</span>
