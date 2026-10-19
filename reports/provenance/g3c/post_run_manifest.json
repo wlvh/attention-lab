@@ -1,0 +1,18 @@
+{
+  "before_commit": "c8b5dd6604094aa7a32a7c2f871b6a71c9c19b7a",
+  "snapshots": [
+    {
+      "source": "src/attention_lab/qwen_wrap.py",
+      "snapshot": "reports/provenance/g3c/qwen_wrap_before_trained_inference.py",
+      "sha256": "a4ae836a3ae63aa3d8de47d92f0aaa8ccf90a62f5d29524863e80ac6d13d14ca",
+      "diff": "reports/provenance/g3c/qwen_wrap_trained_inference.diff"
+    },
+    {
+      "source": "src/attention_lab/decode.py",
+      "snapshot": "reports/provenance/g3c/decode_before_trained_inference.py",
+      "sha256": "273e3abe809312ab824707a0de63df54967d73fb13e63c73b5d6c2b409e9a183",
+      "diff": "reports/provenance/g3c/decode_trained_inference.diff"
+    }
+  ],
+  "scope": "preserve all older as-run source and post-run diffs; new inference explicitly canonicalizes selected row order"
+}

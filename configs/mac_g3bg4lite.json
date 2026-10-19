@@ -97,5 +97,6 @@
     48
   ],
   "feature_retention": "one layer in CPU RAM; retain only fixed audit docs 0/48 per new layer; other feature arrays hashed then released; no old files removed",
-  "training_device": "mps"
+  "training_device": "mps",
+  "g3c_g4_row_order": "ascending original positions within each group, after selection; scores, selected set and budget unchanged"
 }

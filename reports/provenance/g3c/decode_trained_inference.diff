@@ -1,0 +1,8 @@
+--- reports/provenance/g3c/decode_before_trained_inference.py
++++ src/attention_lab/decode.py
+@@ -147 +147 @@
+-                              scale=None, backend="sdpa", return_rows: bool = False):
++                              scale=None, backend="sdpa", return_rows: bool = False, canonical_order: bool = False):
+@@ -159,0 +160,2 @@
++    if canonical_order:
++        rows = rows.view(B, G, selected_count).sort(dim=-1).values.reshape(-1)

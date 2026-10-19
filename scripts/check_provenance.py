@@ -96,6 +96,11 @@ def main() -> int:
                                      ("qwen_wrap_at_g1b_numerics4_and_phasefix_runs.py", "qwen_wrap_post_g1b_edit.diff", "src/attention_lab/qwen_wrap.py"),
                                      ("decode_at_g1a_g1b_runs.py", "decode_post_g1b_edit.diff", "src/attention_lab/decode.py")):
         target = (pg / current) if not current.startswith(("src/", "bench/")) else (ROOT / current)
+        if (PROV / "g3c/post_run_manifest.json").exists():
+            # Preserve older post-run diffs: G1b -> G2/G3b -> G3c.
+            for later in json.loads((PROV / "g3c/post_run_manifest.json").read_text())["snapshots"]:
+                if current == later["source"]:
+                    target = ROOT / later["snapshot"]
         stored_ = changed_lines((pg / diff_file).read_text(encoding="utf-8"))
         current_ = changed_lines("".join(difflib.unified_diff((pg / snap).read_text(encoding="utf-8").splitlines(True), target.read_text(encoding="utf-8").splitlines(True))))
         if stored_ != current_:
@@ -140,6 +145,18 @@ def main() -> int:
         g2 = json.loads(g2_path.read_text(encoding="utf-8"))
         g2_files = ["src/attention_lab/decode.py", "src/attention_lab/qwen_wrap.py", "src/attention_lab/g2lite_data.py", "src/attention_lab/g2lite_eval.py", "bench/g2lite_quality.py"]
         g2_committed = {f_: sha256(ROOT / f_) for f_ in g2_files}
+        later_meta = PROV / "g3c/post_run_manifest.json"
+        if later_meta.exists():
+            for later in json.loads(later_meta.read_text())["snapshots"]:
+                snapshot = ROOT / later["snapshot"]
+                if sha256(snapshot) != later["sha256"]:
+                    errors.append("changed pre-G3c source snapshot")
+                g2_committed[later["source"]] = later["sha256"]
+                difference = "".join(difflib.unified_diff(snapshot.read_text().splitlines(True),
+                                        (ROOT / later["source"]).read_text().splitlines(True),
+                                        fromfile=later["snapshot"], tofile=later["source"], n=0))
+                if difference != (ROOT / later["diff"]).read_text():
+                    errors.append("unrecorded post-G3b execution changes")
         review_meta = PROV / "g2lite_pr5_review_manifest.json"
         if review_meta.exists():
             review = json.loads(review_meta.read_text(encoding="utf-8"))
@@ -188,6 +205,13 @@ def main() -> int:
             print(f"G3b archive/source/checkpoint hashes and {len(g3b['layers'])} complete layers verified from raw query records.")
         except Exception as exc:
             errors.append(f"G3b evidence: {exc}")
+    if (PROV / "g3c_archive_manifest.json").exists():
+        try:
+            from g3c_report import read_evidence as read_g3c
+            e3c = read_g3c()
+            print(f"G3c successful/failed source snapshots and {len(e3c['rows'])} controlled step records verified.")
+        except Exception as exc:
+            errors.append(f"G3c evidence: {exc}")
     if errors:
         print("\n".join(errors))
         return 1

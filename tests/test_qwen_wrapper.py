@@ -43,7 +43,7 @@ TINY_TOL = {  # G1a contract tolerances (tests/test_attention_contracts.py), reu
     "float32": {"atol": 1e-4, "rel_norm": 1e-5},
     "bfloat16": {"atol": 5e-2, "rel_norm": 2e-2},
 }
-MPS = torch is not None and torch.backends.mps.is_available()
+MPS = torch is not None and os.environ.get("ATTENTION_LAB_TEST_CPU_ONLY") != "1" and torch.backends.mps.is_available()
 CASES = [("cpu", "float64")] + ([("mps", "float32"), ("mps", "bfloat16")] if MPS else [])
 SKIP_NO_TF = "transformers not installed (or torch not installed)"
 
