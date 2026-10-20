@@ -303,10 +303,13 @@ def main() -> int:
     m0, s0 = base["manifest"], base["summary"]
     H, S, info = s0["host"], s0["software"], s0["model_info"]
     L.append("# G2-lite 实测报告 · Mac M4 Max：少看历史会丢掉什么——四种读取方式在 T1 / T2 上的质量对照\n")
+    L.append('这一阶段称 G2-lite，让冻结的 Qwen3-0.6B 读资料、回答记录值。T1 按编号返回一个四位值，T2 按顺序返回两个；例如资料中的 `1563 → 8422`，问 1563 时应回答 8422。模型先完整处理不含问题的资料，再从问题开始按自己的方法维护新缓存和生成答案。\n\nA 全部读取。B/C/D0 都保留开头 4 个和最近 64 个位置，再按相同额外名额选择：B 取最近位置，C 均匀随机抽样，D0 用未训练的索引参数按内容打分。C 随机的是位置，D0 随机的是初始化参数。额外名额由请求起始长度乘 ρ 确定，首部/近期位置另计，所以 ρ 不是总读取比例。旧 C 改写同时改变了外部随机条件，保留观察但不作单变量证据。过程和真实案例见[第三课](03_what_is_lost_when_reading_less.html)。\n')
+    L.append("<details><summary>运行版本与报告来源</summary>\n")
     L.append(f"由 `scripts/g2lite_report.py` 从基线 run `{s0['run_id']}`、对照 run `{comp['summary']['run_id'] if comp else '无'}` 与 {len(rews)} 个改写 run（{', '.join(r['summary']['run_id'] for r in rews) or '无'}）生成。"
              f"**48 份探索资料，不做区间统计；D0 是未训练的随机索引器；B 的名单按窗口几何确定，正确性另测；MPS 结果不推 CUDA。** 预测见 `{a.card}`。\n")
     L.append(f"**2026-10-18 审查修订：仅由旧记录重生成，没有新增模型运行。** 旧运行配置 v{cfg['config_version']}、运行源码 `af62df4` 与今日报告代码分开标识：生成提交 `{build['source_commit']}`，"
              "文件 SHA-256 与输入文件清单见 `reports/g2lite_report_build.json`。旧 run manifest 保持原样；当前种子修复没有追溯性地修复旧 C 改写。\n")
+    L.append("</details>\n")
     L.append("## 1. 环境、模型、数据与协议\n")
     L.append("| 项 | 值 |\n|---|---|")
     L.append(f"| 机器 | {H.get('chip')}，{H.get('gpu_cores')} 核 GPU，{(H.get('physical_memory_bytes') or 0)/2**30:.0f} GiB，macOS {H.get('macos')} |")

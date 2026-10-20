@@ -7802,11 +7802,10 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="%E5%AE%9E%E9%AA%8C%E8%AF%BE-04%EF%BC%9A%E5%8D%95%E5%B1%82%E7%B4%A2%E5%BC%95%E5%99%A8%E7%AC%AC%E4%B8%80%E6%AC%A1%E5%AD%A6%E4%BC%9A%E9%80%89%E6%8B%A9%E4%BA%86%E5%90%97%EF%BC%9F">实验课 04：单层索引器第一次学会选择了吗？<a class="anchor-link" href="#%E5%AE%9E%E9%AA%8C%E8%AF%BE-04%EF%BC%9A%E5%8D%95%E5%B1%82%E7%B4%A2%E5%BC%95%E5%99%A8%E7%AC%AC%E4%B8%80%E6%AC%A1%E5%AD%A6%E4%BC%9A%E9%80%89%E6%8B%A9%E4%BA%86%E5%90%97%EF%BC%9F">¶</a></h1><p>本课对应 <strong>G3a：只训练一个中间层索引器的可学习性实验</strong>。Qwen3-0.6B 主体冻结，只更新第 14 层各 KV 组新增的 Wq/Wk，其他层始终完整读取。</p>
-<p><strong>T1</strong> 是按编号返回一个四位值的资料任务；本次新生成约 2K 资料，48 份训练、16 份留出，留出不参与更新或选择轮数。<strong>P0</strong> 指索引使用主 RoPE 前的 Q/K，索引空间不额外旋转；<strong>r=32</strong> 是索引维度。</p>
-<p>读取规则为 <strong>F=首4∪近64</strong>，其余为候选域；<strong>ρ=1/8</strong> 用请求起始合法长度 N0 算 <code>k0=min(round(ρ*N0), 起始候选数)</code>，后续名额固定并按本步候选数裁剪。ρ 不是包含 F 的总读取比例。</p>
-<p>本课 <strong>C</strong> 均匀随机选候选，<strong>D0</strong> 用训练前参数，<strong>D</strong> 用最终参数，<strong>R</strong> 用完整教师权重取 top-k。R 是付出完整打分成本的诊断参照，不是免费加速方案。这里的教师是完整注意力的位置分布，具体按组构造规则见第 3 节。</p>
-<p>默认读取归档、画图并运行 12 参数 CPU 算例，不加载真实模型。报告判定 <code>single_layer_descriptive_support</code> 只表示本批单层指标支持可学习性，不是整模型能力或速度结论。</p>
+<h1 id="%E5%AE%9E%E9%AA%8C%E8%AF%BE-04%EF%BC%9A%E5%8D%95%E5%B1%82%E7%B4%A2%E5%BC%95%E5%99%A8%E7%AC%AC%E4%B8%80%E6%AC%A1%E5%AD%A6%E4%BC%9A%E9%80%89%E6%8B%A9%E4%BA%86%E5%90%97%EF%BC%9F">实验课 04：单层索引器第一次学会选择了吗？<a class="anchor-link" href="#%E5%AE%9E%E9%AA%8C%E8%AF%BE-04%EF%BC%9A%E5%8D%95%E5%B1%82%E7%B4%A2%E5%BC%95%E5%99%A8%E7%AC%AC%E4%B8%80%E6%AC%A1%E5%AD%A6%E4%BC%9A%E9%80%89%E6%8B%A9%E4%BA%86%E5%90%97%EF%BC%9F">¶</a></h1><p>这次先让完整 Qwen3-0.6B 处理资料和问题，保存第 14 层少量查询及其历史 Q/K/V。随后主模型保持不动，<strong>只训练这个层新增的索引器，让它在同一批固定特征上，更接近完整注意力的选位偏好</strong>。本阶段不让稀疏模型自行生成答案。</p>
+<p>项目把这一步称为 <strong>G3a：单层索引器可学习性实验</strong>。资料任务 T1 是按编号取一个四位值；新生成约 2K 的 64 份资料，48 份训练、16 份留出，留出不参与参数更新或选择轮数。</p>
+<p>评测时，每种方法都保留开头 4 个和最近 64 个位置；额外名额按请求第一步长度的 1/8 确定，之后固定。剩余位置的选择分别是：<strong>C</strong> 均匀随机；<strong>D0</strong> 按训练前索引参数打分；<strong>D</strong> 按最终参数打分；<strong>R</strong> 直接用完整注意力的教师权重选。R 已经付出了完整打分成本，只作诊断参照。</p>
+<p>第 2、3 节解释这些固定特征怎样变成一次训练；第 3a 节把它缩到 12 个参数，直接展示更新前后。默认读取归档并运行这个 CPU 算例，不加载真实模型。结果标签 <code>single_layer_descriptive_support</code> 只表示本批单层指标支持可学习性。</p>
 </div>
 </div>
 </div>
@@ -7830,6 +7829,9 @@ a.anchor-link {
 <span class="n">summary</span> <span class="o">=</span> <span class="n">report</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span><span class="n">evidence</span><span class="p">)</span>
 <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="sa">f</span><span class="s2">"**判定：</span><span class="si">{</span><span class="n">summary</span><span class="p">[</span><span class="s1">'status'</span><span class="p">]</span><span class="si">}</span><span class="s2">**；正式运行 `</span><span class="si">{</span><span class="n">summary</span><span class="p">[</span><span class="s1">'run_id'</span><span class="p">]</span><span class="si">}</span><span class="s2">`；代码 `</span><span class="si">{</span><span class="n">summary</span><span class="p">[</span><span class="s1">'run_commit'</span><span class="p">]</span><span class="si">}</span><span class="s2">`。"</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">'数据、参数、逐题记录和源码归档哈希已核对。'</span><span class="p">)</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">ROOT</span> <span class="o">/</span> <span class="s2">"scripts"</span><span class="p">))</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">teaching_display</span><span class="w"> </span><span class="kn">import</span> <span class="n">details</span>
 </pre></div>
 </div>
 </div>
@@ -7914,6 +7916,12 @@ a.anchor-link {
 <h2 id="2.-%E8%AE%AD%E7%BB%83%E5%88%B0%E5%BA%95%E6%8E%A5%E5%9C%A8%E5%93%AA%E9%87%8C%EF%BC%9F">2. 训练到底接在哪里？<a class="anchor-link" href="#2.-%E8%AE%AD%E7%BB%83%E5%88%B0%E5%BA%95%E6%8E%A5%E5%9C%A8%E5%93%AA%E9%87%8C%EF%BC%9F">¶</a></h2><p>完整模型先处理资料，再逐 token 完整读取问题和模板后缀。只在第 14 层抽取后缀倒数第 24/16/8/1 个位置的查询，以及对应合法历史 K/V；这些保存数组是本课的<strong>冻结特征</strong>。主体不保留反向图，其他层不部署 D0 或 D。</p>
 <p>每个 KV 组服务两个查询头：Q <code>[组,组内头,查询行,头维]</code>，K/V <code>[组,原位置,头维]</code>。索引输入取 <code>q_norm/k_norm</code> 后、RoPE 前的 <code>q_pre/k_pre</code>；教师和主读出用 RoPE 后的 <code>q_main/k_main</code>。本课新增 Wq/Wk 与主模型的 q_proj/k_proj 是不同参数。</p>
 <p>正式数据流程是：MPS/bf16 主模型提取并 detach → 特征存入 CPU → CPU/fp32 构造教师 → 在 MPS/fp32 上更新索引参数 → 最终参数转回 CPU/fp32 评测。本课 CPU 算例是单独的小型演示，不能据它把真实训练设备写成 CPU。</p>
+<p><strong>索引本身算什么？</strong> 每组把两个 128 维查询拼成 256 维，经新增 Wq 投影到 32 维；历史 K 经新增 Wk 投影到 32 维，两者点积产生候选分数。配置称这一宽度为 r=32；“索引位置设置 P0”指取主 RoPE 前 Q/K、不在索引空间额外旋转，与旧 Metal 原型阶段的 P0 名称无关。</p>
+<p><strong>正式训练中的一次更新</strong>只读一份训练资料的已保存特征：</p>
+<div class="highlight"><pre><span></span>固定的 Q/K → 当前 Wq/Wk → 所有候选的索引分数 → 对候选做 softmax → 与教师计算 KL → 更新 Wq/Wk
+评测时再走：索引分数 → top-k 名单 → 取原 K/V 做主注意力 → 比较读出
+</pre></div>
+<p>损失经过连续分数，不经过 top-k 名单。一次资料更新汇总预定查询和符合条件的 KV 组；主模型不随这 50 轮更新。下一次使用新 Wq/Wk 时要重新计算 u/z，不能沿用旧投影结果。下面的 <code>loss_for_document</code> 是这一更新所用损失的正式实现。</p>
 </div>
 </div>
 </div>
@@ -7990,10 +7998,11 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="3.-%E6%95%99%E5%B8%88%E5%88%86%E5%B8%83%E4%B8%8D%E6%98%AF%E7%AD%94%E6%A1%88%E6%A0%87%E7%AD%BE">3. 教师分布不是答案标签<a class="anchor-link" href="#3.-%E6%95%99%E5%B8%88%E5%88%86%E5%B8%83%E4%B8%8D%E6%98%AF%E7%AD%94%E6%A1%88%E6%A0%87%E7%AD%BE">¶</a></h2><p>本课的教师构造是：每个主查询头先对全部合法位置打分并 softmax，再对同一 KV 组的头平均概率。随后去掉 F，把剩余候选权重重新归一化。</p>
-<p><strong>m_C</strong> 记录候选在完整教师分布中原本占的总权重；训练用条件分布要除以 m_C。损失是 <strong>KL(教师候选条件分布 ∥ 索引候选 softmax)</strong>。m_C &lt; 1e-4 的查询/组跳过训练并记录，不当作零误差。</p>
-<p>完整注意力“看哪里”与任务答案“需要哪里”不是同一监督信号。下面展示实际的 <code>teacher</code> 与 <code>TrainableIndexer</code>。</p>
-<p>源码里的 <code>teacher</code> 产生全合法历史的主头权重；<strong>去掉 F、计算 m_C 和候选条件化发生在 <code>query_rows</code></strong>，不是 <code>teacher</code> 函数内部。每个查询位置只切到当时合法的 K/V，随后 <code>kl_rows</code> 计算条件 KL。</p>
+<h2 id="3.-%E6%95%99%E5%B8%88%E5%88%86%E5%B8%83%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%AA%E6%AF%94%E8%BE%83%E5%89%A9%E4%BD%99%E4%BD%8D%E7%BD%AE">3. 教师分布为什么只比较剩余位置<a class="anchor-link" href="#3.-%E6%95%99%E5%B8%88%E5%88%86%E5%B8%83%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%AA%E6%AF%94%E8%BE%83%E5%89%A9%E4%BD%99%E4%BD%8D%E7%BD%AE">¶</a></h2><p>索引器的工作是决定额外名额分给谁。开头 4 个和最近 64 个位置已经保证会读，不需要靠索引分数争取名额，因此训练目标也只比较其余候选。</p>
+<p>具体做法是：用保存的原 Q/K，让每个主查询头对全部可读位置计算注意力概率；同一 KV 组的两个头共享一份名单，所以先各算 softmax，再平均两份概率。<strong>不是先平均分数再做 softmax。</strong></p>
+<p>然后取出候选位置的权重。假如这些位置只占完整权重的一部分，就把这一部分重新归一化为 1，作为索引器要模仿的候选分布；代码把它们原本的总权重记作 <code>m_C</code>。必留位置记作 F，但它们不参与候选之间的竞争。</p>
+<p>损失是 <code>KL(教师候选分布 ∥ 索引候选 softmax)</code>。如果某查询/组的候选总权重不足 1e-4，就跳过这一训练行并记录。监督信号是“完整注意力把权重放在哪里”，没有使用正确答案来更新索引器，V 也不参与这项 KL。</p>
+<p>下面的 <code>teacher</code> 先产生完整主头权重；<code>query_rows</code> 再去掉必留位置、记录 m_C 和候选分布；<code>loss_for_document</code> 汇总本资料的 KL。这些工作使用同一份正式 Python 实现。</p>
 </div>
 </div>
 </div>
@@ -8006,14 +8015,13 @@ a.anchor-link {
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">source</span> <span class="o">=</span> <span class="n">evidence</span><span class="p">[</span><span class="s1">'files'</span><span class="p">][</span><span class="s1">'source/src/attention_lab/g3a.py'</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
-<span class="k">assert</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">((</span><span class="n">ROOT</span> <span class="o">/</span> <span class="s1">'src/attention_lab/g3a.py'</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span> <span class="o">==</span> <span class="n">evidence</span><span class="p">[</span><span class="s1">'manifest'</span><span class="p">][</span><span class="s1">'sources'</span><span class="p">][</span><span class="s1">'src/attention_lab/g3a.py'</span><span class="p">]</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">show_source</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-    <span class="n">node</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">node</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">body</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">name</span><span class="p">)</span>
-    <span class="n">display</span><span class="p">(</span><span class="n">Code</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">get_source_segment</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">node</span><span class="p">),</span> <span class="n">language</span><span class="o">=</span><span class="s1">'python'</span><span class="p">))</span>
-<span class="n">show_source</span><span class="p">(</span><span class="s1">'teacher'</span><span class="p">)</span>
-<span class="n">show_source</span><span class="p">(</span><span class="s1">'TrainableIndexer'</span><span class="p">)</span>
-<span class="n">show_source</span><span class="p">(</span><span class="s1">'query_rows'</span><span class="p">)</span>
-<span class="n">show_source</span><span class="p">(</span><span class="s1">'kl_rows'</span><span class="p">)</span>
+<span class="n">nodes</span><span class="o">=</span><span class="p">{</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">:</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">body</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="s1">'name'</span><span class="p">)}</span>
+<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'teacher'</span><span class="p">,</span><span class="s1">'TrainableIndexer'</span><span class="p">,</span><span class="s1">'loss_for_document'</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Code</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">get_source_segment</span><span class="p">(</span><span class="n">source</span><span class="p">,</span><span class="n">nodes</span><span class="p">[</span><span class="n">name</span><span class="p">]),</span><span class="n">language</span><span class="o">=</span><span class="s1">'python'</span><span class="p">))</span>
+<span class="k">with</span> <span class="n">details</span><span class="p">(</span><span class="s2">"展开候选切片、教师归一化和 KL 计算的源码"</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'query_rows'</span><span class="p">,</span><span class="s1">'kl_rows'</span><span class="p">]:</span>
+        <span class="n">display</span><span class="p">(</span><span class="n">Code</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">get_source_segment</span><span class="p">(</span><span class="n">source</span><span class="p">,</span><span class="n">nodes</span><span class="p">[</span><span class="n">name</span><span class="p">]),</span><span class="n">language</span><span class="o">=</span><span class="s1">'python'</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -8023,6 +8031,13 @@ a.anchor-link {
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>teacher
+</pre>
+</div>
+</div>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
@@ -8111,6 +8126,13 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
     <span class="n">weights</span> <span class="o">=</span> <span class="n">logits</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">weights</span><span class="p">,</span> <span class="n">weights</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">value</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">])</span>
 </pre></div>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>TrainableIndexer
+</pre>
 </div>
 </div>
 <div class="jp-OutputArea-child">
@@ -8220,7 +8242,103 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>loss_for_document
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<style>pre { line-height: 125%; }
+td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.output_html .hll { background-color: #ffffcc }
+.output_html { background: #f8f8f8; }
+.output_html .c { color: #3D7B7B; font-style: italic } /* Comment */
+.output_html .err { border: 1px solid #F00 } /* Error */
+.output_html .k { color: #008000; font-weight: bold } /* Keyword */
+.output_html .o { color: #666 } /* Operator */
+.output_html .ch { color: #3D7B7B; font-style: italic } /* Comment.Hashbang */
+.output_html .cm { color: #3D7B7B; font-style: italic } /* Comment.Multiline */
+.output_html .cp { color: #9C6500 } /* Comment.Preproc */
+.output_html .cpf { color: #3D7B7B; font-style: italic } /* Comment.PreprocFile */
+.output_html .c1 { color: #3D7B7B; font-style: italic } /* Comment.Single */
+.output_html .cs { color: #3D7B7B; font-style: italic } /* Comment.Special */
+.output_html .gd { color: #A00000 } /* Generic.Deleted */
+.output_html .ge { font-style: italic } /* Generic.Emph */
+.output_html .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.output_html .gr { color: #E40000 } /* Generic.Error */
+.output_html .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.output_html .gi { color: #008400 } /* Generic.Inserted */
+.output_html .go { color: #717171 } /* Generic.Output */
+.output_html .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.output_html .gs { font-weight: bold } /* Generic.Strong */
+.output_html .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.output_html .gt { color: #04D } /* Generic.Traceback */
+.output_html .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.output_html .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.output_html .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.output_html .kp { color: #008000 } /* Keyword.Pseudo */
+.output_html .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.output_html .kt { color: #B00040 } /* Keyword.Type */
+.output_html .m { color: #666 } /* Literal.Number */
+.output_html .s { color: #BA2121 } /* Literal.String */
+.output_html .na { color: #687822 } /* Name.Attribute */
+.output_html .nb { color: #008000 } /* Name.Builtin */
+.output_html .nc { color: #00F; font-weight: bold } /* Name.Class */
+.output_html .no { color: #800 } /* Name.Constant */
+.output_html .nd { color: #A2F } /* Name.Decorator */
+.output_html .ni { color: #717171; font-weight: bold } /* Name.Entity */
+.output_html .ne { color: #CB3F38; font-weight: bold } /* Name.Exception */
+.output_html .nf { color: #00F } /* Name.Function */
+.output_html .nl { color: #767600 } /* Name.Label */
+.output_html .nn { color: #00F; font-weight: bold } /* Name.Namespace */
+.output_html .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.output_html .nv { color: #19177C } /* Name.Variable */
+.output_html .ow { color: #A2F; font-weight: bold } /* Operator.Word */
+.output_html .w { color: #BBB } /* Text.Whitespace */
+.output_html .mb { color: #666 } /* Literal.Number.Bin */
+.output_html .mf { color: #666 } /* Literal.Number.Float */
+.output_html .mh { color: #666 } /* Literal.Number.Hex */
+.output_html .mi { color: #666 } /* Literal.Number.Integer */
+.output_html .mo { color: #666 } /* Literal.Number.Oct */
+.output_html .sa { color: #BA2121 } /* Literal.String.Affix */
+.output_html .sb { color: #BA2121 } /* Literal.String.Backtick */
+.output_html .sc { color: #BA2121 } /* Literal.String.Char */
+.output_html .dl { color: #BA2121 } /* Literal.String.Delimiter */
+.output_html .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.output_html .s2 { color: #BA2121 } /* Literal.String.Double */
+.output_html .se { color: #AA5D1F; font-weight: bold } /* Literal.String.Escape */
+.output_html .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.output_html .si { color: #A45A77; font-weight: bold } /* Literal.String.Interpol */
+.output_html .sx { color: #008000 } /* Literal.String.Other */
+.output_html .sr { color: #A45A77 } /* Literal.String.Regex */
+.output_html .s1 { color: #BA2121 } /* Literal.String.Single */
+.output_html .ss { color: #19177C } /* Literal.String.Symbol */
+.output_html .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.output_html .fm { color: #00F } /* Name.Function.Magic */
+.output_html .vc { color: #19177C } /* Name.Variable.Class */
+.output_html .vg { color: #19177C } /* Name.Variable.Global */
+.output_html .vi { color: #19177C } /* Name.Variable.Instance */
+.output_html .vm { color: #19177C } /* Name.Variable.Magic */
+.output_html .il { color: #666 } /* Literal.Number.Integer.Long */</style><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">loss_for_document</span><span class="p">(</span><span class="n">indexer</span><span class="p">,</span> <span class="n">rows</span><span class="p">):</span>
+    <span class="n">losses</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">indexer</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"q"</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">"k_pre"</span><span class="p">])[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">"eligible"</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">logits</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">valid</span><span class="o">.</span><span class="n">any</span><span class="p">()):</span>
+            <span class="n">losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">kl_rows</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s2">"target"</span><span class="p">])[</span><span class="n">valid</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">losses</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">if</span> <span class="n">losses</span> <span class="k">else</span> <span class="kc">None</span>
+</pre></div>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<details><summary>展开候选切片、教师归一化和 KL 计算的源码</summary>
 <style>pre { line-height: 125%; }
 td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
 span.linenos { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
@@ -8312,11 +8430,6 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
                <span class="s2">"q"</span><span class="p">:</span> <span class="n">features</span><span class="p">[</span><span class="s2">"q_pre"</span><span class="p">][:,</span> <span class="p">:,</span> <span class="n">qi</span><span class="p">:</span><span class="n">qi</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
                <span class="s2">"k_pre"</span><span class="p">:</span> <span class="n">features</span><span class="p">[</span><span class="s2">"k_pre"</span><span class="p">][:,</span> <span class="n">lo</span><span class="p">:</span><span class="n">hi</span><span class="p">]</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="s2">"v"</span><span class="p">:</span> <span class="n">features</span><span class="p">[</span><span class="s2">"v"</span><span class="p">][:,</span> <span class="p">:</span><span class="n">n</span><span class="p">]}</span>
 </pre></div>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
 <style>pre { line-height: 125%; }
 td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
 span.linenos { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
@@ -8396,6 +8509,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
     <span class="n">p</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">logits</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">xlogy</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="o">-</span> <span class="n">p</span> <span class="o">*</span> <span class="n">logits</span><span class="o">.</span><span class="n">log_softmax</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
+</details>
 </div>
 </div>
 </div>
@@ -8444,7 +8558,13 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>两头各自分配: [[0.40111207962036133, 0.19777581095695496, 0.40111207962036133], [0.19777581095695496, 0.40111207962036133, 0.40111207962036133]]
 组平均: [[0.29944396018981934, 0.29944396018981934, 0.40111207962036133]]
-逐头归一化，再平均：检查通过。
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>逐头归一化，再平均：检查通过。
 </pre>
 </div>
 </div>
@@ -9003,6 +9123,7 @@ step=20 KL=0.000471562 positions=[2]
 <p>C 的 KL 使用均匀全候选分布，实际名单仍是均匀随机抽样；D0 是训练前，D 是最终参数，R 用昂贵的完整教师权重取 top-k。R 的 coverage 最优，不保证局部输出误差最小。</p>
 <p>本课表中 <strong>coverage</strong> 与 m_C 配套解释：遗漏完整权重逐查询/组计算 <code>m_C*(1-coverage)</code> 再平均。<strong>输出 RMSE / 相对 L2</strong> 都在 <code>o_proj</code> 前比较子集读出与完整读出；相对 L2 的分母是完整读出范数。R 的 KL 不适用，表中“—”不是零。</p>
 <p>重新计算主注意力时使用原 Q/K 给入选 V 加权，索引分数只决定名单。</p>
+<p><strong>87.83% 保住的是什么？</strong> 在这批留出资料中，必留位置平均已承接约 79.29% 的完整权重。表中 D 的 87.83% 是候选部分重新归一化后的覆盖率，不能说成“全部注意力覆盖了 87.83%”。逐查询/组核算后，D 平均遗漏的完整权重约 1.444%；这是把每行 <code>m_C × (1−coverage)</code> 算好再平均，不是把两个平均数相乘。大部分完整权重原本就由必留位置保留，训练的收益要与同规则的 D0 比较。</p>
 </div>
 </div>
 </div>

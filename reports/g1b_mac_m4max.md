@@ -1,6 +1,14 @@
 # G1b 实测报告 · Mac M4 Max：把索引注意力装进 Qwen3-0.6B，整模型一步的 A 与 D
 
+这一阶段称 G1b，把索引读取接到真实 Qwen3-0.6B。每个 token 仍经过各层原来的 Q/K/V 投影、归一化、RoPE、输出投影和 MLP；只在注意力读取处，A 读全部位置，未训练的 D 先选位再读原 K/V。D 保留开头 4 个和最近 64 个位置，额外名额由请求第一步长度固定，测速使用 1/32。
+
+“原生”是 transformers 的完整读取；“封装”是本项目复用主体参数、接管缓存与读取的实现。DynamicCache 逐步拼接历史，StaticCache 与本项目 LabCache 预分配容量。先比较原生与封装的数值，再测从 token id 到词表分数的整步耗时；随机 token 只驱动执行，没有答题分数。具体接入过程见[第二课](02_qwen_integration_and_decode.html)。
+
+<details><summary>运行版本与报告来源</summary>
+
 由 `scripts/g1b_report.py` 从 1 个数值 run（g1b-numerics-20261017T085459Z-formal4） 与 1 个测速 run（g1b-mac-20261016T202847Z-formal）生成。**随机 token 只驱动执行；没有任务、没有质量结论；MPS 结果不推 CUDA。** 预测见 `reports/cards/G1b_mac_m4max.md`。
+
+</details>
 
 ## 1. 环境、模型与设置
 

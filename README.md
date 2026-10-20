@@ -4,7 +4,7 @@
 
 MacBook 本地优先；Codex 实施；Python 脚本执行；Jupyter 分段解读；HTML 直接阅读。
 
-> 当前是**文档与启动工具仓库**，不是已经完成的注意力实现。没有本项目的 Mac / CUDA 实测、Qwen 评测或索引器训练结果。原始附件中的实验和性能预测另行存档，不算本项目成绩。公开远端由用户于2026-10-16建立，发布状态以远端提交与文件核验为准。
+> 已完成本机实现、单层与整模型对照、索引训练和新题质量/成本评测。正式研究交付已进入主干，现有 00 导读与 01—07 实验课；当前工作是教学说明修订。旧方案和任务书保留历史，不是重新运行实验的指令。
 
 ## 第一次打开
 
@@ -33,47 +33,32 @@ docs/                        当前方案、背景、方法与操作知识
 docs/archive/                原始 v3、原 roofline、被替代方案（不可当当前要求）
 docs/reference/              原始教材 HTML
 docs/tasks/                  可直接实施的分关任务书
-src/attention_lab/           正式实验实现预留目录；目前只有包标识
-scripts/                     已有：预测核算、源文件校验、环境清单、GitHub 发布
-configs/                     Mac 首轮预期配置（不是已有执行器）
-tests/                       启动工具测试，不等于注意力正确性测试
-notebooks/                   00 导读；后续实验课按关卡增加
-reports/                     导读 HTML 与启动工具验证记录
+src/attention_lab/           注意力、缓存、索引训练与真实推理的正式实现
+scripts/                     结果重建、来源核对、教学辅助与历史工具
+configs/                     各阶段已登记的实验配置
+tests/                       工具、CPU 契约及有明确设备条件的检查
+notebooks/                   00 导读及已执行的 01—07 实验课
+reports/                     课程 HTML、阶段报告、精简结果与来源归档
 runs/                        本地原始实验输出，不自动提交大数组
 ```
 
-## 现在能运行的命令
+## 阅读与重放
 
-以下只用 Python 标准库，不安装模型，不收费，不启动 GPU 基准：
+直接阅读 [课程目录](notebooks/README.md) 或 [第七课结果全貌](reports/07_trained_sparse_quality_and_cost.html)；想从一次参数更新进入代码，可读 [第四课](reports/04_can_an_indexer_learn.html)。默认使用保存结果和小规模 CPU 检查，第四课另有 12 参数、20 步 CPU 更新，不加载真实 0.6B 模型。
 
-```bash
-python3 scripts/check_sources.py
-python3 -m unittest discover -s tests -v
-python3 scripts/roofline.py --rho 0.03125 --r 32
-python3 scripts/environment_inventory.py --output runs/inventory.json
-```
-
-预测脚本默认**不填设备带宽**，只输出字节账本。需要复现 v3 的 4080 假设时明确传入 `--bw 716.8e9`；这不是 Mac 的带宽，更不是实测生成速度。
-
-## 克隆公开仓库并开始
-
-仓库由所有者明确选择公开：`wlvh/attention-lab`。不需要再创建仓库，也不运行旧私有建仓脚本。
+在现有环境中，以下命令只核对文件、重建旧报告或计算字节量：
 
 ```bash
-git clone https://github.com/wlvh/attention-lab.git
-cd attention-lab
+.venv/bin/python scripts/check_sources.py
+.venv/bin/python scripts/g4lite_report.py
+.venv/bin/python scripts/roofline.py --rho 0.03125 --r 32
 ```
 
-在 Mac 本地 Codex 中打开此目录，发送：
+预测脚本默认不填带宽。历史 4080 假设需显式传 `--bw 716.8e9`，它不是本机实测。正式训练和 GPU 基准有独立脚本，不属于默认阅读步骤。
 
-```text
-读取 AGENTS.md、PROJECT_STATUS.md、docs/CODEX_HANDOFF.md，
-按 docs/tasks/01_G0_G1A.md 从 G0 环境检查与 G1a 最小微基准开始。
-保留执行前预测和真实日志，正式实现写 .py，逐段教学交 .ipynb 和 HTML。
-不要把导读当作 GPU 实验结果；首轮不下载全部模型、不训练、不租云。
-```
+现有公开仓库为 `wlvh/attention-lab`。在本机继续使用已有目录、环境、缓存和 runs；在另一台机器需要源码时才克隆。不要运行旧建仓脚本，不自动重新执行 G0 或训练。新会话先读 [PROJECT_STATUS.md](PROJECT_STATUS.md)，再按当前用户任务选择相关文件。
 
-公开仓库不包含令牌、机器身份和非项目聊天记录；运行日志发布前需检查。模型权重、大数组、凭证留在忽略目录。仓库公开不代表自动授予新的开源许可；见 [RIGHTS.md](RIGHTS.md)。不自动开启 Pages。
+仓库公开不等于重新许可原始材料，见 [RIGHTS.md](RIGHTS.md)。不自动发布 GitHub Pages。
 
 ## 研究成功的含义
 
@@ -81,10 +66,7 @@ cd attention-lab
 
 原始 [PLAN_v3.md](docs/archive/PLAN_v3.md) 保留不改；执行时以当前方案和 [AGENTS.md](AGENTS.md) 为准。原件、讨论结论、官方资料核对和本地工具验证各有独立来源，参见 [SOURCES.md](docs/SOURCES.md)。
 
-最新缩减任务：[G3a 单层索引器可学习性](docs/tasks/06_G3A_SINGLE_LAYER.md)；[结果报告](reports/g3a_mac_m4max.md)；[实验课04](reports/04_can_an_indexer_learn.html)。默认阅读使用保存结果，不启动训练。
 
-连续质量路线：[G3b任务](docs/tasks/07_G3B_LITE.md)已完成并待审，[结果](reports/g3b_mac_m4max.md)与[实验课05](reports/05_training_all_layer_indexers.html)。后续[G3c](docs/tasks/08_G3C_REAL_SPARSE.md)和[G4-lite](docs/tasks/09_G4_LITE.md)在共享4小时设备预算内接续；最新授权与进度以[接力状态](PROJECT_STATUS.md)为准。
+已完成的连续质量路线：单层学习（第四课）→各层训练（第五课）→真实状态对照（第六课）→新题质量与成本（第七课）。32 份新 T1 中 A 为 21/32、D0 为 0/32、训练后 D 为 17/32；当前约 2K 设置下 D 更慢，缓存数组也更多，不能称为实用提速方案。
 
-本轮连续目标结果：[G4-lite质量与成本](reports/g4lite_mac_m4max.md)、[实验课07](reports/07_trained_sparse_quality_and_cost.html)、[逐题原回答](reports/g4lite_answers_mac_m4max.json)。32份新T1：A 21/32、D0 0/32、训练后D 17/32；D未实现约2K速度收益。前序[实验课05](reports/05_training_all_layer_indexers.html)讲各层训练，[实验课06](reports/06_from_teacher_features_to_sparse_states.html)讲真实状态变化。全部默认读取已有证据，后续合并与实验扩展需另行授权。
-
-待审增量顺序：[PR #16（各层训练）](https://github.com/wlvh/attention-lab/pull/16) → [PR #17（真实推理）](https://github.com/wlvh/attention-lab/pull/17) → [PR #18（质量与成本）](https://github.com/wlvh/attention-lab/pull/18)。仅PR #12已获授权合并，后续保持待审。
+PR #16、#17、#18 已按顺序合入 main，最终合并提交为 `1edde2d`，对应研究 Issue 已关闭。当前教学修订沿用 [PR #19](https://github.com/wlvh/attention-lab/pull/19)，不自动合并。研究范围与历史停止决定见 [接力状态](PROJECT_STATUS.md)。

@@ -7859,8 +7859,8 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="2.-%E5%8E%9F%E5%A7%8B%E6%9D%90%E6%96%99%E4%B8%8E%E5%BD%93%E5%89%8D%E6%96%B9%E6%A1%88%E4%B8%8D%E6%98%AF%E5%90%8C%E4%B8%80%E5%B1%82">2. 原始材料与当前方案不是同一层<a class="anchor-link" href="#2.-%E5%8E%9F%E5%A7%8B%E6%9D%90%E6%96%99%E4%B8%8E%E5%BD%93%E5%89%8D%E6%96%B9%E6%A1%88%E4%B8%8D%E6%98%AF%E5%90%8C%E4%B8%80%E5%B1%82">¶</a></h2><p><code>docs/archive/PLAN_v3.md</code> 保持原字节。当前执行要求在 <code>docs/PLAN_CURRENT.md</code>，修订原因在 <code>docs/DECISIONS.md</code>。教材也不回写；新增解释明确是派生内容。</p>
-<p>SHA-256 校验只说明归档没有改变，<strong>不证明原件里的全部技术或性能主张已验证</strong>。</p>
+<h2 id="2.-%E5%8E%9F%E5%A7%8B%E6%96%B9%E6%A1%88%E3%80%81%E6%89%A7%E8%A1%8C%E5%86%B3%E5%AE%9A%E5%92%8C%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C%E5%88%86%E5%BC%80%E8%AF%BB">2. 原始方案、执行决定和实验结果分开读<a class="anchor-link" href="#2.-%E5%8E%9F%E5%A7%8B%E6%96%B9%E6%A1%88%E3%80%81%E6%89%A7%E8%A1%8C%E5%86%B3%E5%AE%9A%E5%92%8C%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C%E5%88%86%E5%BC%80%E8%AF%BB">¶</a></h2><p><code>docs/archive/PLAN_v3.md</code> 保留最初方案，<code>docs/PLAN_CURRENT.md</code> 是初始执行规格及其修订。后来实际采用的缩减范围、停止决定和交付记录见 <code>PROJECT_STATUS.md</code>；不能把方案里列出的全部可能方向当作尚待完成的任务。</p>
+<p>下面只核对原始材料的文件指纹。它说明存档没有改变，不证明材料里的全部技术或性能主张都经过本项目验证。</p>
 </div>
 </div>
 </div>
@@ -7973,8 +7973,9 @@ docs/archive/kv_principle_rerun_tests.txt — 1657 bytes — hash matched
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="4.-%E5%8F%AA%E7%AE%97%E8%BD%BD%E8%8D%B7%EF%BC%8C%E4%B8%8D%E6%8A%8A%E5%AE%83%E5%BD%93%E6%88%90%E7%9C%9F%E5%AE%9E%E7%94%9F%E6%88%90%E9%80%9F%E5%BA%A6">4. 只算载荷，不把它当成真实生成速度<a class="anchor-link" href="#4.-%E5%8F%AA%E7%AE%97%E8%BD%BD%E8%8D%B7%EF%BC%8C%E4%B8%8D%E6%8A%8A%E5%AE%83%E5%BD%93%E6%88%90%E7%9C%9F%E5%AE%9E%E7%94%9F%E6%88%90%E9%80%9F%E5%BA%A6">¶</a></h2><p>以v3记录的4B形状、32K历史、ρ=1/32、索引宽度32作为<strong>配置算例</strong>。没有传入带宽，所以不会产生毫秒或吞吐的伪测量。</p>
-<p>S1只计索引和一次入选KV；S2另计gather写入与注意力重读。实际缓存命中、top-k扫描、投影与执行效率都还没测。</p>
+<h2 id="4.-%E5%85%88%E7%AE%97%E4%B8%80%E9%81%8D%E9%9C%80%E8%A6%81%E8%AF%BB%E5%86%99%E5%A4%9A%E5%B0%91%E5%AD%97%E8%8A%82">4. 先算一遍需要读写多少字节<a class="anchor-link" href="#4.-%E5%85%88%E7%AE%97%E4%B8%80%E9%81%8D%E9%9C%80%E8%A6%81%E8%AF%BB%E5%86%99%E5%A4%9A%E5%B0%91%E5%AD%97%E8%8A%82">¶</a></h2><p>以原方案中 4B 模型的形状、32K 历史、额外名额比例 1/32、索引宽度 32 做配置算例。本页没有传入带宽，所以不输出耗时预测；也没有加载这个模型。</p>
+<p>按位置挑选后读取，可以拆成四项：读索引表、从主缓存取出入选 K/V、把它们写进临时数组、主注意力再读这些数组。<strong>S1</strong> 只数前两项；<strong>S2</strong> 再加后两项。它们是两种读写量核算，不能代替真实计时。</p>
+<p>本算例没有模拟缓存命中、选位、投影和运行时调度。对应的本机测量已在第一、二课完成，结果不能由这张字节表直接推出。</p>
 </div>
 </div>
 </div>
@@ -8025,7 +8026,7 @@ saved_s1_scenario_ms: None
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="5.-%E6%94%B9%E6%9D%A1%E4%BB%B6%E4%B9%8B%E5%89%8D%E5%85%88%E4%BD%9C%E5%88%A4%E6%96%AD">5. 改条件之前先作判断<a class="anchor-link" href="#5.-%E6%94%B9%E6%9D%A1%E4%BB%B6%E4%B9%8B%E5%89%8D%E5%85%88%E4%BD%9C%E5%88%A4%E6%96%AD">¶</a></h2><p>ρ=0应该只保留固定集合；ρ=1应该最多全选，不能超过历史长度。它们是边界检查，不是稀疏速度成绩。</p>
+<h2 id="5.-%E6%A3%80%E6%9F%A5%E4%B8%A4%E4%B8%AA%E8%BE%B9%E7%95%8C%E6%9D%A1%E4%BB%B6">5. 检查两个边界条件<a class="anchor-link" href="#5.-%E6%A3%80%E6%9F%A5%E4%B8%A4%E4%B8%AA%E8%BE%B9%E7%95%8C%E6%9D%A1%E4%BB%B6">¶</a></h2><p>ρ=0 时只保留开头和近期的固定位置；ρ=1 时最多读取全部已有位置，不能越界。下面直接执行这两项规则检查，不要求读者先作预测，也不把全选当成稀疏提速成绩。</p>
 </div>
 </div>
 </div>
@@ -8069,9 +8070,46 @@ saved_s1_scenario_ms: None
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="6.-%E5%AE%9E%E6%B5%8B%E5%B0%9A%E6%9C%AA%E5%8F%91%E7%94%9F">6. 实测尚未发生<a class="anchor-link" href="#6.-%E5%AE%9E%E6%B5%8B%E5%B0%9A%E6%9C%AA%E5%8F%91%E7%94%9F">¶</a></h2><p>当前页面验证的是文件、Python预测公式和边界，不是Qwen能力，也不是用户Mac的MPS支持。</p>
-<p>下一项是 <code>docs/tasks/01_G0_G1A.md</code>：本机环境预检、真实注意力等价测试、8K/16K/32K微基准。完成后才生成第一份实际实验课。</p>
-<p><strong>预测 → 运行 → 核对 → 解释 → 改一个条件再验证。</strong> 成功不要求D一定更快；需要的是结果足以支持一个有边界的设计判断。</p>
+<h2 id="6.-%E5%B7%B2%E6%9C%89%E5%AE%9E%E9%AA%8C%E6%80%8E%E6%A0%B7%E6%8E%A5%E4%B8%8A%E8%BF%99%E4%BB%BD%E7%AE%97%E4%BE%8B">6. 已有实验怎样接上这份算例<a class="anchor-link" href="#6.-%E5%B7%B2%E6%9C%89%E5%AE%9E%E9%AA%8C%E6%80%8E%E6%A0%B7%E6%8E%A5%E4%B8%8A%E8%BF%99%E4%BB%BD%E7%AE%97%E4%BE%8B">¶</a></h2><p>本页是早期建立的仓库导读和预测工具演示。此后，第一至七课的实验已经完成，正式研究交付已经进入主干；本页没有重新运行它们。</p>
+<table>
+<thead>
+<tr>
+<th>接下来阅读</th>
+<th>能看清什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="../reports/01_environment_and_attention.html">第一课</a></td>
+<td>一份历史位置名单怎样变成 K/V 取行，选位加读取实际要多少时间</td>
+</tr>
+<tr>
+<td><a href="../reports/02_qwen_integration_and_decode.html">第二课</a></td>
+<td>这段读取替换到真实模型的哪里，整步还有哪些计算</td>
+</tr>
+<tr>
+<td><a href="../reports/03_what_is_lost_when_reading_less.html">第三课</a></td>
+<td>模型收到什么资料和问题，窗口、随机、未训练索引怎样回答</td>
+</tr>
+<tr>
+<td><a href="../reports/04_can_an_indexer_learn.html">第四课</a></td>
+<td>固定 Q/K 后，小索引器的一次参数更新怎样改变分数与名单</td>
+</tr>
+<tr>
+<td><a href="../reports/05_training_all_layer_indexers.html">第五课</a></td>
+<td>怎样逐层训练各自的索引器，而不更新主体</td>
+</tr>
+<tr>
+<td><a href="../reports/06_from_teacher_features_to_sparse_states.html">第六课</a></td>
+<td>放回真实模型后，本层少读怎样改变后层的输入</td>
+</tr>
+<tr>
+<td><a href="../reports/07_trained_sparse_quality_and_cost.html">第七课</a></td>
+<td>各方法独立回答新题时的得失，以及实际耗时和缓存成本</td>
+</tr>
+</tbody>
+</table>
+<p>默认执行只读取既有记录和运行小规模 CPU 检查。第四课另有 12 参数、20 步 CPU 教学更新；不会自动加载 0.6B 模型、重训正式索引器或运行 GPU 基准。</p>
 </div>
 </div>
 </div>

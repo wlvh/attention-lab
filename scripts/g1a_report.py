@@ -112,8 +112,11 @@ def main() -> int:
 
     L = []
     L.append("# G1a 实测报告 · Mac M4 Max 单层读取阶段：完整注意力 A 与索引子集 D\n")
+    L.append('这一阶段称 G1a，直接比较一次注意力读取：A 对全部历史 K/V 做主注意力；D 先保留开头 4 个和最近 64 个位置，再用低维索引分数从其余位置选出额外名额，对合并后的原 K/V 做主注意力。索引参数未训练，主 Q/K/V、已有 zT 和 q_pre 直接随机生成；没有实际文本或 RoPE 计算。D_full 每次仍实际投影并追加新 z、计算 u、打分选位和主读取，旧 zT 的完整构建不在该步计时内。\n\n32K、ρ=1/32 时，额外取 1,024 个位置，加上必留 68 个，共读 1,092 个。索引仍要给其余 32,700 个候选打分。D_full 计入新 z 追加到最终主注意力的整条读取流程；D_read 只省新 z 追加，仍然打分和选位。它们都不是完整 Transformer 前向。每轮访问 36 套独立数组，不把前一套输出送入下一套；hot 反复访问同一套，rotating 依次访问 36 套。计算过程见[第一课](01_environment_and_attention.html)。\n')
+    L.append("<details><summary>运行版本与报告来源</summary>\n")
     L.append(f"由 `scripts/g1a_report.py` 从 {len(runs)} 个独立进程的 `runs/g1a-mac-*/summary.json` 生成（{', '.join(r['run_id'] for r in runs)}）。"
              f"**随机张量、单层、batch 1、一步解码；没有模型、没有任务、没有质量结论；MPS 结果不推 CUDA。** 预测见 `{a.card}`。\n")
+    L.append("</details>\n")
     L.append("## 1. 环境与设置\n")
     L.append("| 项 | 值 |\n|---|---|")
     L.append(f"| 机器 | {H.get('chip')}，{H.get('gpu_cores')} 核 GPU，{(H.get('physical_memory_bytes') or 0)/2**30:.0f} GiB，macOS {H.get('macos')} |")
@@ -151,7 +154,7 @@ def main() -> int:
                  f"{'是' if v['every_run_below_0.9'] else '否'} | {'是' if v['d_full_qk_detected'] is False else ('否' if v['d_full_qk_detected'] else '未剖析')} | {'**通过**' if v['pass'] else '不通过'} |")
     if passing:
         items = ", ".join("N=%d ρ=1/%d（%.2f）" % (v["N"], round(1 / v["rho"]), v["ratio_median"]) for v in passing)
-        L.append(f"\n**结论：bf16 eager 下 D_full 通过的组合：{items}。** 投资门槛达到，G1b 性能主线可以启动；10% 是门槛，不是架构定理。")
+        L.append(f"\n**结论：bf16 eager 下 D_full 通过的组合：{items}。** 投资门槛达到，当时据此进入 G1b；真实模型结果已在第二课交付；10% 是门槛，不是架构定理。")
     elif passing_any:
         items = ", ".join("%s %s N=%d ρ=1/%d" % (v["dtype"], v["strategy"], v["N"], round(1 / v["rho"])) for v in passing_any)
         L.append(f"\n**结论：bf16 D_full 没有组合通过；通过的只有 {items}。**")

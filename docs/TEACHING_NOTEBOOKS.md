@@ -26,7 +26,7 @@ Codex负责执行，用户事后按计算问题逐段理解。讲解单位是一
 
 ### 机制讲解顺序
 
-1. 本段回答什么问题，结果前先显示已登记预测。
+1. 先说明模型在本段接收什么、计算什么、保存什么、怎样进入下一步，再将原预测与观察放在一起。不得要求读者先背变量表或回答预测题。
 2. 展示对应commit中的正式函数（建议每格10–30行以内；长函数按逻辑拆讲，引用不能偷换版本）。
 3. 写清输入输出形状与原逻辑位置；必要时显示少量数值。
 4. 调用正式函数的小例子或加载正式run记录。
@@ -57,5 +57,15 @@ python -m jupyter nbconvert --to html notebooks/01_environment_and_attention.ipy
 在全新内核从上到下跑通，保留实际输出；HTML检查中文、代码、表格与图片无截断。图仅从测量记录生成；无实测性能前不画预测为实际曲线。小数学例子的数值要标“教学算例”。
 
 GPU长实验日志不直接整段塞进输出，引用run路径及sha256。重模型不驻留读者的默认阅读内核。读取本地HTML不需要启动GPU或云服务。
+
+长检查表、完整位置名单和重复案例用 `scripts/teaching_display.py` 的 `details` 保存在可展开区；主文保留关键对照与实际算法源码。`presentation-only` 标签只用于加载、排表或绘图的辅助单元，Notebook 中仍保留这些源代码，HTML 导出时隐藏其输入，不删除输出。算法示例与实际计算源码保持可见。导出命令增加：
+
+```bash
+python -m jupyter nbconvert --to html notebooks/02_qwen_integration_and_decode.ipynb --output-dir reports \
+  --TagRemovePreprocessor.enabled=True \
+  --TagRemovePreprocessor.remove_input_tags='{"presentation-only"}'
+```
+
+历史卡片的预测原文保留；当事后解释被后续核对收窄时，在附近追加带日期的更正，将旧解释明确标为历史。阶段“下一步”和“待审”都要注明当时的时点，不用旧停止状态描述当前项目。
 
 官方执行机制参考 [SOURCES.md](SOURCES.md) 中Jupyter/nbconvert来源；具体工程约定是本项目设计。

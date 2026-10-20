@@ -53,7 +53,14 @@ def table(s):
     lines=['| 对齐位置 | 方法 | 第14层Q差异 | 第28层Q差异 | 第28层读出差异 | logits差异 | argmax相同 |','|---|---|---:|---:|---:|---:|---:|']
     for name,methods in s['points'].items():
         for m,x in methods.items():
-            lines.append(f'| {name} | {m} | {x["q"][13]:.4f} | {x["q"][27]:.4f} | {x["attention_output"][27]:.4f} | {x["logits_relative_l2"]:.4f} | {x["argmax_equal"]}/4 |')
+            lines.append(f'| {dict(first_answer_prediction="首个答案预测",last_controlled_step="第16个控制输入后")[name]} | {m} | {x["q"][13]:.4f} | {x["q"][27]:.4f} | {x["attention_output"][27]:.4f} | {x["logits_relative_l2"]:.4f} | {x["argmax_equal"]}/4 |')
+    return '\n'.join(lines)
+
+
+def checks_table(s):
+    lines=['| 方法（全选） | 输入步数 | 最大词表分数差 | 相对差 | argmax 一致率 |','|---|---:|---:|---:|---:|']
+    for row in s['full_selection']:
+        lines.append(f"| {row['method']} | {row['steps']} | {row['max_abs_logits']:.6f} | {row['max_relative_logits']:.6f} | {row['argmax_agreement']:.1%} |")
     return '\n'.join(lines)
 
 
@@ -74,13 +81,17 @@ def main():
     e=read_evidence();s=summarize(e);dump(ROOT/'reports/g3c_summary_mac_m4max.json',s)
     body=f'''# G3c：把冻结索引器接入真实稀疏路径
 
-本阶段在4份旧开发资料上，独立建立每种方法的完整资料缓存，然后从问题开始按各自状态推进。D-one只有第14层稀疏；D0与D所有层稀疏。相同token输入仅用于对齐内部计算，**下表不是答题准确率**，argmax相同也不是正确率。
+这次把已经固定的索引器放回模型。每种方法先完整处理资料，再输入同一个问题和同一串预定的 16 个 token；各自用自己算出的新 K/V 推进。这样可以比较“输入 token 相同，但内部表示怎样变化”，不把不同生成文本引起的变化混进来。
 
-正式run `{s['run_id']}`，计算源码 `{s['source_commit']}`。主体bf16/MPS，索引fp32，P0/r32/rho=1/8。参数身份与缓存绑定，更新/替换参数会在写缓存前拒绝。主体前后hash一致，所有方法的初始主K/V前缀逐字节一致，后续缓存独立，不借用A的新后缀。
+A 每层完整读取；D-one 只在第 14 层用训练后索引读取；D0 每层用初始索引参数；D 每层用训练后参数。少读时都保留开头 4 个和最近 64 个位置，再按请求第一步长度的 1/8 固定额外名额。索引使用主 RoPE 前 Q/K 的 32 维投影，不额外旋转，称“索引位置设置 P0”。
+
+只改变第 14 层读取时，本层 Q 仍可与 A 相同，注意力读出先改变；经过输出投影、残差与 MLP，差异才可能进入第 15 层 Q。下面检查的是这条实际计算顺序，不是答案正确率。讲解见[第六课](06_from_teacher_features_to_sparse_states.html)。
+
+本阶段在4份旧开发资料上，独立建立每种方法的完整资料缓存，然后从问题开始按各自状态推进。D-one只有第14层稀疏；D0与D所有层稀疏。相同token输入仅用于对齐内部计算，**下表不是答题准确率**，argmax相同也不是正确率。
 
 ## 正确性与失败记录
 
-{json.dumps(s['full_selection'],ensure_ascii=False)}
+{checks_table(s)}
 
 初次run在单层全选处失败，旧记录保留：{s['failed_runs']}。有限精度下，按索引分数排列与按原位置排列虽是同一集合，计算顺序不同。一次修复为本轮所有B/C/D0/D选位后按原位置升序读取；主注意力仍实际gather该集合，不走全选旁路，不改集合或名额。CPU检查集合相同与float64数学等价，真实MPS检查沿用原容差。不能把这种数值变化冒称学习效果，G4全部新方法使用同一排序规则；旧G2记录不回写。
 
@@ -94,9 +105,11 @@ def main():
 
 ## 证据与接续
 
+正式run `{s['run_id']}`，计算源码 `{s['source_commit']}`。主体bf16/MPS，索引fp32，P0/r32/rho=1/8。参数身份与缓存绑定，更新/替换参数会在写缓存前拒绝。主体前后hash一致，所有方法的初始主K/V前缀逐字节一致，后续缓存独立，不借用A的新后缀。
+
 归档含完整逐步差异、固定序列、原位置名单位图、第一份两步的小型Q/K/读出/logits数组、全部成功/失败manifest及各自源码/配置。累计共享设备预算 {e['budget']['used_seconds']:.2f}/14400秒，现金0。32份最终测试尚未在本阶段评分。
 
-下一阶段在冻结新测试上真正自由生成，并独立测同token成本。Notebook默认只读存量证据；整页视觉验收范围见PROJECT_STATUS。
+后续已在第七课用冻结新测试自由生成，并独立测同 token 成本；这些结果不混入本阶段控制序列。Notebook默认只读存量证据；整页视觉验收范围见PROJECT_STATUS。
 '''
     (ROOT/'reports/g3c_mac_m4max.md').write_text(body);print(json.dumps({'run':s['run_id'],'full_selection':s['full_selection'],'points':s['points']['first_answer_prediction']},ensure_ascii=False))
 

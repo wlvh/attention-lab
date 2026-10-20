@@ -1,5 +1,7 @@
 # 阅读与证据
 
+理解模型的计算过程，先读 01—07 的教学 HTML 或对应 Notebook；它们已全部交付。下列阶段 Markdown 报告提供完整表格与来源，预测卡片保留当时的预测和决定。卡片中的“下一步”“待审”属于历史时点；已收窄的旧解释在旁边标注更正，不能当作当前已验证结论。
+
 各文件明确区分本机 Mac M4 Max 的 MPS 运行、CPU 核验、保存数据的派生计算与预测。对应设备、精度和适用范围以各报告的记录为准。
 
 | 文件 | 内容 | 性质 |
@@ -24,6 +26,7 @@
 | `g0_*.json`、`g1a_*.json`、`g1a_supplement_*.json` | 上述报告的精简数据与 manifest | 实测 |
 | `g0_roofline_mac_bw390.{md,json}` | 以实测 390 GB/s 回填的载荷情景 | 预测 |
 | `provenance/` | 跑分时的基准源码快照、跑分后 diff、原始 run 归档与哈希清单 | 证据链，`scripts/check_provenance.py` 校验 |
+| `p0_score_kernel_mac_m4max.md`、`p1_attend_kernel_mac_m4max.md` | 旧 Metal 打分与取行注意力原型；文件中的 P0/P1 是阶段名，不是索引位置设置 | 已停止，不接入正式模型 |
 | `bootstrap_validation.md`、`public_publication.md` | 启动工具与发布记录 | 不是 GPU 结果 |
 
 重新生成：`python scripts/g0_report.py`、`python scripts/g1a_report.py`、`python scripts/g1a_supplement_report.py`、`python scripts/g1b_report.py`、`python scripts/g2lite_report.py`。无 GPU 从归档重生 G1a 报告的步骤见 `provenance/README.md`。
@@ -33,3 +36,5 @@ G3a 报告重建：`python scripts/g3a_report.py`（标准库，不导入 torch�
 G3b报告重建：`python scripts/g3b_report.py`（标准库，不导入torch）。参数来源与身份见 `g3b_parameters.json`。
 
 第四课3a CPU教学补充：[完整20步中间记录](lesson04_cpu_trace.json)，调用同一正式索引器、教师与主注意力读取实现。12个临时参数、无固定集合、只选一个位置，不修改G3a正式数据或索引参数。
+
+默认执行的差别：01—03 读取保存结果并运行小规模 CPU 检查；04 另执行上述 20 步 CPU 更新；05—07 读取原记录与作图。都不自动加载真实 0.6B 模型、重训正式索引器或启动 GPU 基准。长记录在 HTML 中可展开查看，完整数据入口不变。

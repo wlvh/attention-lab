@@ -53,7 +53,8 @@ def main() -> int:
          f"| 计时 | 每 pass {runs[0]['args']['layers']} 层轮换；预热 {runs[0]['args']['warmup']}、正式 {runs[0]['args']['repeats']}；每 pass 前后 `torch.mps.synchronize()`；每策略正序与反序各一次，取较慢者为保守值；融合核输出 bf16 |",
          "| 代码 | " + "；".join(f"{r['run_id']}: commit {r['git'].get('commit')} dirty {r['git'].get('dirty_diff_sha256')}" for r in runs) + " |\n",
          "## 2. 每层 µs（保守中位数；括号内为进程间最小..最大）\n",
-         "| N0 | S | 读行字节 MB/层 | pytorch_gather_sdpa | fused P1 | P2 | P4 | P8 | P16 | P32 | A 的完整 SDPA（上下文） | 最优 fused / gather_sdpa（各进程） | 最优 fused / 完整 SDPA | 最优 fused 有效带宽 GB/s |\n|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|---:|"]
+         "| N0 | S | 读行字节 MB/层 | pytorch_gather_sdpa | 融合：1分区 | 2分区 | 4分区 | 8分区 | 16分区 | 32分区 | A 的完整 SDPA（上下文） | 最优 fused / gather_sdpa（各进程） | 最优 fused / 完整 SDPA | 最优 fused 有效带宽 GB/s |\n|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|---:|"]
+    L.insert(1, '这是已停止的 Metal 取行注意力原型记录。文件名里的 P0/P1 是当时的原型阶段名，与训练课程中“索引位置设置 P0/P1”不同；没有接入正式模型路径。 行表已经在计时外给定。pytorch_gather_sdpa 先把入选 K/V 拷到子数组再做注意力；融合实现按原位置直接读主缓存并累加注意力。分区数表示把入选位置拆成多少段处理，随后合并部分结果；表中的 1/2/4/8 分区不是新的实验阶段。\n')
     for N0 in lengths:
         g = agg[N0]
         cell = lambda s: f"{g[s]['median_us']:.1f} ({g[s]['min_us']:.1f}..{g[s]['max_us']:.1f})"  # noqa: E731
@@ -75,7 +76,7 @@ def main() -> int:
     L.append("| run | N0 | 最优 fused 变体 | µs（≤ 60） | fused / gather_sdpa（≤ 0.80） | 数值 | 通过 |\n|---|---:|---|---:|---:|---|---|")
     for rid, g in zip(out["runs"], gates):
         L.append(f"| {rid} | {g.get('evaluated_at_N0')} | {g.get('fused_strategy')} | {g.get('fused_us_conservative') if g.get('fused_us_conservative') is None else round(g['fused_us_conservative'], 1)} | {g.get('ratio_vs_gather_sdpa') if g.get('ratio_vs_gather_sdpa') is None else round(g['ratio_vs_gather_sdpa'], 3)} | {g.get('numerics_pass_all')} | {'**通过**' if g.get('pass') else '不通过'} |")
-    L.append(f"\n每个独立进程都通过：**{verdict['every_run_passes_gate']}**。这只回答取行注意力段能否接近带宽下界；选择段（top-k、行号装配）未动，整模型比值不由本报告推出。\n")
+    L.append(f"\n每个独立进程都通过：**{verdict['every_run_passes_gate']}**。这只比较所测取行注意力实现的时间与数值；选择段（top-k、行号装配）未动，整模型比值不由本报告推出。\n")
     a.out.write_text("\n".join(L) + "\n", encoding="utf-8")
     print(f"wrote {a.out.relative_to(ROOT)}, {a.json.relative_to(ROOT)}; every run passes gate: {verdict['every_run_passes_gate']}")
     return 0

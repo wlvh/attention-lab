@@ -127,14 +127,18 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"schema_version": 1, "kind": "prediction", "rows": rows}, ensure_ascii=False, indent=2, allow_nan=False))
         return 0
     print(f"预测而非测量；batch=1；主数值{a.element_bytes}字节；索引数值{a.index_bytes or a.element_bytes}字节；ρ={a.rho:g}；索引扫描={a.scan_scope}。")
-    print("未指定格式时不能仅由2字节推断BF16或FP16。默认不填Mac带宽。")
+    print("未指定数值格式；2字节本身不区分BF16或FP16。索引向量宽度为", a.r)
+    print("没有提供带宽，只列字节数。" if a.bw is None else f"本表显式按 {a.bw/1e9:g} GB/s 换算时间；不是实测生成耗时。")
+    print("读取过程：①读索引表 → ②从主缓存读入选K/V → ③写入临时子数组 → ④主注意力再读子数组。")
+    print("S1只数①②；S2再加③④。节省ms是字节差除以显式假设带宽，没有计入投影、选位或调度，不能当作真实生成提速。")
+    print("N是历史位置数；先保留开头与近期共最多68个位置，再额外取k个。表中模型名只提供形状，不表示运行过该模型。")
     print("| 模型 | N | k | 实际读取数 | 权重GB | 主KV GB | 索引保存GB | S1读取GB | S2读取GB | S1节省ms情景 | S2节省ms情景 |")
     print("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
     for x in rows:
         fmt = lambda v: "未估计" if v is None else f"{v:.3f}"
         print(f"| {x['model']} | {x['n']} | {x['k']} | {x['selected_count']} | {x['weights_bytes']/1e9:.3f} | {x['dense_kv_bytes']/1e9:.3f} | {x['index_stored_bytes']/1e9:.3f} | {x['d_s1_bytes']/1e9:.3f} | {x['d_s2_bytes']/1e9:.3f} | {fmt(x['saved_s1_scenario_ms'])} | {fmt(x['saved_s2_scenario_ms'])} |")
     print("\n同精度、扫描全部位置时索引载荷/主KV=r/(2d)，这是载荷模型，不是所有内核的实际DRAM下界。")
-    print("下界相减不是差值上界；负节省可发生；全选格属于正确性诊断。")
+    print("两个理想读取时间相减，不能约束两个真实实现的时间差；全选只用于检查计算是否对应。")
     return 0
 
 if __name__ == "__main__":

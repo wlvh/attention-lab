@@ -152,7 +152,9 @@ def main():
         d=c['document'];case_text.append(f'### {name}：{d["doc_id"]}\n\n目标记录 `{d["target_ids"][0]} → {d["targets"][0]}`，{d["question"]}\n\n'+ '\n'.join(f'- {m} 原回答：`{r["raw_text"]}`；解析 {r["score"]["predicted"]}；完整匹配 {r["score"]["exact_match"]}。' for m,r in c['outputs'].items()))
     body=f'''# G4-lite：训练后的稀疏读取能保住多少答题能力？
 
-运行 `{s['run_id']}`，计算源码 `{s['source_commit']}`。Qwen3-0.6B主体冻结，bf16/MPS/eager，P0/r32/rho=1/8，D0和D索引fp32。新32份T1约2K资料在训练前登记，未调参、未删题、未重试找更好分数。它们与旧资料去重，但仍来自相同生成器/模板；只有一个训练种子，结论是小样本描述。
+模型收到一份含编号和四位值的资料，先完整建立资料缓存，再独立处理问题并生成回答。这个单记录取值任务称 T1。A 读全部历史；B/C/D0/D 都必留开头 4 个和最近 64 个位置，再从其余位置取相同数量：B 取最近的，C 均匀随机取，D0 按初始索引参数打分，D 按训练后参数打分。每种方法把自己预测的 token 送回，并保存自己算出的后缀 K/V。
+
+额外名额按请求第一步长度的 1/8 固定，不包含必留位置。索引把主 RoPE 前 Q/K 投影到 32 维，不额外旋转；这就是“索引位置设置 P0，r=32”。正文分别报告新题回答和另一次等工作量计时；读取数量、教师权重覆盖与答题分数是不同指标。完整讲解见[第七课](07_trained_sparse_quality_and_cost.html)。
 
 ## 真实自由生成
 
@@ -194,11 +196,13 @@ A在这批新题上只有{s['quality']['A']['correct']}/{s['quality']['A']['n']}
 
 ## 预测、边界与交付
 
+运行 `{s['run_id']}`，计算源码 `{s['source_commit']}`。Qwen3-0.6B主体冻结，bf16/MPS/eager，P0/r32/rho=1/8，D0和D索引fp32。新32份T1约2K资料在训练前登记，未调参、未删题、未重试找更好分数。它们与旧资料去重，但仍来自相同生成器/模板；只有一个训练种子，结论是小样本描述。
+
 原预测见`docs/tasks/09_G4_LITE.md`。观察支持了两个受限预测：D比D0/C答对更多（17/32对0/32），而约2K下索引/选择路径没有速度收益（控制前向D/A配对中位约1.58）。不支持“各层局部改善就能保持完整任务能力”：A对的21题中D只保住15题，另答对A错的2题。它们不是泛化定律，也没有把所有耗时差异定位到单一操作。没有根据结果追加轨迹修正、ρ、T2、长上下文或更大模型。
 
 主体前后hash相同，原始资料SHA256 `{e['manifest']['test_data_sha256']}` 与登记一致。全部160条自由回答重判、96条成本网格及预算算术从原记录重算；归档含输入、输出、名单、manifest及运行源码，参数引用G3b相同bank。共享新增设备累计 {e['budget']['used_seconds']:.2f}/14400秒（含失败、预检、训练、推理、成本），新增现金0；旧G3a独立账保留。
 
-报告和Notebook默认只读已有数据；整页展示验收范围见PROJECT_STATUS。三阶段研发交付后停止，等待独立复审，PR不自行合并。
+报告和Notebook默认只读已有数据；整页展示验收范围见PROJECT_STATUS。本阶段及前两阶段已完成正式交付并进入主干。当前重建只更新阅读说明，不启动新的研究运行。
 '''
     (ROOT/'reports/g4lite_mac_m4max.md').write_text(body)
     print(json.dumps({'run':s['run_id'],'accuracy':{m:(x['correct'],x['n']) for m,x in s['quality'].items()},'device_seconds':e['budget']['used_seconds']},ensure_ascii=False))

@@ -7819,44 +7819,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d1bd8de6">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [1]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span><span class="o">,</span><span class="w"> </span><span class="nn">inspect</span><span class="o">,</span><span class="w"> </span><span class="nn">json</span><span class="o">,</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">textwrap</span>
-
-<span class="n">root</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">(),</span> <span class="o">*</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">]</span> <span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="o">/</span> <span class="s2">".attention_lab_bootstrap"</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">()),</span> <span class="kc">None</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"请从 attention-lab 项目目录或 notebooks 子目录打开本页"</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="s2">"src"</span><span class="p">))</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="n">rel</span><span class="p">):</span>
-    <span class="n">p</span> <span class="o">=</span> <span class="n">root</span> <span class="o">/</span> <span class="n">rel</span>
-    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">))</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
-
-<span class="n">summary</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s2">"reports/g1b_summary_mac_m4max.json"</span><span class="p">)</span>       <span class="c1"># 整模型测速（精简）</span>
-<span class="n">numerics</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s2">"reports/g1b_numerics_mac_m4max.json"</span><span class="p">)</span>     <span class="c1"># 三段数值对照（精简）</span>
-<span class="n">manifests</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s2">"reports/g1b_manifest_mac_m4max.json"</span><span class="p">)</span>    <span class="c1"># 两类 run 的 manifest</span>
-<span class="k">if</span> <span class="n">summary</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">numerics</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">manifests</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"未执行：reports/ 下没有 G1b 结果。入口：python bench/model_numerics.py; python bench/model_decode_bench.py; python scripts/g1b_report.py"</span><span class="p">)</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="n">bm</span> <span class="o">=</span> <span class="n">manifests</span><span class="p">[</span><span class="s2">"benchmarks"</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"数值 run:"</span><span class="p">,</span> <span class="n">numerics</span><span class="p">[</span><span class="s2">"run_id"</span><span class="p">],</span> <span class="s2">"| 测速 run:"</span><span class="p">,</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"runs"</span><span class="p">])</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"模型:"</span><span class="p">,</span> <span class="n">bm</span><span class="p">[</span><span class="s2">"model_id"</span><span class="p">],</span> <span class="s2">"@"</span><span class="p">,</span> <span class="n">bm</span><span class="p">[</span><span class="s2">"model_revision"</span><span class="p">],</span> <span class="s2">"| tokenizer @"</span><span class="p">,</span> <span class="n">bm</span><span class="p">[</span><span class="s2">"tokenizer_revision"</span><span class="p">])</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"权重 sha256:"</span><span class="p">,</span> <span class="n">bm</span><span class="p">[</span><span class="s2">"weights"</span><span class="p">][</span><span class="s2">"sha256"</span><span class="p">],</span> <span class="n">bm</span><span class="p">[</span><span class="s2">"weights"</span><span class="p">][</span><span class="s2">"bytes"</span><span class="p">],</span> <span class="s2">"bytes"</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"测速时 commit:"</span><span class="p">,</span> <span class="n">bm</span><span class="p">[</span><span class="s2">"git"</span><span class="p">][</span><span class="s2">"commit"</span><span class="p">],</span> <span class="s2">"| dirty diff:"</span><span class="p">,</span> <span class="n">bm</span><span class="p">[</span><span class="s2">"git"</span><span class="p">][</span><span class="s2">"dirty_diff_sha256"</span><span class="p">])</span>
-    <span class="n">info</span> <span class="o">=</span> <span class="n">numerics</span><span class="p">[</span><span class="s2">"model_info"</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"形状（从 config 读并与参数形状核对）:"</span><span class="p">,</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">info</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"num_hidden_layers"</span><span class="p">,</span> <span class="s2">"num_attention_heads"</span><span class="p">,</span> <span class="s2">"num_key_value_heads"</span><span class="p">,</span> <span class="s2">"head_dim"</span><span class="p">,</span> <span class="s2">"hidden_size"</span><span class="p">,</span> <span class="s2">"vocab_size"</span><span class="p">)},</span>
-          <span class="s2">"参数"</span><span class="p">,</span> <span class="n">info</span><span class="p">[</span><span class="s2">"num_parameters_total"</span><span class="p">])</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=d1bd8de6">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7874,32 +7837,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=43016abd">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># 当前源码 vs 测速时记录的哈希（manifest 的 source_hashes）</span>
-<span class="n">sha</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
-<span class="k">if</span> <span class="n">manifests</span><span class="p">:</span>
-    <span class="n">recorded</span> <span class="o">=</span> <span class="n">manifests</span><span class="p">[</span><span class="s2">"benchmarks"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"source_hashes"</span><span class="p">]</span>
-    <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">rel</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">recorded</span><span class="p">):</span>
-        <span class="n">now</span> <span class="o">=</span> <span class="n">sha</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">rel</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">rel</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">rel</span><span class="p">,</span> <span class="n">recorded</span><span class="p">[</span><span class="n">rel</span><span class="p">][:</span><span class="mi">12</span><span class="p">],</span> <span class="p">(</span><span class="n">now</span> <span class="ow">or</span> <span class="s2">"缺失"</span><span class="p">)[:</span><span class="mi">12</span><span class="p">],</span> <span class="s2">"一致"</span> <span class="k">if</span> <span class="n">now</span> <span class="o">==</span> <span class="n">recorded</span><span class="p">[</span><span class="n">rel</span><span class="p">]</span> <span class="k">else</span> <span class="s2">"不同"</span><span class="p">))</span>
-    <span class="n">w</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">w</span><span class="si">}}</span><span class="s2">  测速时 </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">  当前 </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">数值 run 的 qwen_wrap.py 哈希与测速 run 是否一致:"</span><span class="p">,</span>
-          <span class="n">manifests</span><span class="p">[</span><span class="s2">"numerics"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"source_hashes"</span><span class="p">][</span><span class="s2">"src/attention_lab/qwen_wrap.py"</span><span class="p">]</span> <span class="o">==</span> <span class="n">recorded</span><span class="p">[</span><span class="s2">"src/attention_lab/qwen_wrap.py"</span><span class="p">])</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=43016abd">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7946,9 +7884,10 @@ src/attention_lab/sparse.py     测速时 bbe8805b45a4  当前 bbe8805b45a4  一
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>本课的路径与预算。</strong> “原生”指 transformers 的实现；“封装”指复用原参数、替换注意力读取的本项目实现。三段数值对照依次检查未改模型、封装完整读取、封装静态缓存。<strong>全选 D</strong>则把名额给足，使 D 路径读取全部合法位置，作为实现等价性检查。</p>
-<p>本项目 D 固定保留 <strong>F=首4∪近64</strong>，其余为候选；<code>k0=min(round(ρ*N0), 起始候选数)</code> 在请求内固定，本步 k 不超过当前候选数。索引表 <code>zT</code> 来自 RoPE 前的 K，不是主 K 缓存；<code>StepPlan</code> 保存当前合法范围、F 与候选名额，各层共用规则、各自选位。</p>
-<p>本课的<strong>噪声底</strong>特指未改模型自身在“一次处理/逐 token 处理”之间的数值差，用来对照封装增加了多少偏差；不是放宽所有误差的通用理由。</p>
+<p><strong>先看接入后模型怎样走一步。</strong> 原来的 Qwen 参数保持不动：每层照常计算当前 token 的 Q/K/V，再把新 K/V 写入本层缓存。A 接着读取全部可读位置；D 先为这个查询选位置，再只取这些位置的 K/V。两者之后都继续执行原来的输出投影、残差和 MLP。</p>
+<p>“原生”指 transformers 的实现；“封装”指本项目接管上述缓存写入和注意力读取。数值检查先比较原生与封装的完整读取，再把 D 的名额给足，让它选中全部可读位置。这项“全选 D”检查用于发现接入错误，不是低读取预算的质量实验。</p>
+<p>D 每步必留开头 4 个和最近 64 个位置，另从其余位置中选出给定数量；额外名额在请求第一步确定，之后保持不变。各层各组按自己的查询重新选位。32K 速度实验用起始长度的 1/32 计算额外名额；数值检查还包含全选和 1/8 等不同条件，不能混为一档。</p>
+<p>逐 token 与一次处理整段输入，本来就可能有浮点数值差。这里先测未改模型自身的这项差，再看封装有没有增加偏差；后文“噪声底”专指这个参照。</p>
 </div>
 </div>
 </div>
@@ -7961,57 +7900,18 @@ src/attention_lab/sparse.py     测速时 bbe8805b45a4  当前 bbe8805b45a4  一
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="1.-%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E6%8E%A5%E5%85%A5%E5%90%8E%E6%9C%89%E6%B2%A1%E6%9C%89%E6%8A%8A%E5%8E%9F%E6%A8%A1%E5%9E%8B%E7%AE%97%E9%94%99">1. 问题一：接入后有没有把原模型算错<a class="anchor-link" href="#1.-%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E6%8E%A5%E5%85%A5%E5%90%8E%E6%9C%89%E6%B2%A1%E6%9C%89%E6%8A%8A%E5%8E%9F%E6%A8%A1%E5%9E%8B%E7%AE%97%E9%94%99">¶</a></h2><p><strong>运行前的预测</strong>（保存在本项目的预测卡片 <code>reports/cards/G1b_mac_m4max.md</code>）：float32 的三段对照全部落在预设容差内（词表分数 max|Δ| ≤ 1e-2、相对范数 ≤ 1e-3、argmax 一致 ≥ 99%，缓存 K/V ≤ 1e-3），且观测差别比容差小一个量级；bf16 的 max|Δ| 在 0.1 到 0.5，argmax 一致 ≥ 97%；全选 D 对封装 A 同量级；回退后重算逐位相同。</p>
 <p><strong>正式代码。</strong> 封装只替换一处：每层 <code>self_attn</code> 的"读"。投影、归一化、RoPE、输出投影全部复用原模块对象。下面对照数值检查时的封装快照与安装库原前向；CPU 小模型调用当前接入实现，其入口是 <code>src/attention_lab/qwen_wrap.py</code>。</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=9bfe5c38">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">ast</span><span class="o">,</span><span class="w"> </span><span class="nn">transformers</span><span class="o">,</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">attention_lab</span><span class="w"> </span><span class="kn">import</span> <span class="n">qwen_wrap</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">transformers.models.qwen3</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeling_qwen3</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">historical_text</span><span class="p">(</span><span class="n">relative_path</span><span class="p">,</span> <span class="n">expected_sha</span><span class="p">):</span>
-    <span class="n">raw</span> <span class="o">=</span> <span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">relative_path</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
-    <span class="k">assert</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span> <span class="o">==</span> <span class="n">expected_sha</span>
-    <span class="k">return</span> <span class="n">raw</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">excerpt</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="n">nodes</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">body</span>
-    <span class="k">if</span> <span class="n">owner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">nodes</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">owner</span><span class="p">)</span><span class="o">.</span><span class="n">body</span>
-    <span class="n">node</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">name</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">ast</span><span class="o">.</span><span class="n">get_source_segment</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span>
-
-<span class="n">numeric_wrapper</span> <span class="o">=</span> <span class="n">historical_text</span><span class="p">(</span>
-    <span class="s2">"reports/provenance/g1b/qwen_wrap_at_g1b_numerics4_and_phasefix_runs.py"</span><span class="p">,</span>
-    <span class="n">manifests</span><span class="p">[</span><span class="s2">"numerics"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"source_hashes"</span><span class="p">][</span><span class="s2">"src/attention_lab/qwen_wrap.py"</span><span class="p">])</span>
-<span class="n">benchmark_wrapper</span> <span class="o">=</span> <span class="n">historical_text</span><span class="p">(</span>
-    <span class="s2">"reports/provenance/g1b/qwen_wrap_at_formal_decode_run.py"</span><span class="p">,</span>
-    <span class="n">bm</span><span class="p">[</span><span class="s2">"source_hashes"</span><span class="p">][</span><span class="s2">"src/attention_lab/qwen_wrap.py"</span><span class="p">])</span>
-<span class="n">benchmark_decode</span> <span class="o">=</span> <span class="n">historical_text</span><span class="p">(</span>
-    <span class="s2">"reports/provenance/g1b/decode_at_g1a_g1b_runs.py"</span><span class="p">,</span>
-    <span class="n">bm</span><span class="p">[</span><span class="s2">"source_hashes"</span><span class="p">][</span><span class="s2">"src/attention_lab/decode.py"</span><span class="p">])</span>
-<span class="n">benchmark_driver</span> <span class="o">=</span> <span class="n">historical_text</span><span class="p">(</span>
-    <span class="s2">"reports/provenance/g1b/model_decode_bench_at_formal_decode_run.py"</span><span class="p">,</span>
-    <span class="n">bm</span><span class="p">[</span><span class="s2">"source_hashes"</span><span class="p">][</span><span class="s2">"bench/model_decode_bench.py"</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"transformers"</span><span class="p">,</span> <span class="n">transformers</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span> <span class="s2">"| torch"</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"=== 安装库的 Qwen3Attention.forward（参照） ==="</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">modeling_qwen3</span><span class="o">.</span><span class="n">Qwen3Attention</span><span class="o">.</span><span class="n">forward</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"=== 第四次数值检查使用的 LabAttention.forward（历史快照） ==="</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">excerpt</span><span class="p">(</span><span class="n">numeric_wrapper</span><span class="p">,</span> <span class="s2">"forward"</span><span class="p">,</span> <span class="s2">"LabAttention"</span><span class="p">))</span>
+<div class="highlight"><pre><span></span>当前 token 的本层输入
+  → 原 Q/K/V 投影和归一化
+  → 主 Q/K 按原位置做 RoPE；D 另外从旋转前的 Q/K 生成索引
+  → 保存新 K/V；D 追加新索引键 z
+  → A 读全部位置 / D 打分选位后读原 K/V
+  → 原输出投影、残差与 MLP → 下一层 → 最后一层之后的词表分数
 </pre></div>
+<p>索引筛选只改变中间的读取步骤。其余层内计算没有因为少读而消失，所以后面要测从 token id 到词表分数的完整前向。</p>
 </div>
 </div>
 </div>
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=9bfe5c38">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8019,7 +7919,7 @@ src/attention_lab/sparse.py     测速时 bbe8805b45a4  当前 bbe8805b45a4  一
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
-<pre>W1019 18:06:21.738000 40436 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+<pre>W1020 12:48:34.190000 26747 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
 </pre>
 </div>
 </div>
@@ -8027,7 +7927,14 @@ src/attention_lab/sparse.py     测速时 bbe8805b45a4  当前 bbe8805b45a4  一
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>transformers 5.20.0 | torch 2.14.1
-=== 安装库的 Qwen3Attention.forward（参照） ===
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<details><summary>展开原生前向和当时封装的完整源码</summary>
+<pre style="white-space:pre-wrap;overflow-wrap:anywhere">=== 安装库的 Qwen3Attention.forward（参照） ===
     def forward(
         self,
         hidden_states: torch.Tensor,
@@ -8112,6 +8019,7 @@ def forward(self, hidden_states, position_embeddings, attention_mask=None, past_
         attn = out.view(B, self.num_heads, T, d).transpose(1, 2).reshape(B, T, self.num_heads * d)
         return inner.o_proj(attn), None
 </pre>
+</details>
 </div>
 </div>
 </div>
@@ -8236,43 +8144,54 @@ F 的原位置（第 0 组，行号减去组偏移）: [0, 1, 2, 3, 37, 38] ... 
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3e74e7aa">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">if</span> <span class="n">numerics</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"数值 run </span><span class="si">{</span><span class="n">numerics</span><span class="p">[</span><span class="s1">'run_id'</span><span class="p">]</span><span class="si">}</span><span class="s2">: numerics_pass=</span><span class="si">{</span><span class="n">numerics</span><span class="p">[</span><span class="s1">'numerics_pass'</span><span class="p">]</span><span class="si">}</span><span class="s2">  门控检查 </span><span class="si">{</span><span class="n">numerics</span><span class="p">[</span><span class="s1">'gated_checks'</span><span class="p">]</span><span class="si">}</span><span class="s2"> 项"</span><span class="p">)</span>
-    <span class="n">hdr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'dtype'</span><span class="si">:</span><span class="s2">&lt;9</span><span class="si">}{</span><span class="s1">'dev'</span><span class="si">:</span><span class="s2">&lt;5</span><span class="si">}{</span><span class="s1">'L'</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">'检查'</span><span class="si">:</span><span class="s2">&lt;58</span><span class="si">}{</span><span class="s1">'max|Δ|'</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}{</span><span class="s1">'相对范数'</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}{</span><span class="s1">'argmax'</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}{</span><span class="s1">'预设'</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}{</span><span class="s1">'修订'</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}{</span><span class="s1">'噪声底 max|Δ|'</span><span class="si">:</span><span class="s2">&gt;14</span><span class="si">}</span><span class="s2">"</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">hdr</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="s2">"-"</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">hdr</span><span class="p">))</span>
-    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">numerics</span><span class="p">[</span><span class="s2">"checks"</span><span class="p">]:</span>
-        <span class="n">rel</span> <span class="o">=</span> <span class="s2">"—"</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"rel_norm"</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'rel_norm'</span><span class="p">]</span><span class="si">:</span><span class="s2">.1e</span><span class="si">}</span><span class="s2">"</span>
-        <span class="n">am</span> <span class="o">=</span> <span class="s2">"—"</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"argmax_agreement"</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'argmax_agreement'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span>
-        <span class="n">pre</span> <span class="o">=</span> <span class="s2">"✓"</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pass_preset"</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="s2">"记录"</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"pass"</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">"✗"</span><span class="p">)</span>
-        <span class="n">rev</span> <span class="o">=</span> <span class="s2">"—"</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pass_revised"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">(</span><span class="s2">"✓"</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"pass_revised"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">"✗"</span><span class="p">)</span>
-        <span class="n">fl</span> <span class="o">=</span> <span class="s2">""</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"floor_max_abs"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'floor_max_abs'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">"</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'dtype'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;9</span><span class="si">}{</span><span class="n">r</span><span class="p">[</span><span class="s1">'device'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;5</span><span class="si">}{</span><span class="n">r</span><span class="p">[</span><span class="s1">'L'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'check'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;58</span><span class="si">}{</span><span class="n">r</span><span class="p">[</span><span class="s1">'max_abs'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;10.2e</span><span class="si">}{</span><span class="n">rel</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}{</span><span class="n">am</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}{</span><span class="n">pre</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}{</span><span class="n">rev</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}{</span><span class="n">fl</span><span class="si">:</span><span class="s2">&gt;14</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="n">c</span> <span class="o">=</span> <span class="n">numerics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"cpu_vs_mps_unmodified"</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">c</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">未改模型 MPS float32 对 CPU float32（平台噪声底）：max|Δ| </span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="s1">'max_abs'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">，相对范数 </span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="s1">'rel_norm'</span><span class="p">]</span><span class="si">:</span><span class="s2">.1e</span><span class="si">}</span><span class="s2">，argmax 一致 </span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="s1">'argmax_agreement'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">rp</span> <span class="ow">in</span> <span class="n">numerics</span><span class="p">[</span><span class="s2">"reference_prompt"</span><span class="p">]:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"短提示参照 </span><span class="si">{</span><span class="n">rp</span><span class="p">[</span><span class="s1">'dtype'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">rp</span><span class="p">[</span><span class="s1">'device'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;4</span><span class="si">}</span><span class="s2"> top-5 </span><span class="si">{</span><span class="n">rp</span><span class="p">[</span><span class="s1">'top5_tokens'</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">rp</span><span class="p">[</span><span class="s1">'top5_logits'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=3e74e7aa">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output" data-mime-type="text/markdown" tabindex="0">
+<table>
+<thead>
+<tr>
+<th>MPS/bf16，L=512 的比较</th>
+<th style="text-align:right">最大词表分数差</th>
+<th style="text-align:right">argmax 一致率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>封装完整读取 vs 原库（都逐 token）</td>
+<td style="text-align:right">0.000000</td>
+<td style="text-align:right">100.0%</td>
+</tr>
+<tr>
+<td>封装逐 token vs 封装一次处理</td>
+<td style="text-align:right">0.156250</td>
+<td style="text-align:right">100.0%</td>
+</tr>
+<tr>
+<td>全选 D vs 封装完整读取</td>
+<td style="text-align:right">0.109375</td>
+<td style="text-align:right">100.0%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>数值 run g1b-numerics-20261017T085459Z-formal4: numerics_pass=True  门控检查 98 项
+<pre>全部门控检查： 98 项；按当时登记规则通过： True
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<details><summary>展开所有精度、长度、平台的逐项检查及短提示参照</summary>
+<pre style="white-space:pre-wrap;overflow-wrap:anywhere">数值 run g1b-numerics-20261017T085459Z-formal4: numerics_pass=True  门控检查 98 项
 dtype    dev      L  检查                                                            max|Δ|      相对范数  argmax   预设   修订    噪声底 max|Δ|
 -----------------------------------------------------------------------------------------------------------------------------------
 float32  mps     32  wrapped_one_shot_vs_unmodified_logits                       0.00e+00   0.0e+00   1.000    ✓    —              
@@ -8386,6 +8305,7 @@ float32  cpu    128  D_rho_1_8_vs_unmodified_logits_information_only            
 短提示参照 bfloat16 mps  top-5 [' Paris', ' located', ' the', '...', ' ____'] [17.5, 14.25, 14.125, 13.8125, 13.6875]
 短提示参照 float32  cpu  top-5 [' Paris', ' located', ' the', '...', ' ____'] [17.4989, 14.3372, 14.1693, 13.766, 13.6347]
 </pre>
+</details>
 </div>
 </div>
 </div>
@@ -8569,49 +8489,7 @@ float32  cpu    128  D_rho_1_8_vs_unmodified_logits_information_only            
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=567dc7db">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
-<span class="n">PATHS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"native_dynamic"</span><span class="p">,</span> <span class="s2">"native_static"</span><span class="p">,</span> <span class="s2">"wrapped_full"</span><span class="p">,</span> <span class="s2">"sparse"</span><span class="p">]</span>
-<span class="n">LABEL_EN</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"native_dynamic"</span><span class="p">:</span> <span class="s2">"native A (DynamicCache)"</span><span class="p">,</span> <span class="s2">"native_static"</span><span class="p">:</span> <span class="s2">"native A (StaticCache)"</span><span class="p">,</span> <span class="s2">"wrapped_full"</span><span class="p">:</span> <span class="s2">"wrapped A"</span><span class="p">,</span> <span class="s2">"sparse"</span><span class="p">:</span> <span class="s2">"D (index read)"</span><span class="p">}</span>
-<span class="n">LABEL</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"native_dynamic"</span><span class="p">:</span> <span class="s2">"原生 A · DynamicCache"</span><span class="p">,</span> <span class="s2">"native_static"</span><span class="p">:</span> <span class="s2">"原生 A · StaticCache"</span><span class="p">,</span> <span class="s2">"wrapped_full"</span><span class="p">:</span> <span class="s2">"封装 A"</span><span class="p">,</span> <span class="s2">"sparse"</span><span class="p">:</span> <span class="s2">"D（索引读取）"</span><span class="p">}</span>
-<span class="k">if</span> <span class="n">summary</span><span class="p">:</span>
-    <span class="n">cells_</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"cells"</span><span class="p">]</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"single_median_ms"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
-    <span class="n">N0s</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">c</span><span class="p">[</span><span class="s2">"N0"</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cells_</span><span class="p">});</span> <span class="n">modes</span> <span class="o">=</span> <span class="p">[</span><span class="n">m_</span> <span class="k">for</span> <span class="n">m_</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"eager"</span><span class="p">,</span> <span class="s2">"compile"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s2">"mode"</span><span class="p">]</span> <span class="o">==</span> <span class="n">m_</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cells_</span><span class="p">)]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'N0'</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'模式'</span><span class="si">:</span><span class="s2">&lt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'路径'</span><span class="si">:</span><span class="s2">&lt;24</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'Prefill ms'</span><span class="si">:</span><span class="s2">&gt;11</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'单步中位 ms'</span><span class="si">:</span><span class="s2">&gt;12</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'p95'</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'n'</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'配对比值 D/封装A 中位(范围)'</span><span class="si">:</span><span class="s2">&gt;30</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'≤0.90 循环'</span><span class="si">:</span><span class="s2">&gt;12</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">N0</span> <span class="ow">in</span> <span class="n">N0s</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">mode</span> <span class="ow">in</span> <span class="n">modes</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">p_</span> <span class="ow">in</span> <span class="n">PATHS</span><span class="p">:</span>
-                <span class="n">c</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cells_</span> <span class="k">if</span> <span class="n">c</span><span class="p">[</span><span class="s2">"N0"</span><span class="p">]</span> <span class="o">==</span> <span class="n">N0</span> <span class="ow">and</span> <span class="n">c</span><span class="p">[</span><span class="s2">"mode"</span><span class="p">]</span> <span class="o">==</span> <span class="n">mode</span> <span class="ow">and</span> <span class="n">c</span><span class="p">[</span><span class="s2">"path"</span><span class="p">]</span> <span class="o">==</span> <span class="n">p_</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">c</span><span class="p">:</span> <span class="k">continue</span>
-                <span class="n">pr</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">"paired_ratio_vs_wrapped_full"</span><span class="p">]</span> <span class="ow">or</span> <span class="p">{}</span>
-                <span class="n">rs</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'median'</span><span class="p">,</span><span class="w"> </span><span class="nb">float</span><span class="p">(</span><span class="s1">'nan'</span><span class="p">))</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">pr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'min'</span><span class="p">,</span><span class="w"> </span><span class="nb">float</span><span class="p">(</span><span class="s1">'nan'</span><span class="p">))</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">–</span><span class="si">{</span><span class="n">pr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'max'</span><span class="p">,</span><span class="w"> </span><span class="nb">float</span><span class="p">(</span><span class="s1">'nan'</span><span class="p">))</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">)"</span> <span class="k">if</span> <span class="n">pr</span> <span class="k">else</span> <span class="s2">"—"</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">N0</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">mode</span><span class="si">:</span><span class="s2">&lt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">LABEL</span><span class="p">[</span><span class="n">p_</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;24</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="s1">'prefill_ms'</span><span class="p">]</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="mi">0</span><span class="si">:</span><span class="s2">&gt;11.0f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="s1">'single_median_ms'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;12.2f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="s1">'single_p95_ms'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;8.2f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="s1">'single_n'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">rs</span><span class="si">:</span><span class="s2">&gt;30</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">pr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'cycles_at_or_below_0.90'</span><span class="p">,</span><span class="w"> </span><span class="s1">'—'</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s1">'/'</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">str</span><span class="p">(</span><span class="n">pr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'n_cycles'</span><span class="p">,</span><span class="w"> </span><span class="s1">'—'</span><span class="p">))</span><span class="si">:</span><span class="s2">&gt;12</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">modes</span><span class="p">),</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">modes</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">axes</span> <span class="o">=</span> <span class="p">[</span><span class="n">axes</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">modes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">axes</span><span class="p">)</span>
-    <span class="n">w</span> <span class="o">=</span> <span class="mf">0.2</span>
-    <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">mode</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">modes</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">k_</span><span class="p">,</span> <span class="n">p_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">PATHS</span><span class="p">):</span>
-            <span class="n">ys</span> <span class="o">=</span> <span class="p">[</span><span class="nb">next</span><span class="p">((</span><span class="n">c</span><span class="p">[</span><span class="s2">"single_median_ms"</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cells_</span> <span class="k">if</span> <span class="n">c</span><span class="p">[</span><span class="s2">"N0"</span><span class="p">]</span> <span class="o">==</span> <span class="n">N0</span> <span class="ow">and</span> <span class="n">c</span><span class="p">[</span><span class="s2">"mode"</span><span class="p">]</span> <span class="o">==</span> <span class="n">mode</span> <span class="ow">and</span> <span class="n">c</span><span class="p">[</span><span class="s2">"path"</span><span class="p">]</span> <span class="o">==</span> <span class="n">p_</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"nan"</span><span class="p">))</span> <span class="k">for</span> <span class="n">N0</span> <span class="ow">in</span> <span class="n">N0s</span><span class="p">]</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">([</span><span class="n">i_</span> <span class="o">+</span> <span class="p">(</span><span class="n">k_</span> <span class="o">-</span> <span class="mf">1.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">w</span> <span class="k">for</span> <span class="n">i_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">N0s</span><span class="p">))],</span> <span class="n">ys</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">LABEL_EN</span><span class="p">[</span><span class="n">p_</span><span class="p">])</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">N0s</span><span class="p">)));</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">N0s</span><span class="p">]);</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"N0 (prompt length)"</span><span class="p">);</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">"full-step median, ms · </span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">"y"</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
-    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"ms per step"</span><span class="p">);</span> <span class="n">axes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">();</span> <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"未执行"</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=567dc7db">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8728,11 +8606,12 @@ float32  cpu    128  D_rho_1_8_vs_unmodified_logits_information_only            
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p><strong>实测。</strong> eager 固定历史长度下，A 的整步中位为 13.3/16.0/21.2 ms，D 为 16.1/16.8/19.7 ms；配对 D/A 为 1.210/1.054/0.930。32K 的 50 轮中只有 7 轮达到 ≤0.90，未通过预定门槛。</p>
-<p><strong>单层优势为何不能直接变成同等整步收益？</strong> 如果两条路径共有部分的时间是 (T_{mathrm{other}})，只减少注意力读取时间，那么改善比例为</p>
-<p>[</p>
-<p>rac{T_{A,\mathrm{read}}-T_{D,\mathrm{read}}}{T_{\mathrm{other}}+T_{A,\mathrm{read}}}.
-]</p>
-<p>这解释共同计算为何稀释百分比，但不能解释单层外推的绝对节省为何没有完全兑现。第一课的形状、数据工作集与这里不同；原测量也没有把模型内每项成本独立分离。因此不再把“用整步时间减去外部单层时间×28”得到的约 10 ms 当作已经测出的固定基底。</p>
+<p><strong>单层优势为何不能直接变成同等整步收益？</strong> 原来的 Q/K/V 投影、输出投影、MLP 等仍然执行。若只改变注意力读取，整步减少的比例就是“读取阶段省下的时间 ÷ 原整步总时间”。用 $T_{\mathrm{other}}$ 表示两条路径共有的其余计算时间：</p>
+<p>$$
+\frac{T_{A,\mathrm{read}}-T_{D,\mathrm{read}}}
+     {T_{\mathrm{other}}+T_{A,\mathrm{read}}}.
+$$</p>
+<p>这解释共同计算怎样稀释百分比，但不能解释单层外推的绝对节省为何没有完全兑现。第一课的形状、数据工作集与这里不同；原测量也没有把模型内每项成本独立分离。因此“整步时间减去外部单层时间×28”得到的约 10 ms，不能当作已测出的固定基底。</p>
 <p><strong>代码与剖析能说明到哪一步？</strong> 32K 下 D 比 A 多 422 个非视图 aten 事件；记录只包含 CPU 活动，不能据此把慢归因于 GPU 核数量或 CPU 提交。原生 DynamicCache 每步拼接已有 K/V，确实增加了整段复制工作；32K 连续步中位约 39.3 ms，封装 A 约 20.8 ms，但本实验没有隔离复制成本对差值的贡献。</p>
 <p>块编译后配对 D/A 为 0.934，仍未通过门槛。已保存的同形状开发探针曾尝试减少几个操作，预计整步只少约 0.2–0.4 ms，未进入新的正式运行；它不是本表的测速样本，也不作为确定瓶颈的证据。</p>
 </div>
@@ -8806,36 +8685,7 @@ def build_step_plan(cache: LabCache, legal_length: int, k0: int) -&gt; StepPlan:
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c6118cfb">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [11]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">if</span> <span class="n">summary</span><span class="p">:</span>
-    <span class="n">seq</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"cells"</span><span class="p">]</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"seq_step_median_ms"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'N0'</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'模式'</span><span class="si">:</span><span class="s2">&lt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'路径'</span><span class="si">:</span><span class="s2">&lt;24</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'每步中位 ms'</span><span class="si">:</span><span class="s2">&gt;12</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'首16'</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'末16'</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'末/首'</span><span class="si">:</span><span class="s2">&gt;7</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'斜率 µs/步'</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'128步合计 ms'</span><span class="si">:</span><span class="s2">&gt;12</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'k 末步'</span><span class="si">:</span><span class="s2">&gt;7</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'读取数 末步'</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s2">"N0"</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="s2">"mode"</span><span class="p">],</span> <span class="n">PATHS</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s2">"path"</span><span class="p">]))):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="s1">'N0'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="s1">'mode'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">LABEL</span><span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="s1">'path'</span><span class="p">]]</span><span class="si">:</span><span class="s2">&lt;24</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="s1">'seq_step_median_ms'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;12.2f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="s1">'seq_first16_ms'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;8.2f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="s1">'seq_last16_ms'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;8.2f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="s1">'seq_last16_ms'</span><span class="p">]</span><span class="o">/</span><span class="n">c</span><span class="p">[</span><span class="s1">'seq_first16_ms'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;7.3f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="s1">'seq_slope_us_per_step'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;+10.1f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="s1">'seq_total_ms_median'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;12.0f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s1">'k_last'</span><span class="p">])</span><span class="si">:</span><span class="s2">&gt;7</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s1">'selected_last'</span><span class="p">])</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="n">Nmax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s2">"N0"</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">seq</span><span class="p">)</span>
-    <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-    <span class="k">for</span> <span class="n">p_</span> <span class="ow">in</span> <span class="n">PATHS</span><span class="p">:</span>
-        <span class="n">c</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">seq</span> <span class="k">if</span> <span class="n">c</span><span class="p">[</span><span class="s2">"N0"</span><span class="p">]</span> <span class="o">==</span> <span class="n">Nmax</span> <span class="ow">and</span> <span class="n">c</span><span class="p">[</span><span class="s2">"mode"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"eager"</span> <span class="ow">and</span> <span class="n">c</span><span class="p">[</span><span class="s2">"path"</span><span class="p">]</span> <span class="o">==</span> <span class="n">p_</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">c</span> <span class="ow">and</span> <span class="n">c</span><span class="p">[</span><span class="s2">"seq_series_ms"</span><span class="p">]:</span>
-            <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s2">"seq_series_ms"</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">LABEL_EN</span><span class="p">[</span><span class="n">p_</span><span class="p">],</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">mem_</span> <span class="o">=</span> <span class="p">[</span><span class="n">m_</span> <span class="k">for</span> <span class="n">m_</span> <span class="ow">in</span> <span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s2">"seq_memory"</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="p">[])</span> <span class="k">if</span> <span class="n">m_</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">mem_</span><span class="p">:</span>
-                <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">m_</span><span class="p">[</span><span class="s2">"step"</span><span class="p">]</span> <span class="k">for</span> <span class="n">m_</span> <span class="ow">in</span> <span class="n">mem_</span><span class="p">],</span> <span class="p">[</span><span class="n">m_</span><span class="p">[</span><span class="s2">"current_allocated_bytes"</span><span class="p">]</span> <span class="o">/</span> <span class="mf">1e9</span> <span class="k">for</span> <span class="n">m_</span> <span class="ow">in</span> <span class="n">mem_</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s2">"o"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">LABEL_EN</span><span class="p">[</span><span class="n">p_</span><span class="p">])</span>
-    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">"eager, N0=</span><span class="si">{</span><span class="n">Nmax</span><span class="si">}</span><span class="s2">: per-step time over 128 steps (sequence 1)"</span><span class="p">);</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"step"</span><span class="p">);</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"ms"</span><span class="p">);</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">);</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
-    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">"eager, N0=</span><span class="si">{</span><span class="n">Nmax</span><span class="si">}</span><span class="s2">: torch.mps.current_allocated_memory"</span><span class="p">);</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"step"</span><span class="p">);</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"GB"</span><span class="p">);</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">);</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">();</span> <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c6118cfb">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8879,36 +8729,7 @@ def build_step_plan(cache: LabCache, legal_length: int, k0: int) -&gt; StepPlan:
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=ac787515">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [12]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># 剖析证据（与计时分开跑）：算子数、CPU 侧时间、触及合法长度 / 容量的 matmul 类算子</span>
-<span class="k">if</span> <span class="n">summary</span><span class="p">:</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">glob</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_g</span>
-    <span class="k">for</span> <span class="n">rid</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"runs"</span><span class="p">]:</span>
-        <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">_g</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"runs/</span><span class="si">{</span><span class="n">rid</span><span class="si">}</span><span class="s2">/summary.json"</span><span class="p">))):</span>
-            <span class="n">s_</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
-            <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">s_</span><span class="p">[</span><span class="s2">"lengths"</span><span class="p">]:</span>
-                <span class="k">if</span> <span class="s2">"profiles"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">block</span><span class="p">:</span> <span class="k">continue</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="si">{</span><span class="n">rid</span><span class="si">}</span><span class="s2"> N0=</span><span class="si">{</span><span class="n">block</span><span class="p">[</span><span class="s1">'N0'</span><span class="p">]</span><span class="si">}</span><span class="s2">："</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">p_</span><span class="p">,</span> <span class="n">pf</span> <span class="ow">in</span> <span class="n">block</span><span class="p">[</span><span class="s2">"profiles"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                    <span class="k">if</span> <span class="n">pf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"status"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"error"</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">"  "</span><span class="p">,</span> <span class="n">p_</span><span class="p">,</span> <span class="s2">"剖析错误"</span><span class="p">,</span> <span class="n">pf</span><span class="p">[</span><span class="s2">"error_type"</span><span class="p">]);</span> <span class="k">continue</span>
-                    <span class="n">wall</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">c</span><span class="p">[</span><span class="s2">"single_median_ms"</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"cells"</span><span class="p">]</span> <span class="k">if</span> <span class="n">c</span><span class="p">[</span><span class="s2">"run_id"</span><span class="p">]</span> <span class="o">==</span> <span class="n">rid</span> <span class="ow">and</span> <span class="n">c</span><span class="p">[</span><span class="s2">"N0"</span><span class="p">]</span> <span class="o">==</span> <span class="n">block</span><span class="p">[</span><span class="s2">"N0"</span><span class="p">]</span> <span class="ow">and</span> <span class="n">c</span><span class="p">[</span><span class="s2">"mode"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"eager"</span> <span class="ow">and</span> <span class="n">c</span><span class="p">[</span><span class="s2">"path"</span><span class="p">]</span> <span class="o">==</span> <span class="n">p_</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">LABEL</span><span class="p">[</span><span class="n">p_</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;24</span><span class="si">}</span><span class="s2"> aten 算子 </span><span class="si">{</span><span class="n">pf</span><span class="p">[</span><span class="s1">'aten_ops'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}</span><span class="s2">（非视图 </span><span class="si">{</span><span class="n">pf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'top_level_ops'</span><span class="p">,</span><span class="w"> </span><span class="s1">'—'</span><span class="p">)</span><span class="si">}</span><span class="s2">）  CPU 侧自时间 </span><span class="si">{</span><span class="n">pf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'cpu_self_total_ms'</span><span class="p">,</span><span class="w"> </span><span class="nb">float</span><span class="p">(</span><span class="s1">'nan'</span><span class="p">))</span><span class="si">:</span><span class="s2">6.2f</span><span class="si">}</span><span class="s2"> ms  对比整步墙钟 </span><span class="si">{</span><span class="n">wall</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">wall</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="kc">None</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="nb">round</span><span class="p">(</span><span class="n">wall</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2"> ms  "</span>
-                          <span class="sa">f</span><span class="s2">"触及长度的 matmul 类算子 </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">pf</span><span class="p">[</span><span class="s1">'length_matmul_ops'</span><span class="p">])</span><span class="si">}</span><span class="s2">  top-k </span><span class="si">{</span><span class="n">pf</span><span class="p">[</span><span class="s1">'topk_calls'</span><span class="p">]</span><span class="si">}</span><span class="s2">  index_select </span><span class="si">{</span><span class="n">pf</span><span class="p">[</span><span class="s1">'index_select_calls'</span><span class="p">]</span><span class="si">}</span><span class="s2">  SDPA </span><span class="si">{</span><span class="n">pf</span><span class="p">[</span><span class="s1">'sdpa_dispatch'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"compile"</span><span class="p">):</span>
-                    <span class="n">ci</span> <span class="o">=</span> <span class="n">block</span><span class="p">[</span><span class="s2">"compile"</span><span class="p">];</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  块编译（MLP + RMSNorm，四路径共用）: </span><span class="si">{</span><span class="n">ci</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'status'</span><span class="p">)</span><span class="si">}</span><span class="s2">，首调用 </span><span class="si">{</span><span class="n">ci</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'first_call_s'</span><span class="p">,</span><span class="w"> </span><span class="nb">float</span><span class="p">(</span><span class="s1">'nan'</span><span class="p">))</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s，对 eager 词表分数 max|Δ| </span><span class="si">{</span><span class="n">ci</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'max_abs_diff_vs_eager_logits'</span><span class="p">)</span><span class="si">}</span><span class="s2">，测量期间 dynamo 新图 </span><span class="si">{</span><span class="n">ci</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'dynamo_counters_delta'</span><span class="p">,</span><span class="w"> </span><span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'stats'</span><span class="p">,</span><span class="w"> </span><span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'unique_graphs'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">注：本地 runs/ 不随仓库分发；没有 runs/ 时本格只打印 run id。"</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=ac787515">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8916,7 +8737,15 @@ def build_step_plan(cache: LabCache, legal_length: int, k0: int) -&gt; StepPlan:
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>
+<pre>剖析记录仅用于说明实际调用；CPU 事件数不能直接定位 GPU 耗时来源。
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<details><summary>展开逐长度的 CPU 剖析与编译记录</summary>
+<pre style="white-space:pre-wrap;overflow-wrap:anywhere">
 g1b-mac-20261016T202847Z-formal N0=8192：
   原生 A · DynamicCache      aten 算子  5260（非视图 3041）  CPU 侧自时间   4.18 ms  对比整步墙钟 24.15 ms  触及长度的 matmul 类算子 0  top-k 0  index_select 1  SDPA ['aten::_scaled_dot_product_attention_math_for_mps', 'aten::scaled_dot_product_attention']
   原生 A · StaticCache       aten 算子  5838（非视图 3421）  CPU 侧自时间   4.79 ms  对比整步墙钟 14.19 ms  触及长度的 matmul 类算子 56  top-k 0  index_select 1  SDPA ['aten::_scaled_dot_product_attention_math_for_mps', 'aten::scaled_dot_product_attention']
@@ -8940,6 +8769,7 @@ g1b-mac-20261016T202847Z-formal N0=32256：
 
 注：本地 runs/ 不随仓库分发；没有 runs/ 时本格只打印 run id。
 </pre>
+</details>
 </div>
 </div>
 </div>
