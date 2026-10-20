@@ -8,7 +8,7 @@ A 全部读取。B/C/D0 都保留开头 4 个和最近 64 个位置，再按相�
 
 由 `scripts/g2lite_report.py` 从基线 run `g2lite-20261017T130007Z-pass1-A`、对照 run `g2lite-20261017T130319Z-pass2-ABCD0` 与 2 个改写 run（g2lite-20261017T130551Z-pass3a-rewrites, g2lite-20261017T130715Z-pass3b-move）生成。**48 份探索资料，不做区间统计；D0 是未训练的随机索引器；B 的名单按窗口几何确定，正确性另测；MPS 结果不推 CUDA。** 预测见 `reports/cards/G2lite_mac_m4max.md`。
 
-**2026-10-18 审查修订：仅由旧记录重生成，没有新增模型运行。** 旧运行配置 v2、运行源码 `af62df4` 与今日报告代码分开标识：生成提交 `c971953f7b3e445136047819b33da4e358282d5d`，文件 SHA-256 与输入文件清单见 `reports/g2lite_report_build.json`。旧 run manifest 保持原样；当前种子修复没有追溯性地修复旧 C 改写。
+**2026-10-18 审查修订：仅由旧记录重生成，没有新增模型运行。** 旧运行配置 v2、运行源码 `af62df4` 与今日报告代码分开标识：生成提交 `26c7d2080a25ca872de2b90bf3a3ff8f83b0f92c`，文件 SHA-256 与输入文件清单见 `reports/g2lite_report_build.json`。旧 run manifest 保持原样；当前种子修复没有追溯性地修复旧 C 改写。
 
 </details>
 
