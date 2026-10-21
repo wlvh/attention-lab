@@ -379,7 +379,7 @@ def main() -> int:
             for mk, b in table.items():
                 if mk.startswith("B@"):
                     L.append(f"| {cell} | {b['rho']:g} | {value_range(b['k0'])} | {value_range(b['selected'])} | {value_range(b['legal'])} | {value_range(b['candidate_fraction'], percent=True)} | {value_range(b['total_read_fraction'], percent=True)} |")
-        L.append('\n覆盖率只是选中目标位置的比例，不是注意力权重，也不是检索的必要或充分条件。目标记录“编号 1563：8422”在保存输入中占 11 个 token 位置，答案 8422 只占其中最后 4 个数字 token。一条文本记录对应多行 K/V，不能当作一行。整条记录覆盖与这四个数字位置的覆盖不同；即便某层组读齐答案数字 token 仍错，也只能说明读齐不足以保证答对，不能据此证明读齐不是必要条件。\n')
+        L.append('\n覆盖率只是选中目标位置的比例，不是注意力权重，也不是检索的必要或充分条件。目标记录“编号 1563：8422”在保存的目标正文范围中占 11 个 token 位置（不含行末换行），答案 8422 只占其中最后 4 个数字 token。一条文本记录对应多行 K/V，不能当作一行。整条记录覆盖与这四个数字位置的覆盖不同；即便某层组读齐答案数字 token 仍错，也只能说明读齐不足以保证答对，不能据此证明读齐不是必要条件。\n')
         # cases
         L.append("## 4. 代表案例（预登记规则：每个可用格子每类最多两份，按资料序号从小到大；标 † 的两类是看到结果后追加的对比，不在预登记内）\n")
         if not cases:
