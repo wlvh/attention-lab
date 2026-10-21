@@ -112,7 +112,7 @@ def main() -> int:
     # ---- markdown ----
     L = []
     L.append("# G1b 实测报告 · Mac M4 Max：把索引注意力装进 Qwen3-0.6B，整模型一步的 A 与 D\n")
-    L.append('这一阶段称 G1b，把索引读取接到真实 Qwen3-0.6B。每个 token 仍经过各层原来的 Q/K/V 投影、归一化、RoPE、输出投影和 MLP；只在注意力读取处，A 读全部位置，未训练的 D 先选位再读原 K/V。D 保留开头 4 个和最近 64 个位置，额外名额由请求第一步长度固定，测速使用 1/32。\n\n“原生”是 transformers 的完整读取；“封装”是本项目复用主体参数、接管缓存与读取的实现。DynamicCache 逐步拼接历史，StaticCache 与本项目 LabCache 预分配容量。先比较原生与封装的数值，再测从 token id 到词表分数的整步耗时；随机 token 只驱动执行，没有答题分数。具体接入过程见[第二课](02_qwen_integration_and_decode.html)。\n')
+    L.append('本报告加载真实 Qwen3-0.6B 权重，输入 token id，经过全部 28 层，最后取得下一 token 的词表分数，项目编号为 G1b。每层仍执行原 Q/K/V 投影、归一化、RoPE、输出投影、残差和 MLP；A 读取全部合法历史，未训练的 D 用索引选位后读取原 K/V。D 保留首 4/近 64，测速的额外名额由请求第一步长度乘 1/32 确定。\n\n先用相同 token 比较原库、封装 A 和全选 D 的词表分数及缓存，检查接入是否改变本应相同的计算；逐 token 与一次输入整段的差别另作参照。随后才做性能测量。\n\n测速先生成一串固定随机 token，各路径用完整注意力处理前 N0 个、实际计算各层缓存，D 同时建立索引表。固定长度单步每次退回这份前缀，再输入同一个新 token；连续测试则依次输入预存的后续 128 个 token，缓存逐步增长。模型每步的预测不决定下一次输入。这些是真实模型前向，输入却没有问答目标，因此没有任务分数。\n\n四条路径分别是原库＋DynamicCache（每步拼接历史）、原库＋StaticCache（预分配并写入）、本项目预分配缓存＋完整读取 A、同类缓存加索引表＋少读 D。它们分别维护缓存，使用相同主体权重。单步计时从 token id 到词表分数，前缀处理另计。具体过程见[第二课](02_qwen_integration_and_decode.html)。\n')
     L.append("<details><summary>运行版本与报告来源</summary>\n")
     L.append(f"由 `scripts/g1b_report.py` 从 {'1 个数值 run（' + num['run_id'] + '）' if num else '无数值 run'} 与 {len(runs)} 个测速 run（{', '.join(r['run_id'] for r in runs) or '无'}）生成。"
              f"**随机 token 只驱动执行；没有任务、没有质量结论；MPS 结果不推 CUDA。** 预测见 `{a.card}`。\n")

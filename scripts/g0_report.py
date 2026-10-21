@@ -30,7 +30,7 @@ def main() -> int:
     H = d["host"]; S = d["software"]
     L = []
     L.append("# G0 实测报告 · Mac M4 Max 环境、能力、带宽与索引路径原语成本\n")
-    L.append('这一阶段称 G0，测的是本机基础操作，还没有模型在生成文本。脚本先构造数组，再分别测矩阵乘、选位置和按名单取 K/V 行。以 32K 档为例，每个 KV 组有 32,768 个 128 维 K 和 V，已给定名单要求取 1,024 对；K 用 0.01、V 用 0.02 填充，并非从真实资料提取。\n\n报告中的 u 是当前查询的低维索引向量，z 是历史键的低维索引向量；它们点积产生选位分数。第 5 节的链路只测打分、top-k 和取行，没有测主注意力读出。第 6 节才用这些时间作预测，A 指完整读取，D 指先筛选再读取。完整读取链的真实对照在后续 G1a，讲解见[第一课](01_environment_and_attention.html)。\n')
+    L.append('本报告先检查这台 Mac 能否执行所需操作，再测它们各自花多少时间，项目编号为 G0。所有输入由程序构造，没有从文字或语言模型中提取。32K 取行档的每个 KV 组有 32,768 行 K 和 V、每行 128 个数，共 8 组；K 填 0.01，V 填 0.02。\n\n第 5 节先用随机生成的 32 维查询索引 u 与各位置的索引 z 点积，得到分数；再选最高的 1,024 个位置；最后按这些位置各取出 1,024 行原 K 和 V。三段分别计时：测选位时分数已备好，测取行时名单已备好。另有把三段接起来的计时，输出仍只是入选 K/V，没有计算主注意力的 softmax 和 V 加权。标题中的取行写法差异正是在相同名单下比较。\n\n第 2—4 节给出操作支持、数组读写和连续提交的测量；第 6 节据此估算后续完整注意力 A 与先选后读 D 的成本。把选择与主注意力真正接起来的实验称 G1a，计算过程见[第一课](01_environment_and_attention.html)。\n')
     L.append("<details><summary>运行版本与报告来源</summary>\n")
     L.append(f"run_id `{d['run_id']}`，UTC {d['utc_start']} 到 {d['utc_end']}。由 `scripts/g0_report.py` 从 `reports/g0_probe_mac_m4max.json` 与 `{a.roofline.name}` 生成。**这是本机测量与由此回填的 G1a 预测，不是 G1a 的结果，也不是任何 CUDA 结论。**\n")
     L.append("</details>\n")
@@ -64,6 +64,7 @@ def main() -> int:
     for key, v in P["bandwidth"].items():
         if isinstance(v, dict) and "copy" in v:
             L.append(f"| {key.replace('_', ' ')} | {v['copy']['gbps_median']:.0f} | {v['sum_read']['gbps_median']:.0f} | {v['mul_out']['gbps_median']:.0f} |")
+    L.append("这里的注意力形状扫描只计算当前 q 与整张 K 的点积，不读取 V、不计算完整注意力输出。预先分配 36 张独立 K：轮换条件依次用第 0 到 35 张；热读条件反复用第 0 张 36 次。没有层间输出传递。一次完整循环的耗时除以 36 才得到下方每套数组的时间。\n")
     sc = P["attention_scan_qk"]
     L.append(f"\n注意力形状的读：q[8,1,128]·Kᵀ，K 为 [8,{sc['n']},128] bf16，每层 {sc['k_bytes_per_layer']/2**20:.0f} MiB。{sc['layers']} 层轮换：**{sc['rotating_workset']['gbps_median']:.0f} GB/s**，每层 {sc['rotating_workset']['us_per_layer']:.0f} µs；同一层热读 {sc['layers']} 次：{sc['hot_same_layer']['gbps_median']:.0f} GB/s。两种访问顺序的有效带宽接近；本次没有测硬件缓存命中率，不能据此确定每次数据来自哪一级存储。")
     L.append(f"\n预测区间：只读 250 到 450，注意力扫描 150 到 350。实测只读约 {P['bandwidth']['4GiB_bfloat16']['sum_read']['gbps_median']:.0f}，扫描约 {sc['rotating_workset']['gbps_median']:.0f}，都落在预测区间上端或更高。三次运行中扫描带宽在 380 到 420 之间波动。回填 roofline 时取本次运行的扫描值 {bw/1e9:.0f} GB/s。\n")
@@ -71,7 +72,7 @@ def main() -> int:
     do = P["dispatch_overhead"]
     L.append(f"300 次连发后同步，每算子墙钟：tiny matmul {do['tiny_matmul_us_per_op']:.0f} µs，top-k（[8,4096] 取 32）{do['topk_4096_k32_us_per_op']:.0f} µs，index_select（4096 取 64 行）{do['index_select_64_of_4096_us_per_op']:.0f} µs。预测 15 到 60 µs，实测在区间内，但 top-k 偏高端。这是连续提交后一起等待完成的墙钟成本，不能单独分离 CPU 提交与 GPU 执行各占多少。\n")
     L.append("## 5. 索引路径逐原语成本（本报告最重要的发现）\n")
-    L.append("每层解码一步的索引读取路径：u·zᵀ 对候选打分、top-k（k=N/32）、按名单取 K 与 V。bf16，36 层轮换，每层 µs，中位数。\n")
+    L.append("每套数组依次做 u·zᵀ 打分、top-k（k=N/32）、按名单取 K 与 V。bf16，36 套独立数组依次访问；预热 2 轮、计量 8 轮，整轮耗时中位数除以 36，单位 µs。仍不含主注意力读出。\n")
     L.append("| N | k | 打分 zᵀ视图 | 打分 z 预转置 | top-k | gather 展开下标 | index_select 拉平 | 高级索引 | 链式 朴素 | 链式 最优 |\n|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
     ipc = P["index_path_cost"]
     for N in (8192, 16384, 32768):
