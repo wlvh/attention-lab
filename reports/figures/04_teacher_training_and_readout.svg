@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1260" viewBox="0 0 1440 1260" role="img" aria-labelledby="title desc">
+  <title id="title">训练改分数；选哪些位置、读出什么，另行检查</title>
+  <desc id="desc">完整模型提供固定Q/K/V。教师先对两个主查询头分别softmax，再平均概率，去掉固定位置并记录候选原总权重m_C，将候选重新归一化。索引分支用RoPE前Q/K，经仅可训练的Wq/Wk得到32维投影、候选分数与softmax。KL的梯度只更新Wq/Wk，不经过top-k、不更新主体。参数冻结后，top-k候选加固定位置，再用原主注意力加权V，比较两个256维局部读出，停在o_proj之前。</desc>
+  <metadata>Source: src/attention_lab/g3a.py::TrainableIndexer.forward,teacher,query_rows,loss_for_document,selection_metrics. Static teaching schematic. No new model run. Box sizes do not encode time, token count, or vector size.</metadata>
+  <defs>
+    <style>
+      text { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #14243a; }
+      .title { font-size:32px; font-weight:650; }
+      .heading { font-size:26px; font-weight:650; }
+      .body { font-size:22px; }
+      .small { font-size:20px; }
+      .note { font-size:20px; fill:#475569; }
+      .strong { font-weight:650; }
+      .center { text-anchor:middle; }
+      .teal { fill:#0f766e; }
+      .violet { fill:#6d28d9; }
+      .blue { fill:#1d4ed8; }
+      .amber { fill:#92400e; }
+      .line { fill:none; stroke:#64748b; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+      .arrow { marker-end:url(#arrow); }
+      .gradient { fill:none; stroke:#b45309; stroke-width:3; stroke-dasharray:8 6; marker-end:url(#gradient-arrow); }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8.7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill="#64748b"/></marker>
+    <marker id="gradient-arrow" viewBox="0 0 10 10" refX="8.7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill="#b45309"/></marker>
+  </defs>
+  <rect width="1440" height="1260" rx="20" fill="#fff"/>
+<text x="38" y="52" class="title" >训练改分数；选哪些位置、读出什么，另行检查</text>
+<text x="40" y="91" class="note" >第 14 层的冻结特征 · 下图放大同一个查询位置、同一个 KV 组（2 个查询头）</text>
+<rect x="170" y="122" width="1100" height="85" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5" />
+<text x="720.0" y="157.0" class="body center" >完整模型已提取：本组 2 个 128 维 Q，以及本步所有合法历史 K / V</text>
+<text x="720.0" y="188.0" class="body center" >这些输入保持固定；新增索引参数 Wq / Wk 才参与更新</text>
+<path d="M450 208 V224 H30 V330 H49" class="line arrow"/>
+<path d="M1010 208 V224 H730 V330 H749" class="line arrow"/>
+<text x="370" y="252" class="heading center teal" >教师：完整注意力把权重放在哪里</text>
+<text x="1055" y="252" class="heading center violet" >索引器：模仿候选位置上的分布</text>
+<rect x="50" y="280" width="640" height="100" rx="12" fill="#e7f6f1" stroke="#7dc8b4" stroke-width="1.5" />
+<text x="370.0" y="322.5" class="body center" >RoPE 后的主 Q / K</text>
+<text x="370.0" y="353.5" class="body center" >两个查询头分别打分、分别 softmax</text>
+<rect x="750" y="280" width="620" height="100" rx="12" fill="#f2ecff" stroke="#bba1e7" stroke-width="1.5" />
+<text x="1060.0" y="322.5" class="small center" >RoPE 前 Q 拼成 256 维 → Wq / √32 → u：32 维</text>
+<text x="1060.0" y="353.5" class="small center" >每个候选 K：128 维 → Wk → z：32 维</text>
+<path d="M370 381 V417" class="line arrow"/>
+<path d="M1060 381 V417" class="line arrow"/>
+<rect x="50" y="427" width="640" height="76" rx="12" fill="#e7f6f1" stroke="#7dc8b4" stroke-width="1.5" />
+<text x="370.0" y="473.0" class="body center" >同组两个头的概率取平均</text>
+<rect x="750" y="427" width="620" height="76" rx="12" fill="#f2ecff" stroke="#bba1e7" stroke-width="1.5" />
+<text x="1060.0" y="473.0" class="small center" >每个候选分数 = u · z（缩放已含在 u 中）</text>
+<path d="M370 504 V540" class="line arrow"/>
+<path d="M1060 504 V540" class="line arrow"/>
+<rect x="50" y="550" width="640" height="106" rx="12" fill="#e7f6f1" stroke="#7dc8b4" stroke-width="1.5" />
+<text x="370.0" y="595.5" class="small center" >去掉首 4 ＋近 64 的必留位置 F</text>
+<text x="370.0" y="626.5" class="small center" >记下候选原总权重 m_C，再在候选内归一化</text>
+<rect x="750" y="550" width="620" height="106" rx="12" fill="#f2ecff" stroke="#bba1e7" stroke-width="1.5" />
+<text x="1060.0" y="595.5" class="body center" >对候选分数做 softmax</text>
+<text x="1060.0" y="626.5" class="body center" >得到索引器的候选概率</text>
+<path d="M370 657 V689 H570 V720" class="line arrow"/>
+<path d="M1060 657 V689 H850 V720" class="line arrow"/>
+<rect x="480" y="730" width="480" height="76" rx="12" fill="#fff7ed" stroke="#edc38a" stroke-width="1.5" />
+<text x="720.0" y="776.0" class="small center strong" >KL（教师候选分布 ∥ 索引候选分布）</text>
+<path d="M961 768 H1410 V330 H1379" class="gradient"/>
+<text x="1053" y="729" class="small amber strong" >梯度只更新 Wq / Wk</text>
+<text x="720" y="844" class="note center" >训练用 48 份资料、固定 50 轮；每次更新后重新计算 u / z。主体参数与保存特征不更新。</text>
+<text x="720" y="880" class="note center" >候选原总权重 m_C ＜ 1e−4 的查询/组不参与这项 KL 更新；V 不参与 KL。</text>
+<text x="40" y="942" class="heading" >参数冻结后：用同一份特征，检查实际选位与局部读出</text>
+<rect x="40" y="977" width="320" height="122" rx="12" fill="#f2ecff" stroke="#bba1e7" stroke-width="1.5" />
+<text x="200.0" y="1016.0" class="body center" >索引分数 → top-k</text>
+<text x="200.0" y="1046.0" class="body center" >加上必留位置 F</text>
+<text x="200.0" y="1076.0" class="body center" >得到原位置名单</text>
+<path d="M361 1038 H405" class="line arrow"/>
+<rect x="415" y="977" width="525" height="122" rx="12" fill="#e7f6f1" stroke="#7dc8b4" stroke-width="1.5" />
+<text x="677.5" y="1016.0" class="small center" >取这些位置的原 K / V</text>
+<text x="677.5" y="1046.0" class="small center" >原主 Q/K 打分 → 子集内 softmax</text>
+<text x="677.5" y="1076.0" class="small center" >→ 加权对应 V</text>
+<path d="M941 1038 H985" class="line arrow"/>
+<rect x="995" y="977" width="405" height="122" rx="12" fill="#fff" stroke="#94a3b8" stroke-width="1.5" />
+<text x="1197.5" y="1016.0" class="small center" >两头各 128 维，共 256 维</text>
+<text x="1197.5" y="1046.0" class="small center" >与完整读取的 256 维比较</text>
+<text x="1197.5" y="1076.0" class="small center" >停在 o_proj 之前</text>
+<rect x="32" y="1132" width="1376" height="86" rx="12" fill="#f8fafc" stroke="#dce3ec" stroke-width="1.5" />
+<text x="54" y="1166" class="note" >索引分数只决定名单，不直接加权 V。top-k 不在 KL 的反向传播链上。</text>
+<text x="54" y="1197" class="note" >此处比较局部向量，没有将少读结果送入后续层，也没有据此生成答案。</text>
+</svg>
