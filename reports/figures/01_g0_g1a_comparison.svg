@@ -1,0 +1,178 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1190" viewBox="0 0 1440 1190" role="img" aria-labelledby="diagram-title diagram-desc">
+  <title id="diagram-title">G0 与 G1a：测量的终点不同</title>
+  <desc id="diagram-desc">按32K档、某一层某一个KV组示意。左侧G0分别对打分、top-k、取K/V计时，各项使用准备好的输入；另测三步短链，最终只得到1024个位置的完整128维K/V。右侧G1a比较完整A与索引D的整段读取：A对32768个位置做主注意力；D更新新位置索引、计算查询索引，给32700个候选打分并选1024个，与已备首4近64的68个位置合并，取1092个原K/V，再由主QK重新打分、softmax、加权V。A和D均输出每查询头128维的注意力向量。灰框为准备好的输入，虚线框为计时范围。图中的D采用D_full口径。两组均使用人工数组，未运行语言模型。</desc>
+  <metadata>Sources: scripts/g0_probe.py::index_path_cost; reports/provenance/microbench_at_formal_runs.py::LayerSet; reports/provenance/g1b/decode_at_g1a_g1b_runs.py::sparse_decode_step_kernel. Teaching schematic; no new model run; box size does not encode time.</metadata>
+  <defs>
+    <style>
+      text { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #14243a; }
+      .title { font-size: 32px; font-weight: 650; }
+      .panel-title { font-size: 27px; font-weight: 650; }
+      .body { font-size: 21px; }
+      .small { font-size: 18px; }
+      .note { font-size: 19px; fill: #475569; }
+      .strong { font-weight: 650; }
+      .center { text-anchor: middle; }
+      .blue { fill: #1d4ed8; }
+      .teal { fill: #0f766e; }
+      .violet { fill: #6d28d9; }
+      .amber { fill: #92400e; }
+      .line { fill: none; stroke: #64748b; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+      .arrow { marker-end: url(#arrow); }
+      .input { fill: #f1f5f9; stroke: #cbd5e1; stroke-width: 1.5; }
+      .output { fill: #fff; stroke: #94a3b8; stroke-width: 1.5; }
+      .g0-op { fill: #eaf2ff; stroke: #93b4ef; stroke-width: 1.5; }
+      .a-op { fill: #e7f6f1; stroke: #7dc8b4; stroke-width: 1.5; }
+      .d-op { fill: #f2ecff; stroke: #bba1e7; stroke-width: 1.5; }
+      .timed { fill: none; stroke-width: 2.4; stroke-dasharray: 7 6; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <rect width="1440" height="1190" rx="20" fill="#fff"/>
+  <text x="38" y="52" class="title">G0 与 G1a：测量的终点不同</text>
+  <text x="40" y="88" class="note">32K 档示意 · 数量均按某一层、某一 KV 组计算 · 原 K/V 各 128 维，索引向量 32 维</text>
+  <rect x="32" y="111" width="1376" height="48" rx="10" fill="#f8fafc"/>
+  <rect x="50" y="124" width="27" height="21" rx="4" class="input"/>
+  <text x="88" y="141" class="note">灰框：计时前已准备的数据</text>
+  <rect x="432" y="123" width="29" height="23" rx="4" class="timed" stroke="#64748b"/>
+  <text x="474" y="141" class="note">虚线框：计时范围</text>
+  <path d="M 733 135 H 772" class="line arrow"/>
+  <text x="786" y="141" class="note">箭头：本次计算的数据流</text>
+  <text x="1170" y="141" class="note">框宽不表示耗时</text>
+
+  <!-- G0: isolated primitive timing, with independently prepared intermediate inputs. -->
+  <g id="g0-panel">
+    <rect x="32" y="183" width="630" height="859" rx="16" fill="#fbfdff" stroke="#cbd9ed" stroke-width="1.5"/>
+    <rect x="32" y="183" width="630" height="7" rx="3" fill="#2563eb"/>
+    <text x="56" y="229" class="panel-title blue">G0 · 把操作拆开测</text>
+    <text x="56" y="263" class="note">三项独立计时：下一行不接上一行的输出</text>
+
+    <text x="140" y="306" class="small center">计时前已备</text>
+    <text x="330" y="306" class="small center blue strong">本项计时</text>
+    <text x="538" y="306" class="small center">本项产物</text>
+
+    <rect x="56" y="337" width="168" height="88" rx="10" class="input"/>
+    <text x="140" y="371" class="small center">查询索引 u</text>
+    <text x="140" y="402" class="small center">32,768 个索引 z</text>
+    <path d="M 225 381 H 241" class="line arrow"/>
+    <rect x="238" y="327" width="184" height="108" rx="13" class="timed" stroke="#2563eb"/>
+    <rect x="247" y="337" width="166" height="88" rx="10" class="g0-op"/>
+    <text x="330" y="370" class="body center blue strong">① 点积打分</text>
+    <text x="330" y="401" class="small center">u 与各位置 z 点积</text>
+    <path d="M 423 381 H 435" class="line arrow"/>
+    <rect x="440" y="337" width="198" height="88" rx="10" class="output"/>
+    <text x="539" y="371" class="body center strong">32,768 个分数</text>
+    <text x="539" y="402" class="small center">每个位置一个分数</text>
+
+    <rect x="56" y="464" width="168" height="88" rx="10" class="input"/>
+    <text x="140" y="499" class="small center">准备好的</text>
+    <text x="140" y="530" class="small center">32,768 个分数</text>
+    <path d="M 225 508 H 241" class="line arrow"/>
+    <rect x="238" y="454" width="184" height="108" rx="13" class="timed" stroke="#2563eb"/>
+    <rect x="247" y="464" width="166" height="88" rx="10" class="g0-op"/>
+    <text x="330" y="498" class="body center blue strong">② 选位置</text>
+    <text x="330" y="529" class="small center">top-k，取 1,024 个</text>
+    <path d="M 423 508 H 435" class="line arrow"/>
+    <rect x="440" y="464" width="198" height="88" rx="10" class="output"/>
+    <text x="539" y="499" class="body center strong">1,024 个位置</text>
+    <text x="539" y="530" class="small center">一份原位置名单</text>
+
+    <rect x="56" y="591" width="168" height="88" rx="10" class="input"/>
+    <text x="140" y="625" class="small center">准备好的名单</text>
+    <text x="140" y="656" class="small center">＋原 K/V 数组</text>
+    <path d="M 225 635 H 241" class="line arrow"/>
+    <rect x="238" y="581" width="184" height="108" rx="13" class="timed" stroke="#2563eb"/>
+    <rect x="247" y="591" width="166" height="88" rx="10" class="g0-op"/>
+    <text x="330" y="625" class="body center blue strong">③ 按名单取行</text>
+    <text x="330" y="656" class="small center">取完整 K、V 向量</text>
+    <path d="M 423 635 H 435" class="line arrow"/>
+    <rect x="440" y="591" width="198" height="88" rx="10" class="output"/>
+    <text x="539" y="625" class="body center strong">K：1,024 × 128</text>
+    <text x="539" y="656" class="body center strong">V：1,024 × 128</text>
+
+    <rect x="56" y="713" width="582" height="46" rx="9" fill="#fff4df"/>
+    <text x="347" y="742" class="note center amber">标题中的约 25 倍，指第③项两种取行写法的耗时差</text>
+
+    <text x="56" y="803" class="body strong">也测短链：三步连续执行</text>
+    <rect x="56" y="824" width="582" height="88" rx="12" class="timed" stroke="#2563eb"/>
+    <rect x="72" y="840" width="150" height="56" rx="9" class="g0-op"/>
+    <text x="147" y="876" class="body center blue strong">本次打分</text>
+    <path d="M 224 868 H 248" class="line arrow"/>
+    <rect x="254" y="840" width="150" height="56" rx="9" class="g0-op"/>
+    <text x="329" y="876" class="body center blue strong">本次选位</text>
+    <path d="M 406 868 H 430" class="line arrow"/>
+    <rect x="436" y="840" width="186" height="56" rx="9" class="g0-op"/>
+    <text x="529" y="876" class="body center blue strong">按新名单取 K/V</text>
+    <rect x="56" y="937" width="582" height="80" rx="10" fill="#fff7ed" stroke="#f2c997"/>
+    <text x="347" y="969" class="body center amber strong">终点：入选 K/V，尚未得到注意力读出</text>
+    <text x="347" y="997" class="small center amber">这条短链没有主 softmax，也没有 V 加权</text>
+  </g>
+
+  <!-- G1a: real kernel dependencies, two separately timed whole read paths. -->
+  <g id="g1a-panel">
+    <rect x="690" y="183" width="718" height="859" rx="16" fill="#fdfcfe" stroke="#d8d2e7" stroke-width="1.5"/>
+    <rect x="690" y="183" width="718" height="7" rx="3" fill="#7c3aed"/>
+    <text x="714" y="229" class="panel-title violet">G1a · 测完整的注意力读取</text>
+    <text x="714" y="263" class="note">同一份主 Q/K/V，对照 A 与 D 两条整段流程</text>
+    <rect x="714" y="281" width="670" height="65" rx="10" class="input"/>
+    <text x="1049" y="307" class="small center">已备主 Q/K/V；D 另备索引参数、已有历史 z、本步索引输入</text>
+    <text x="1049" y="332" class="small center">G1a 主输入为随机数组；首 4 ＋近 64 的必留名单也已准备好</text>
+
+    <text x="844" y="377" class="body center teal strong">A · 完整读取</text>
+    <text x="1194" y="377" class="body center violet strong">D · 选择＋读取（D_full）</text>
+    <rect x="718" y="390" width="252" height="509" rx="12" class="timed" stroke="#0f766e"/>
+    <rect x="1006" y="390" width="378" height="509" rx="12" class="timed" stroke="#7c3aed"/>
+
+    <path d="M 726 347 V 399 H 844 V 406" class="line arrow"/>
+    <rect x="734" y="412" width="220" height="99" rx="10" class="a-op"/>
+    <text x="844" y="451" class="body center teal strong">主 QK 打分</text>
+    <text x="844" y="484" class="small center">全部 32,768 个位置</text>
+    <path d="M 844 512 V 550" class="line arrow"/>
+    <rect x="734" y="557" width="220" height="98" rx="10" class="a-op"/>
+    <text x="844" y="596" class="body center teal strong">softmax</text>
+    <text x="844" y="628" class="small center">在全部位置上归一化</text>
+    <path d="M 844 656 V 775" class="line arrow"/>
+    <rect x="734" y="782" width="220" height="96" rx="10" class="a-op"/>
+    <text x="844" y="823" class="body center teal strong">加权全部 V</text>
+    <text x="844" y="854" class="small center">使用全部 32,768 个位置</text>
+    <path d="M 844 879 V 926" class="line arrow"/>
+    <rect x="734" y="933" width="220" height="62" rx="10" class="output"/>
+    <text x="844" y="958" class="body center teal strong">注意力读出 o_A</text>
+    <text x="844" y="982" class="small center">4 个查询头各 128 维</text>
+
+    <path d="M 1374 347 V 399 H 1198 V 406" class="line arrow"/>
+    <rect x="1034" y="412" width="328" height="75" rx="10" class="d-op"/>
+    <text x="1198" y="442" class="small center violet strong">为最新位置写入索引 z</text>
+    <text x="1198" y="470" class="small center violet strong">为当前查询计算索引 u</text>
+    <path d="M 1272 488 V 519" class="line arrow"/>
+    <path d="M 1022 347 H 1018 V 573 H 1028" class="line arrow"/>
+    <rect x="1034" y="526" width="128" height="98" rx="10" class="input"/>
+    <text x="1098" y="559" class="small center">已备 68 位置</text>
+    <text x="1098" y="591" class="small center">首 4 ＋近 64</text>
+    <rect x="1182" y="526" width="180" height="98" rx="10" class="d-op"/>
+    <text x="1272" y="552" class="small center">32,700 个候选</text>
+    <text x="1272" y="580" class="small center violet strong">打分 → top-k</text>
+    <text x="1272" y="609" class="body center violet strong">选 1,024 个</text>
+    <path d="M 1098 625 V 648 H 1198 M 1272 625 V 648 H 1198" class="line"/>
+    <circle cx="1198" cy="648" r="3.5" fill="#64748b"/>
+    <path d="M 1198 650 V 669" class="line arrow"/>
+    <rect x="1034" y="676" width="328" height="73" rx="10" class="d-op"/>
+    <text x="1198" y="705" class="body center violet strong">68 ＋ 1,024 ＝ 1,092 个位置</text>
+    <text x="1198" y="734" class="small center">取出这些位置的原 K/V</text>
+    <path d="M 1198 750 V 775" class="line arrow"/>
+    <rect x="1034" y="782" width="328" height="96" rx="10" class="d-op"/>
+    <text x="1198" y="820" class="body center violet strong">原 Q/K 打分 → softmax</text>
+    <text x="1198" y="853" class="body center violet strong">→ 加权入选的 V</text>
+    <path d="M 1198 879 V 926" class="line arrow"/>
+    <rect x="1034" y="933" width="328" height="62" rx="10" class="output"/>
+    <text x="1198" y="958" class="body center violet strong">注意力读出 o_D</text>
+    <text x="1198" y="982" class="small center">4 个查询头各 128 维</text>
+    <text x="1049" y="1025" class="body center strong">比较两条整段耗时；输出类型相同，数值不必相同</text>
+  </g>
+
+  <rect x="32" y="1066" width="1376" height="93" rx="12" fill="#f8fafc" stroke="#dce3ec"/>
+  <text x="54" y="1098" class="note">两组各自构造测试数组：G0 的 K/V 填常数，G1a 的主输入随机；索引未训练，不检验答题能力。</text>
+  <text x="54" y="1128" class="note">计时不含主体 Q/K/V 投影、RoPE、输出投影或 MLP。G1a 的历史索引表已备，只为最新位置补索引。</text>
+</svg>
