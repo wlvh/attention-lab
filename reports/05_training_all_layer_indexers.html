@@ -7862,7 +7862,7 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="2.-%E9%80%90%E5%B1%82%E8%AE%AD%E7%BB%83%EF%BC%8C%E4%BF%9D%E6%8C%81%E4%B8%BB%E6%A8%A1%E5%9E%8B%E4%B8%8D%E5%8A%A8">2. 逐层训练，保持主模型不动<a class="anchor-link" href="#2.-%E9%80%90%E5%B1%82%E8%AE%AD%E7%BB%83%EF%BC%8C%E4%BF%9D%E6%8C%81%E4%B8%BB%E6%A8%A1%E5%9E%8B%E4%B8%8D%E5%8A%A8">¶</a></h2><p>对当前目标层，主模型在 MPS/bf16 上完整处理每份资料和问题，只保存这一层后缀倒数第 24/16/8/1 个位置的 Q，以及对应历史 K/V。64 份该层特征 detach 后存放在 CPU 内存；教师在 CPU/fp32 计算。</p>
+<h2 id="2.-%E9%80%90%E5%B1%82%E8%AE%AD%E7%BB%83%EF%BC%8C%E4%BF%9D%E6%8C%81%E4%B8%BB%E6%A8%A1%E5%9E%8B%E4%B8%8D%E5%8A%A8">2. 逐层训练，保持主模型不动<a class="anchor-link" href="#2.-%E9%80%90%E5%B1%82%E8%AE%AD%E7%BB%83%EF%BC%8C%E4%BF%9D%E6%8C%81%E4%B8%BB%E6%A8%A1%E5%9E%8B%E4%B8%8D%E5%8A%A8">¶</a></h2><p>对当前目标层，主模型在 MPS/bf16 上完整处理每份资料和问题，只保存这一层后缀倒数第 24/16/8/1 个位置的 Q，以及对应历史 K/V。本批固定模板中，四个位置分别是问句里的“数值”“四位”、用户消息结束标记后的换行、空 thinking 模板后的两个换行；后缀共有 35 个 token，其中问句占 26 个。64 份该层特征 detach 后存放在 CPU 内存；教师在 CPU/fp32 计算。</p>
 <p>随后更新这一层新增的 Wq/Wk。以第 1 层为例，一轮依次读取 48 份训练资料：每份取四个查询位置，每个查询有 8 个 KV 组；用当前 Wq/Wk 给候选历史位置打分，将候选 softmax 与完整注意力提供的候选分布比较，汇总有效查询/组的 KL，再做一次参数更新。固定做 50 轮，旧 16 份开发资料不进入这些更新。</p>
 <p>评测时拿同一份保存的 Q/K/V 分别运行 C、初始索引 D0、最终索引 D 和教师选位 R。各方法选好位置后，合并首部/近期必留位置，用原主注意力权重在入选集合内重新归一化并加权 V，再与完整读出比较。<strong>这份局部读出在比较后结束，不会送入第 2 层。</strong></p>
 <p>第 1 层参数和指标保存后，释放临时特征；处理第 2 层时，再让未改的完整模型提供第 2 层特征。依此处理其余层，第 14 层直接复用原参数。各层有各自的 Wq/Wk，训练好的前层没有部署进来，也没有同时通过一个整模型损失更新 28 层。训练在 MPS/fp32，最终局部评测在 CPU/fp32。</p>
@@ -8200,8 +8200,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="3.-%E4%B8%8D%E6%8A%8A%E7%AC%AC-14-%E5%B1%82%E7%9A%84%E6%88%90%E5%8A%9F%E4%B9%98%E4%BB%A5-28">3. 不把第 14 层的成功乘以 28<a class="anchor-link" href="#3.-%E4%B8%8D%E6%8A%8A%E7%AC%AC-14-%E5%B1%82%E7%9A%84%E6%88%90%E5%8A%9F%E4%B9%98%E4%BB%A5-28">¶</a></h2><p>全部层都报告，灰带是复用的第 14 层。<strong>KL</strong>比较教师和索引在候选域的条件分布；<strong>coverage</strong>是入选候选保留的教师权重占候选总权重的比例；<strong>m_C</strong>是候选域在完整教师中原有的总权重。这里不数目标记录的位置。</p>
-<p><strong>相对 L2</strong>是在同一份完整路径特征上，比较子集与完整注意力的 <code>o_proj</code> 前读出，分母为完整读出范数。每项先在资料内平均查询/组，再平均资料。它们都是旧开发集的局部指标，不是整模型回答分数。</p>
-<p>m_C 过小的查询/组保留跳过状态，不填成零误差；均匀教师下，同名额的 coverage 本就可能相近。</p>
+<p><strong>相对 L2</strong>是在同一份完整路径特征上，比较子集与完整注意力的 <code>o_proj</code> 前读出。一次比较对应一个查询位置、一个 KV 组：将本组两个头的 128 维输出合成 256 维，计算少读与完整读出的差，分母为完整 256 维读出的范数。每项先在资料内平均查询/组，再平均资料。它们都是旧开发集的局部指标，不是整模型回答分数。</p>
+<p>当某个查询/组的候选总权重 <code>m_C&lt;1e-4</code> 时，这一行不参与 KL 训练，也不纳入 KL、条件 coverage 的均值。<strong>候选总权重、遗漏完整权重和局部输出 RMSE/相对 L2 仍然计算并保留。</strong> “跳过”不表示整行数据无效，也不把未纳入的指标填成零。均匀教师下，同名额的 coverage 本就可能相近。</p>
 <p>本批 28 层在旧开发资料上的平均 KL、条件覆盖率、局部输出相对 L2 都相对 D0 改善。这个“28/28”以层为单位、使用旧开发资料，不是 28 次独立验证，也不是 28 层共同生成通过。</p>
 </div>
 </div>

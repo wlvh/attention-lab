@@ -7834,7 +7834,7 @@ a.anchor-link {
 </tr>
 </tbody>
 </table>
-<p>B/C/D0/D 的额外名额相同，都按请求第一步长度的 1/8 确定并保持固定。索引使用主 RoPE 前 Q/K 的 32 维投影，不在索引空间额外旋转；配置称“索引位置设置 P0，r=32”。实际比例在第 5 节按当前步骤计算。</p>
+<p>首 4 个和最近 64 个必留位置合称 <strong>F</strong>。B/C/D0/D 的额外名额相同，都按请求第一步长度的 1/8 确定并保持固定。这里的名额按每层、每个 KV 组分配，同组查询头共用名单；不同层或组的额外名单可以不同。索引使用主 RoPE 前 Q/K 的 32 维投影，不在索引空间额外旋转；配置称“索引位置设置 P0，r=32”。实际比例在第 5 节按当前步骤计算。</p>
 <p>项目把本阶段称为 <strong>G4-lite：新题质量与成本对照</strong>。运行前预测是训练后 D 可能优于 D0/C，但局部选位学得好不保证独立回答恢复，选位成本也可能使它更慢。资料、提示和参数在新测试前固定；默认只读旧回答和成本记录，不运行模型。</p>
 </div>
 </div>
@@ -8146,7 +8146,7 @@ D 原文= '9168&lt;|im_end|&gt;' 解析= ['9168'] 对= False
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="4.-%E7%9C%8B%E5%88%B0%E5%90%8D%E5%8D%95%EF%BC%8C%E4%BB%8D%E4%B8%8D%E8%83%BD%E6%8A%8A%E5%AE%83%E5%BD%93%E4%BF%A1%E6%81%AF%E6%9D%A5%E6%BA%90%E7%9A%84%E5%AE%8C%E6%95%B4%E5%9C%B0%E5%9B%BE">4. 看到名单，仍不能把它当信息来源的完整地图<a class="anchor-link" href="#4.-%E7%9C%8B%E5%88%B0%E5%90%8D%E5%8D%95%EF%BC%8C%E4%BB%8D%E4%B8%8D%E8%83%BD%E6%8A%8A%E5%AE%83%E5%BD%93%E4%BF%A1%E6%81%AF%E6%9D%A5%E6%BA%90%E7%9A%84%E5%AE%8C%E6%95%B4%E5%9C%B0%E5%9B%BE">¶</a></h2><p>下图是同一题首个答案预测处，D0/D在第1、14、28层、KV组0的实际原位置名单。横轴是原token位置；粉色带是整条目标记录，包含编号和标点，不等同于四个值token。</p>
+<h2 id="4.-%E7%9C%8B%E5%88%B0%E5%90%8D%E5%8D%95%EF%BC%8C%E4%BB%8D%E4%B8%8D%E8%83%BD%E6%8A%8A%E5%AE%83%E5%BD%93%E4%BF%A1%E6%81%AF%E6%9D%A5%E6%BA%90%E7%9A%84%E5%AE%8C%E6%95%B4%E5%9C%B0%E5%9B%BE">4. 看到名单，仍不能把它当信息来源的完整地图<a class="anchor-link" href="#4.-%E7%9C%8B%E5%88%B0%E5%90%8D%E5%8D%95%EF%BC%8C%E4%BB%8D%E4%B8%8D%E8%83%BD%E6%8A%8A%E5%AE%83%E5%BD%93%E4%BF%A1%E6%81%AF%E6%9D%A5%E6%BA%90%E7%9A%84%E5%AE%8C%E6%95%B4%E5%9C%B0%E5%9B%BE">¶</a></h2><p>下图是同一题首个答案预测处，D0/D在第1、14、28层、KV组0的实际原位置名单。横轴是原token位置；粉色带是整条目标记录，本例 <code>编号 6688：8586</code> 的目标正文范围占 11 个 token 位置（不含行末换行）；四位答案 8586 只占末尾 4 个数字 token。文本中的一条记录因而对应多行 K/V，而不是一行。</p>
 <p>两条自由路径的问题阶段表示已各自演变，不能把选位变化全部归为同一份Q/K上参数的作用。直接未选中目标记录，也不证明该信息从未影响所读缓存；资料Prefill是完整的。</p>
 <p>图里的组 0 是固定展示的第一组，正文第 14 层在代码中下标为 13。保存的 <code>bitsets</code> 是原位置名单的位图，解包只还原旧名单，不重新运行选位。</p>
 </div>
@@ -8188,14 +8188,14 @@ D 原文= '9168&lt;|im_end|&gt;' 解析= ['9168'] 对= False
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="5.-%E5%90%8C%E4%B8%80%E4%B8%AA%E5%90%8D%E9%A2%9D%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E5%87%BA%E7%8E%B0%E4%B8%89%E4%B8%AA%E8%AF%BB%E5%8F%96%E6%AF%94%E4%BE%8B%EF%BC%9F">5. 同一个名额，为什么会出现三个读取比例？<a class="anchor-link" href="#5.-%E5%90%8C%E4%B8%80%E4%B8%AA%E5%90%8D%E9%A2%9D%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E5%87%BA%E7%8E%B0%E4%B8%89%E4%B8%AA%E8%AF%BB%E5%8F%96%E6%AF%94%E4%BE%8B%EF%BC%9F">¶</a></h2><p>沿用上一节的真实案例 <code>G4lite-T1-2K-00</code>：资料前缀有 2,008 个 token，问题和模板尾部共 35 个。输入第一个问题 token 后，可读位置有 2,009 个；本次请求的额外名额取 <code>round(2009/8)=251</code>，随后固定。这就是配置 <strong>ρ=1/8</strong> 的使用位置。</p>
+<h2 id="5.-%E5%90%8C%E4%B8%80%E4%B8%AA%E5%90%8D%E9%A2%9D%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E5%87%BA%E7%8E%B0%E4%B8%89%E4%B8%AA%E8%AF%BB%E5%8F%96%E6%AF%94%E4%BE%8B%EF%BC%9F">5. 同一个名额，为什么会出现三个读取比例？<a class="anchor-link" href="#5.-%E5%90%8C%E4%B8%80%E4%B8%AA%E5%90%8D%E9%A2%9D%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E5%87%BA%E7%8E%B0%E4%B8%89%E4%B8%AA%E8%AF%BB%E5%8F%96%E6%AF%94%E4%BE%8B%EF%BC%9F">¶</a></h2><p>以下数量都按<strong>本步某一层、某一个 KV 组</strong>计算。沿用上一节的真实案例 <code>G4lite-T1-2K-00</code>：资料前缀有 2,008 个 token，问题和模板尾部共 35 个。输入第一个问题 token 后，可读位置有 2,009 个；本次请求的额外名额取 <code>round(2009/8)=251</code>，随后固定。这就是配置 <strong>ρ=1/8</strong> 的使用位置。</p>
 <p>处理完问题和模板尾部、准备预测首个答案时，可读位置已增加到 <strong>2,043 个</strong>。其中首 4 个和最近 64 个共 68 个必留，代码记作 F；剩下 <strong>1,975 个候选位置</strong>。少读方法再从候选中选 251 个，因此：</p>
 <ul>
 <li>名额参数：1/8 = 12.5%，用于请求开始时算出 251。</li>
 <li>候选抽取比例：251/1,975 ≈ 12.71%，表示从本步候选中取了多少。</li>
-<li>总读取比例：(68+251)/2,043 ≈ 15.61%，表示主注意力最终使用了多少合法位置。</li>
+<li>总读取比例：(68+251)/2,043 ≈ 15.61%，表示这一层、这一 KV 组的主注意力使用了多少合法位置。</li>
 </ul>
-<p>表中的符号只是这几个对象的简称：N 为本步合法位置数，M 为去掉必留位置后的候选数，k 为实际选中的候选数。<strong>不能把“ρ=1/8”说成“主注意力只读全部历史的 12.5%”。</strong> 回答继续生成时，名额仍是 251，最近 64 个位置及其他入选位置可以变化，两个实际比例的分母也继续增长。</p>
+<p>表中的符号只是这几个对象的简称：N 为本步合法位置数，M 为去掉必留位置后的候选数，k 为实际选中的候选数。<strong>不能把“ρ=1/8”说成“主注意力只读全部历史的 12.5%”。</strong> 319 也不是整个模型所有层、所有组名单合并后的不同位置总数；各层组可以选中不同位置。回答继续生成时，名额仍是 251，最近 64 个位置及其他入选位置可以变化，两个实际比例的分母也继续增长。</p>
 <p>下表汇总 32 份资料在首个答案预测处的实际范围。A 读齐全部历史，没有候选配额；空值不表示它不读取。</p>
 <p>每步用完一份名单，也不会删除其他位置的 K/V：下一个查询可能选中不同位置。完整 K/V 因而继续保留，D0/D 另外保存索引键 z。<code>make_trained_state</code> 建立这两类缓存，<code>FrozenBank</code> 持有各层固定索引参数。</p>
 <p>当前额外存储量可以直接按配置核算：每层、每组、每位置的索引 z 用 <code>32×4</code> 字节，主 K+V 用 <code>2×128×2</code> 字节，所以索引缓存占主 K/V 缓存的 <strong>25%</strong>。它对应表中 A 约 231.4 MiB、D 约 289.3 MiB 的数组分配量，不能解释成整个进程内存增长 25%。</p>
@@ -8365,7 +8365,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="highlight"><pre><span></span>质量：输入问题 → 预测下一个 token → 把自己选出的 token 送回 → 继续预测 → 遇 EOS 停
 成本：输入问题 → 依次输入预先固定的 32 个 token → 每次预测都不决定下次输入 → 输入满 32 个
 </pre></div>
-<p>成本序列由 A 事先产生，所有方法输入同一串，即使中途含 EOS 也继续。这样比较的是同样 32 次前向，不会把少生成几个 token 算成提速；这些控制输出不参与评分。处理问题最后一个 token 时已经预测了首个答案，计时表里的 32 次是随后另外执行的前向。</p>
+<p>成本序列由 A 事先产生，所有方法输入同一串，即使中途含 EOS 也继续。这样比较的是同样 32 次前向，不会把少生成几个 token 算成提速；这些控制输出不参与评分。处理完问题及聊天模板后缀的最后一个 token 时已经预测了首个答案，计时表里的 32 次是随后另外执行的前向。</p>
 <p><strong>问题怎样输入也影响成本。</strong> 表中的 A（A-step）把已知问题逐 token 输入，与少读方法对齐；A-best 一次输入整个已知问题，再逐 token 输入那串相同的控制序列。两者都完整读取历史，只是已知问题的处理方式不同。</p>
 <div class="highlight"><pre><span></span>新缓存请求的计时范围：分配缓存 → 完整处理资料（D 还建索引）→ 处理问题 → 32 次控制前向
                                                                └ 问题秒       └ 控制前向秒

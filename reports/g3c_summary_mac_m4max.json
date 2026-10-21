@@ -1,7 +1,7 @@
 {
   "run_id": "g3c-20261018T153929Z",
   "source_commit": "514c8138d41c4001633e15f5ef4ab4250d44a4b0",
-  "report_source_sha256": "ebe94a7bb9d79889133c80abae8c6461c09d40ecae940cd7bd198703e0218e04",
+  "report_source_sha256": "5e43354d38e7c68c9f80993e1e71979b045858263959de2e01f9d04e9e03871e",
   "archive_sha256": "0818904fb1e139a06418ecb6da9ba45b486503811f96a554f9e4e05e48e95a80",
   "scope": "4 old development docs, identical controlled token inputs; NOT free-generation accuracy",
   "full_selection": [

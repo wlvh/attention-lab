@@ -1,7 +1,7 @@
 {
   "run_id": "g3b-20261018T142640Z-formal",
   "run_commit": "2b6db0bc95641403ce5d728bcdbc4a16c209cf4a",
-  "report_source_sha256": "2515b3fd60aea285769c17ed0343249f3cb0f5b94fddde209b18793293360cf0",
+  "report_source_sha256": "828e7510fb79f16ebf1ab27cad68e4b5075a71d605b8e75bff453292f98238a2",
   "archive_sha256": "139516a9df1a470a59e3f9d2658bd612ce15c52293f90a6b04063192bd50f26f",
   "scope": "28 layers on frozen full-path features; old development documents, not a new independent validation set",
   "layers": [

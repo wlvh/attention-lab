@@ -7827,6 +7827,7 @@ a.anchor-link {
 </tbody>
 </table>
 <p>文中把每步必留的首 4 个和最近 64 个位置合称 <strong>F</strong>。额外名额在输入第一个问题 token 时确定：当时可读位置数乘 <strong>ρ</strong> 后取整，本课分别使用 ρ=1/32 和 1/8；以后名额不再随回答变长。F 之外的可选位置称候选，它们的数量记为 <strong>M</strong>，本步实际选中的候选数记为 <strong>k</strong>。因此后面的 k/M 说的是“从剩余位置中抽了多少”，不包含 F；第 2 节用一份真实资料逐步算出这些数。</p>
+<p>这里的名额和读取数均指<strong>本步某一层、某一个 KV 组</strong>；同组查询头共用名单。不同层或不同组的额外名单可以不同，因此这个数不是整个模型所有名单合并去重后的 token 数。</p>
 <p><strong>C 随机选择位置，D0 随机初始化参数。</strong> D0 的名单仍取决于输入内容，二者是不同对照。各方法独立处理问题和自己生成的回答；具体的缓存与名额过程在第 2 节用这份资料展开。</p>
 <p>本课对应 <strong>G2-lite：小规模任务质量对照</strong>，48 份探索资料；第二课的真实模型测速称 G1b，没有稳定达到 10% 收益门槛。这里单独检查回答质量，不把探索样本外推成总体能力。记录来自 Mac M4 Max / MPS；默认只读记录和执行随机小模型的 CPU 检查。</p>
 <p><strong>数据版本。</strong> v1 是早期密集记录表；正式 v2 用 16 条记录穿插填充句；v3 后来修正 C 的随机条件，尚未用于新的这组模型运行。旧 C 改写同时改变了资料与随机名单，不能当作单变量证据。冻结主表仍使用原 v2 记录。</p>
@@ -7876,7 +7877,7 @@ src/attention_lab/qwen_wrap.py 运行时源码核对通过 当前已修复；旧
 src/attention_lab/g2lite_data.py 运行时源码核对通过 当前文件相同
 src/attention_lab/g2lite_eval.py 运行时源码核对通过 当前已修复；旧版本由快照保留
 bench/g2lite_quality.py 运行时源码核对通过 当前已修复；旧版本由快照保留
-报告生成提交: dc1cf8ad85618bd5b5295ebaf8b4ad45460b002b | 新模型运行: False
+报告生成提交: cbd85b1faba861652500fe8d0745bd79f47b070f | 新模型运行: False
 旧数据版本: [2] | 当前修复配置: 3 NOT_RUN
 </pre>
 </div>
@@ -7939,7 +7940,7 @@ bench/g2lite_quality.py 运行时源码核对通过 当前已修复；旧版本�
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
-<pre>W1021 15:22:55.562000 53365 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+<pre>W1022 02:27:33.647000 27414 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
 </pre>
 </div>
 </div>
@@ -8153,6 +8154,10 @@ D0  读取数 81 = 81  含 F: True  额外 13 个候选: [4, 6, 7, 12, 13, 15, 1
                                ├→ C：输入问题 → 自己生成 → 更新自己的缓存
                                └→ D0：输入问题 → 自己生成 → 更新自己的缓存
 </pre></div>
+<p><strong>问题后面还有哪些输入？</strong> 在 <code>T1-2K-00</code> 中，问句“问题：编号 1563 对应的数值是多少？只输出该编号对应的四位数值，不要输出编号。”占 26 个 token；聊天模板随后追加以下字符串，另占 9 个 token（下面用 <code>\n</code> 显示实际换行）：</p>
+<div class="highlight"><pre><span></span>&lt;|im_end|&gt;\n&lt;|im_start|&gt;assistant\n&lt;think&gt;\n\n&lt;/think&gt;\n\n
+</pre></div>
+<p>所以问题加模板后缀共 35 个 token。这里空的 <code>&lt;think&gt;…&lt;/think&gt;</code> 是模板预先加入的输入，不是模型生成的思考文本。<strong>处理完末尾的 <code>\n\n</code>（一个 token）后，模型才预测首个答案 token。</strong> 下文“首个答案预测处”都指这个位置，不是问句句号所在的位置。前缀的 token 位置也从聊天模板开头计算；本例首 4 个 token 是 <code>&lt;|im_start|&gt;</code>、<code>user</code>、换行和“下面”，并不是四条资料记录。</p>
 <p>代码把这个顺序命名为 <code>document_dense_then_sparse</code>。问题和模板尾部逐 token 处理；随后贪心生成，最多 64 个新 token，遇 EOS 停止。改写资料后，另做一次完整 Prefill，不沿用原资料的缓存。</p>
 <p><strong>怎样判回答。</strong> 取回答最前面的一个（T1）或两个（T2）独立四位数，与目标按顺序比较，字段为 <code>exact_match</code>。若先输出问题编号，即使后面再给正确值也判错；这种复述编号的错误叫“编号回声”。另外记录整段是否包含目标、提取数量是否不足、是否达到长度上限，它们不替代主评分。</p>
 <p>资料 ID <code>T1-2K-00</code> 用于找到这一份输入；问题中的 1563 是这份资料内的记录编号。目标放在资料的不同部分，保存标签为 front（前部）、middle（中部）、back_near（距资料尾约 30—70 token）、back_far（约 150—250 token）。下面直接显示真实 ID 和对应记录，完整资料列表可展开查看。</p>
@@ -8740,7 +8745,11 @@ T2/8K     12   1     8%        4                17%        0     0  front/back_f
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>下表 <code>B@0.03125</code> 是 B、ρ=1/32，<code>D0@0.125</code> 是 D0、ρ=1/8。配对四格按同题列出两者都对、A对它错、A错它对、两者都错。</p>
-<p><strong>本课 coverage 数的是目标记录 token 位置中被直接选中的比例</strong>，不是注意力权重。统计按步骤、层、KV组展开；“层组全覆盖”表示某一层某一组读齐整条目标记录。“首生成步”指处理问题最后一个 token 后、预测首个答案的位置。第四课起的教师条件覆盖率是另一指标。</p>
+<p><strong>本课 coverage 数的是目标记录 token 位置中被直接选中的比例</strong>，不是注意力权重。统计按步骤、层、KV组展开；“层组全覆盖”表示某一层某一组读齐整条目标记录。“首生成步”指处理完问题及聊天模板后缀的最后一个 token 后、预测首个答案的位置。第四课起的教师条件覆盖率是另一指标。</p>
+<p>例如目标记录 <code>编号 1563：8422</code> 在保存的目标正文范围中占 11 个 token 位置（不含行末换行）：</p>
+<div class="highlight"><pre><span></span>编号 | 空格 | 1 | 5 | 6 | 3 | ： | 8 | 4 | 2 | 2
+</pre></div>
+<p>整条记录覆盖率以这 11 个位置为对象；四位答案 8422 只占其中最后 4 个数字 token。<strong>一条文本记录对应多个 token 位置，每个位置在每层每组各有一对 K/V 向量</strong>，不能把“一条记录”当成“K/V 矩阵的一行”。</p>
 </div>
 </div>
 </div>
@@ -9554,8 +9563,8 @@ T1-8K-01 已在 5.1 展示；同一份资料也属于本类，不重复当作新
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>哪些解释得到支持。</strong> C 和 D0 的选择位置分布不同，目标位置覆盖和成簇程度也不同，但本批请求都未答对。此处的覆盖率是整条记录位置被选中的比例，不是注意力权重，不等于四个值 token 的覆盖率。</p>
-<p><strong>必要条件与充分条件要分开。</strong> 若某层组读齐四个值 token 却仍错，它只说明“读齐”不足以保证答对；不能据此推出“不读齐也能答对”。原实验没有证明“必须同层组读齐”这个必要条件，因此应撤回结构性下界的解释。低覆盖与零分同时出现的观察保留；具体失败机制尚未分离。</p>
+<p><strong>哪些解释得到支持。</strong> C 和 D0 的选择位置分布不同，目标位置覆盖和成簇程度也不同，但本批请求都未答对。此处的覆盖率是整条记录位置被选中的比例，不是注意力权重，不等于构成四位答案的四个数字 token 的覆盖率。</p>
+<p><strong>必要条件与充分条件要分开。</strong> 若某层组读齐构成四位答案的四个数字 token 却仍错，它只说明“读齐”不足以保证答对；不能据此推出“不读齐也能答对”。原实验没有证明“必须同层组读齐”这个必要条件，因此应撤回结构性下界的解释。低覆盖与零分同时出现的观察保留；具体失败机制尚未分离。</p>
 </div>
 </div>
 </div>
