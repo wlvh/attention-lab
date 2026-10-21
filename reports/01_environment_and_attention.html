@@ -8724,7 +8724,7 @@ G0 的最优链式只含索引打分、top-k、取 K/V：97 µs；G1a 的 D_full
 <li><strong>范围。</strong> 单层、随机张量、batch 1、一步解码。整模型每步时间、连续生成、k 固定下合法长度增长、真实 Q/K 分布都留给 G1b。</li>
 <li><strong>索引器。</strong> 随机初始化，没有训练。它回答的是"筛选路径的计算成本有没有空间"，不是"模型能只看 3% 的历史而保持能力"。任务质量对照（G2，第三课展示其缩减版）才检查答题。</li>
 <li><strong>门槛。</strong> bf16、32K、ρ=1/32 的 D_full/A = 0.74（6/6 进程 ≤ 0.90）满足了 10% 的继续研究门槛。10% 是继续投入的门槛，不是架构定理。</li>
-<li><strong>补测。</strong> PR #1 评审后的交错顺序、容量四格、折叠手写 A 对照见 <code>reports/g1a_supplement_mac_m4max.md</code>。</li>
+<li><strong>补测。</strong> 后来另外检查三件事：让 A、D 轮流计时，观察先后顺序是否影响比值；保持已有内容不变，只给缓存多留 2,048 个空位置，观察分配容量是否影响成本；在同一布局下直接写出 QK→softmax→V，与完整注意力接口比较，检查基线是否选得合理。报告分别简称“交错顺序”“容量四格”“折叠手写 A”，见 <a href="../reports/g1a_supplement_mac_m4max.md">补测报告</a>。</li>
 </ul>
 <p>以下是复现入口；前两条涉及基准运行或配置，不是阅读步骤。只读重建报告用第三条：</p>
 <div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>.venv/bin/activate

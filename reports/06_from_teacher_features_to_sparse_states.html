@@ -7830,7 +7830,9 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="1.-%E6%AF%94%E8%BE%83%E5%90%8C%E4%B8%80%E8%BE%93%E5%85%A5%EF%BC%8C%E5%85%88%E5%88%86%E7%A6%BB%E7%8A%B6%E6%80%81%E5%8F%98%E5%8C%96">1. 比较同一输入，先分离状态变化<a class="anchor-link" href="#1.-%E6%AF%94%E8%BE%83%E5%90%8C%E4%B8%80%E8%BE%93%E5%85%A5%EF%BC%8C%E5%85%88%E5%88%86%E7%A6%BB%E7%8A%B6%E6%80%81%E5%8F%98%E5%8C%96">¶</a></h2><p>各方法从同一份资料重新完整 Prefill，分别保存主 K/V。之后输入相同的问题，再输入 A 预先产生的同一串 16 个 token；即使遇 EOS 仍输入满 16 步。这叫本课的<strong>控制序列</strong>，只用于对齐计算位置，不计答题成绩。每条路径都维护自己的后缀缓存，不借用 A 后来计算的 K/V。</p>
+<h2 id="1.-%E6%AF%94%E8%BE%83%E5%90%8C%E4%B8%80%E8%BE%93%E5%85%A5%EF%BC%8C%E5%85%88%E5%88%86%E7%A6%BB%E7%8A%B6%E6%80%81%E5%8F%98%E5%8C%96">1. 比较同一输入，先分离状态变化<a class="anchor-link" href="#1.-%E6%AF%94%E8%BE%83%E5%90%8C%E4%B8%80%E8%BE%93%E5%85%A5%EF%BC%8C%E5%85%88%E5%88%86%E7%A6%BB%E7%8A%B6%E6%80%81%E5%8F%98%E5%8C%96">¶</a></h2><p>各方法从同一份资料重新完整 Prefill，分别保存主 K/V。之后输入相同的问题，再输入 A 预先产生的同一串 16 个 token；即使遇 EOS 仍输入满 16 步。这叫本课的<strong>控制序列</strong>。它来自 A 当时的预测，不是标准答案。</p>
+<p>例如某一步共同输入 token x：A 用自己的缓存算出词表分数，D 用自己的缓存算出另一份分数；即使两者最高分 token 不同，下一步仍给两者输入预存序列中的同一个 token y。我们只固定送进模型的 token，不固定本层 Q/K、注意力输出或新写入的 K/V。这样比较内部状态时，输入文字的分叉不会混进来；代价是这段过程不再是 D 自己的自由回答，所以不能评分。</p>
+<p>每条路径都维护自己的后缀缓存，不借用 A 后来计算的 K/V。下方展示的 16 个 token 只是这一共同输入的文本表示。</p>
 <p>记录中的 <strong>q/k</strong> 取自每层 <code>q_norm/k_norm</code> 的输出，位于 RoPE 和转置之前；单 token 时形状为 <code>[1,1,16,128]</code> / <code>[1,1,8,128]</code>。<strong>attention_output</strong> 取 <code>o_proj</code> 的输入 <code>[1,1,2048]</code>。代码分别展平这些向量再逐层比较，图横轴是层数。</p>
 <p>资料仍是 <strong>T1：按编号返回一个四位值</strong>，如 <code>G3a-T1-2K-48</code> 表示旧单层阶段的第 48 份约 2K 资料。输出 <code>controlled_not_quality</code> 标记这条延续输入不能当作独立回答。</p>
 </div>
