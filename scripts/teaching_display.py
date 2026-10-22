@@ -6,6 +6,26 @@ from contextlib import contextmanager
 from html import escape
 
 
+def show_figure(fig, number, title):
+    """Display an unchanged PNG and its caption at half the notebook content width."""
+    from IPython.core.pylabtools import print_figure
+    from IPython.display import HTML, display
+    import matplotlib.pyplot as plt
+
+    png = print_figure(fig, fmt="png", base64=True)
+    if png is None:
+        raise ValueError("Cannot display an empty teaching figure")
+    label = escape(f"图 {number}｜{title}", quote=True)
+    display(HTML(
+        '<figure style="width:50%;max-width:50%;min-width:0;margin:24px auto;">'
+        '<img style="display:block;width:100%;max-width:100%;min-width:0;height:auto;" '
+        'alt="' + label + '" src="data:image/png;base64,' + png + '">'
+        '<figcaption style="margin-top:10px;line-height:1.6;text-align:center;">'
+        '<strong>' + label + '</strong></figcaption></figure>'
+    ))
+    plt.close(fig)
+
+
 @contextmanager
 def details(title):
     """Capture text, tables and figures, preserving them in an HTML details block."""
@@ -26,7 +46,7 @@ def details(title):
         if 'text/html' in data:
             parts.append(data['text/html'])
         elif 'image/png' in data:
-            parts.append('<img style="max-width:100%;height:auto" alt="' + escape(title, quote=True)
+            parts.append('<img style="display:block;width:50%;max-width:50%;height:auto;margin:0 auto;" alt="' + escape(title, quote=True)
                          + '" src="data:image/png;base64,' + data['image/png'] + '">')
         elif 'text/markdown' in data:
             parts.append(markdown2html(data['text/markdown']))
