@@ -112,8 +112,11 @@ def main() -> int:
 
     L = []
     L.append("# G1a 实测报告 · Mac M4 Max 单层读取阶段：完整注意力 A 与索引子集 D\n")
+    L.append('本报告比较已经准备好 Q/K/V 后的一次注意力读取，项目编号为 G1a。A 用当前 Q 给全部合法 K 打分、softmax 后加权 V。D 先为最新位置补索引，再用当前查询的低维投影给候选打分、选位、取出原 K/V，最后由主 Q/K 重新计算权重并组合 V。两者输出都是注意力向量，不含输出投影、残差、MLP 或答案生成。\n\n本档为 32 个查询头、8 个 K/V 头，每个 KV 组的 4 个查询头共享一套历史 K/V，索引读取时共用一份名单。以下名额和位置数均按本步某一层、某一 KV 组计算。以 32K 为例，D 保留开头 4 个和最近 64 个位置，从其余 32,700 个位置中再选 1,024 个，合并后读 1,092 个。额外 1,024 来自起始长度 32,768 乘名额参数 ρ=1/32；不是把必留 68 个算进这个 1/32。索引每组把当前查询投影成 32 维 u，与各历史位置的 32 维 z 点积，选最高分；它的分数只决定名单，不直接加权 V。\n\n这里的主 Q/K/V、索引查询输入和已有历史索引表 zT 都直接随机生成，索引参数未训练，没有实际文本或 RoPE 计算。D_full 计入新 z 写入、u 投影、打分、选位、取行和主注意力；D_read 只省新 z 写入，其余照做。已有历史 zT 的完整构建不计入这一步。\n\n每轮执行 36 次：hot 反复访问同一套数组，rotating 依次访问 36 套独立数组，前一次输出不送给下一次。将整轮时间除以 36 得到每套数据的平均读取时间。讲解与源码对应见[第一课](01_environment_and_attention.html)。\n')
+    L.append("<details><summary>运行版本与报告来源</summary>\n")
     L.append(f"由 `scripts/g1a_report.py` 从 {len(runs)} 个独立进程的 `runs/g1a-mac-*/summary.json` 生成（{', '.join(r['run_id'] for r in runs)}）。"
              f"**随机张量、单层、batch 1、一步解码；没有模型、没有任务、没有质量结论；MPS 结果不推 CUDA。** 预测见 `{a.card}`。\n")
+    L.append("</details>\n")
     L.append("## 1. 环境与设置\n")
     L.append("| 项 | 值 |\n|---|---|")
     L.append(f"| 机器 | {H.get('chip')}，{H.get('gpu_cores')} 核 GPU，{(H.get('physical_memory_bytes') or 0)/2**30:.0f} GiB，macOS {H.get('macos')} |")
@@ -151,7 +154,7 @@ def main() -> int:
                  f"{'是' if v['every_run_below_0.9'] else '否'} | {'是' if v['d_full_qk_detected'] is False else ('否' if v['d_full_qk_detected'] else '未剖析')} | {'**通过**' if v['pass'] else '不通过'} |")
     if passing:
         items = ", ".join("N=%d ρ=1/%d（%.2f）" % (v["N"], round(1 / v["rho"]), v["ratio_median"]) for v in passing)
-        L.append(f"\n**结论：bf16 eager 下 D_full 通过的组合：{items}。** 投资门槛达到，G1b 性能主线可以启动；10% 是门槛，不是架构定理。")
+        L.append(f"\n**结论：bf16 eager 下 D_full 通过的组合：{items}。** 投资门槛达到，当时据此进入 G1b；真实模型结果已在第二课交付；10% 是门槛，不是架构定理。")
     elif passing_any:
         items = ", ".join("%s %s N=%d ρ=1/%d" % (v["dtype"], v["strategy"], v["N"], round(1 / v["rho"])) for v in passing_any)
         L.append(f"\n**结论：bf16 D_full 没有组合通过；通过的只有 {items}。**")

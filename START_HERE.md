@@ -1,48 +1,27 @@
 # 从这里开始
 
-## 给项目所有者
+本轮研究已经完成，当前交付是 1 份导读、7 份实验课及对应源码和记录。继续使用已有仓库和环境，不重新初始化或运行早期实验。
 
-不需要先学会逐格运行 Notebook。把本目录放到 Mac 的独立项目目录，在**本地** Codex 中打开，让它读 `AGENTS.md` 和 `docs/CODEX_HANDOFF.md`。
+## 先选择想理解的计算
 
-第一次只完成 **G0 环境预检 + G1a 最小执行可行性**。不要直接下载三个模型、跑全部训练或租云。
+| 想看清什么 | 阅读入口 |
+|---|---|
+| 整项实验最后得到什么 | [第七课：回答质量与实际成本](reports/07_trained_sparse_quality_and_cost.html) |
+| 参数怎样通过训练改变选位 | [第四课：一个索引器的训练与 12 参数 CPU 算例](reports/04_can_an_indexer_learn.html) |
+| 从位置名单怎样取 K/V，为什么少读仍可能慢 | [第一课：取行与单层读取](reports/01_environment_and_attention.html) |
+| 读取替换到真实模型的哪里 | [第二课：Qwen 接入与整步计算](reports/02_qwen_integration_and_decode.html) |
+| 未训练的方法怎样回答，改资料怎样改变输出 | [第三课：资料、回答与改写](reports/03_what_is_lost_when_reading_less.html) |
+| 怎样为各层分别训练 | [第五课：逐层训练](reports/05_training_all_layer_indexers.html) |
+| 本层少读怎样影响后层输入 | [第六课：真实推理状态](reports/06_from_teacher_features_to_sparse_states.html) |
 
-日常阅读 `reports/` 的 HTML；需要改一个变量、重放小例子时打开 `notebooks/`。当前的 `00_orientation.ipynb` 是导读与预测核算，不是 Mac 测速报告。
+HTML 可直接阅读，不必先运行任何代码。Notebook 入口及导出方式在 [课程目录](notebooks/README.md)。默认执行只读既有结果及小规模 CPU 检查；第四课另做 12 参数、20 步 CPU 教学更新，不加载真实模型或重训正式索引器。
 
-## 已有公开远端
+## 哪些文件描述历史
 
-所有者已经创建并明确选择公开仓库 `https://github.com/wlvh/attention-lab`。本次导入保留全部九个原始材料；当前入口与发布约定调整为公开仓库，不改写原始方案。
+`docs/archive/` 保留原始方案；`docs/tasks/` 和 `reports/cards/` 保留各阶段当时的预测、范围和决定。里面的“下一步”“待审”“未解锁”需按记录日期理解，不代表项目当前仍停在那里。部分原型用到的 P0/P1 阶段名，也不是训练课的索引位置设置。
 
-```bash
-git clone https://github.com/wlvh/attention-lab.git
-cd attention-lab
-```
+正式研究结果已经合并；教学修订的状态见 [PROJECT_STATUS.md](PROJECT_STATUS.md)。新实验、合并、云支出都不由阅读这些历史文件自动授权。
 
-无需执行旧的 `scripts/publish_repo.py --execute`；该脚本是历史私有建仓工具，对现有公开仓库会拒绝操作。后续用正常分支、提交和 PR 推进，不改可见性、不 force push。详细说明见 `docs/tasks/00_PUBLISH.md`。
+## 给接手本项目的 Codex
 
-## 给刚接手的 Codex
-
-最短阅读路线：
-
-`AGENTS.md → PROJECT_STATUS.md → docs/PLAN_CURRENT.md → docs/tasks/01_G0_G1A.md`
-
-操作细节按需查 `docs/MAC_RUNBOOK.md`；接口查 `docs/IMPLEMENTATION.md`；验收查 `docs/MEASUREMENT.md`；每关解释怎么交查 `docs/TEACHING_NOTEBOOKS.md`。
-
-原始教材不需要每轮全部放入上下文。按 `docs/REFERENCE_MAP.md` 定位相关锚点。历史 v1/v2/v3 只有溯源权，不覆盖当前补充约定。
-
-## 一页构建顺序
-
-| 阶段 | 创建什么 | 用什么事实解锁下一阶段 |
-|---|---|---|
-| G0 | 隔离环境、能力与内存清单 | 实际所需 MPS 运算正确；CPU/后端异常明确 |
-| G1a | 单层 A 与 D 的真实子集执行、测试、微基准 | 至少有值得复核的设备/形状/执行方式组合；否则一次定位后收口 |
-| G1b | 最小模型封装、静态 KV/z、连续生成 | 全选与分段对照通过，连续运行没有失控重编译或状态污染 |
-| G2 | 任务生成与完整基线校准 | 最小可用模型与 G1 性能可行组合有交集 |
-| G3 | 单层 P0/P1 → 全层小索引器 | 留出资料与实际稀疏轨迹支持其选择能力；解释均匀分布例外 |
-| G4 | 冻结测试，A-step/A-best 与 D 联合比较 | 质量、三口径耗时、内存与预算可一起判断 |
-| G5 | 可选分层预算/名单复用 | 前面有证据、预算有余量，改结构后重新测速 |
-
-“支持运算”“通过微基准”“模型具有质量”“正式质量—速度取舍”是四件不同的事。不要提前宣布后一件已经成立。
-
-## 最新实验课：G3a 单层学习（2026-10-18）
-
-[实验课04](reports/04_can_an_indexer_learn.html) 使用新生成的 48/16 份 T1 资料，解释训练前后选位和局部误差。前三课保留各自 G0/G1a、G1b、G2-lite 版本；第四课不改写第三课的冻结分数。默认阅读 HTML 无需运行 Python；Notebook 仅读取已有结果与 CPU 小例子，不下载模型或启动训练。完整 G3–G5 尚未解锁。
+先读 `AGENTS.md`、`PROJECT_STATUS.md` 和当前用户任务，再查相关课的正式 `.py`、运行版本和记录。不把早期启动说明当成重跑指令；保留 `.venv`、模型缓存、runs、历史分支和 worktree。公开远端仍是 `wlvh/attention-lab`，不要新建仓库或运行旧发布脚本。

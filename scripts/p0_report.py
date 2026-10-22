@@ -59,6 +59,7 @@ def main() -> int:
          f"| 代码 | " + "；".join(f"{r['run_id']}: commit {r['git'].get('commit')} dirty {r['git'].get('dirty_diff_sha256')}" for r in runs) + " |\n",
          "## 2. 每层 µs（保守中位数；括号内为进程间最小..最大）\n",
          "| N0 | M | k | 扫描 MB/层 | pytorch_chain | pytorch_score_only | fused_1launch (v2) | fused_2launch (v2) | v1 一次 / 两次启动 | 最优 fused/chain（各进程） | 最优 fused 有效带宽 GB/s |\n|---:|---:|---:|---:|---:|---:|---:|---:|---|---|---:|"]
+    L.insert(1, '这是已停止的 Metal 打分原型记录。文件名里的 P0/P1 是当时的原型阶段名，与训练课程中“索引位置设置 P0/P1”不同；没有接入正式模型路径。 本段把当前查询投影成 u、为新键追加 z、再给候选位置打分；pytorch_chain 表示分开调用这些操作，fused_1launch/fused_2launch 表示合成一次/两次设备启动。v1/v2 是原型的两版实现。top-k 与主注意力不在本段计时内。\n')
     for N0 in lengths:
         g = agg[N0]
         cell = lambda s: f"{g[s]['median_us']:.1f} ({g[s]['min_us']:.1f}..{g[s]['max_us']:.1f})"  # noqa: E731
@@ -74,7 +75,7 @@ def main() -> int:
     L.append("| run | 评估 N0 | 最优 fused 变体 | µs（≤ 80） | fused/chain（≤ 0.75） | 数值 | 通过 |\n|---|---:|---|---:|---:|---|---|")
     for rid, g in zip(out["runs"], gates):
         L.append(f"| {rid} | {g.get('evaluated_at_N0')} | {g.get('fused_strategy')} | {g.get('fused_us_conservative') if g.get('fused_us_conservative') is None else round(g['fused_us_conservative'], 1)} | {g.get('ratio_vs_chain') if g.get('ratio_vs_chain') is None else round(g['ratio_vs_chain'], 3)} | {g.get('numerics_pass_all')} | {'**通过**' if g.get('pass') else '不通过'} |")
-    L.append(f"\n每个独立进程都通过：**{verdict['every_run_passes_gate']}**。这只回答打分段能否接近带宽下界；top-k、取行、子集注意力三段未动，整模型比值不由本报告推出。\n")
+    L.append(f"\n每个独立进程都通过：**{verdict['every_run_passes_gate']}**。这只比较所测打分段实现的时间与数值；top-k、取行、子集注意力三段未动，整模型比值不由本报告推出。\n")
     a.out.write_text("\n".join(L) + "\n", encoding="utf-8")
     print(f"wrote {a.out.relative_to(ROOT)}, {a.json.relative_to(ROOT)}; every run passes gate: {verdict['every_run_passes_gate']}")
     return 0

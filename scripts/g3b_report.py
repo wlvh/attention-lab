@@ -115,11 +115,12 @@ def summarize(evidence):
 
 
 def table(summary):
+    origin_labels = {"reused_G3a": "复用第14层参数", "new_training": "本阶段新训练"}
     lines=["| 层 | 来源 | 开发 KL：D0→D | 开发 coverage：D0→D | 开发相对输出误差：D0→D | m_C |","|---|---|---:|---:|---:|---:|"]
     fmt=lambda x:"NA" if x is None else f"{x:.4f}"
     for layer in summary["layers"]:
         a,b=layer["aggregate"]["development"]["D0"],layer["aggregate"]["development"]["D"]
-        lines.append(f'| {layer["layer_index"]+1} | {layer["origin"]} | '+" | ".join(f'{fmt(a[k])} → {fmt(b[k])}' for k in ("kl","coverage","output_relative_l2"))+f' | {fmt(b["candidate_mass"])} |')
+        lines.append(f'| {layer["layer_index"]+1} | {origin_labels[layer["origin"]]} | '+" | ".join(f'{fmt(a[k])} → {fmt(b[k])}' for k in ("kl","coverage","output_relative_l2"))+f' | {fmt(b["candidate_mass"])} |')
     return "\n".join(lines)
 
 
@@ -151,9 +152,15 @@ def main():
     dump(ROOT/"reports/g3b_parameters.json",bank)
     body=f'''# G3b-lite：各层索引器训练
 
-28层均交付参数：27层新训练，第14层复用已审G3a。主体冻结，P0/r32/rho=1/8，索引float32；每层原始训练规则固定50轮。旧48份用于训练，旧16份仅为开发诊断，**不能再称新的独立验证集**。32份全新最终T1测试已登记，尚未在本阶段评分。
+以第 1 层为例：先让未改的完整 Qwen 处理 64 份资料和问题，保存这一层四个指定问题/模板位置的 Q 和历史 K/V。四个位置为后缀倒数第 24/16/8/1 个，在本批输入中依次对应“数值”“四位”及两处换行；后缀共 35 个 token，其中问句占 26 个。每轮从其中 48 份训练资料逐份计算索引分数，用完整注意力给出的候选概率监督 KL，只更新本层 Wq/Wk；共做 50 轮。旧 16 份资料不参与更新，只作开发诊断。
 
-正式运行 `{summary['run_id']}`，源码 `{summary['run_commit']}`。各层均报告，不挑好层；开发指标改善层数为 {summary['development_improved_layers']}。局部指标不直接代表28层共同稀疏推理的质量。
+最终参数固定后，C/D0/D/R 在同一批保存特征上选位置；将入选位置的原主注意力概率重新归一化并加权 V，与完整读出比较。这份局部输出只用于算误差，不送进下一层。保存本层参数和指标、释放临时特征，再让原完整模型提供下一层特征。因此各层各训各的参数，没有把前层已训练索引器接回模型，也没有一个贯穿 28 层的联合反向更新。
+
+T1 要求按资料编号取一个四位值。C 均匀随机选择候选，D0 是训练前索引，D 是训练后索引，R 直接按完整教师权重选择。它们都必留开头 4 个和最近 64 个位置，额外名额按请求第一步长度的 1/8 固定。索引位置设置 P0 指使用主 RoPE 前 Q/K、索引空间不额外旋转；r=32 是投影宽度。
+
+下表比较同一份完整路径特征上的局部计算。条件 coverage 是入选候选保留的教师权重占候选总权重的比例，m_C 是候选的原始总权重，相对输出误差在输出投影之前计算：每个查询位置、每个 KV 组的两个头各有 128 维读出，合成 256 维再与完整读出比较。D0→D 表示训练前后；并非整模型答题成绩。逐层过程见[第五课](05_training_all_layer_indexers.html)。
+
+28层均交付参数：27层新训练，第14层复用已审G3a。主体冻结，P0/r32/rho=1/8，索引float32；每层原始训练规则固定50轮。旧48份用于训练，旧16份仅为开发诊断，**不能再称新的独立验证集**。32份全新最终T1测试已登记，尚未在本阶段评分。
 
 {table(summary)}
 
@@ -161,15 +168,17 @@ def main():
 
 预测见 `docs/tasks/07_G3B_LITE.md`：多数层拟合可能改善，但幅度不同，不保证共同部署后回答恢复。这里只观察冻结完整路径特征；下一阶段检查真实稀疏状态变化，不做轨迹修正训练。
 
-每个数字先在同一资料内平均查询/组，再平均资料。m_C很小时条件coverage的意义受限；不足1e-4的行不训练并记录跳过计数。R是昂贵的完整教师选位诊断，不是任务质量上界。
+每个数字先在同一资料内平均查询/组，再平均资料。m_C<1e-4 的查询/组不用于 KL 训练，也不纳入 KL、条件 coverage 的均值；候选总权重、遗漏完整权重、输出 RMSE 和相对 L2 仍计算并保留。“跳过”不是整行无效，也不填成零误差。R是昂贵的完整教师选位诊断，不是任务质量上界。
 
 ## 证据与预算
 
+正式运行 `{summary['run_id']}`，源码 `{summary['run_commit']}`。各层均报告，不挑好层；开发指标改善层数为 {summary['development_improved_layers']}。局部指标不直接代表28层共同稀疏推理的质量。
+
 主体前后hash相同：`{evidence['manifest']['body_hash_before']}`。归档保留每层全部逐查询指标、初始/最终参数、预定审计资料的名单、训练曲线、源码/配置与原始manifest。因磁盘约束，完整特征逐层在RAM处理，仅每层资料0/48落盘供CPU审计；其余数组按预登记规则记录hash后释放，不声称精简归档能直接重做全部特征级审计。旧G3a特征未删除。
 
-共享新增预算到本阶段结束累计 {evidence['budget']['used_seconds']:.1f}/14400 秒，现金0。此前G3a账本独立保留。参数bank身份 `{bank['bank_id']}` 将由G3c绑定缓存，不能在参数变化后继续复用旧索引z。
+共享新增预算到本阶段结束累计 {evidence['budget']['used_seconds']:.1f}/14400 秒，现金0。此前G3a账本独立保留。参数bank身份 `{bank['bank_id']}` 在后续G3c中绑定缓存，不能在参数变化后继续复用旧索引z。
 
-默认报告/Notebook只读保存结果；整页展示的实际验收范围见PROJECT_STATUS。提交待审PR后继续已授权G3c，后续PR不自行合并。
+默认报告/Notebook只读保存结果；整页展示的实际验收范围见PROJECT_STATUS。本阶段已经交付；后续状态对照和新题评测已在第六、七课完成。旧登记状态只描述当时，不是当前项目待办。
 '''
     (ROOT/"reports/g3b_mac_m4max.md").write_text(body)
     print(json.dumps({"run":summary["run_id"],"improved_layers":summary["development_improved_layers"],"bank_id":bank["bank_id"]},ensure_ascii=False))

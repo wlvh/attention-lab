@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "kind": "report_regeneration_not_model_run",
-  "source_commit": "72b848d76683ac0bdc26d4c7cdf8e0d67b24fff8",
+  "source_commit": "cbd85b1faba861652500fe8d0745bd79f47b070f",
   "report_source_hashes": {
-    "scripts/g2lite_report.py": "b707c03cfe478664e51d1740eeac7503ac23874b633703cb86311827042f8253",
+    "scripts/g2lite_report.py": "0a789640a21f4289d9461f71622390f66cb0c6398188531648554dbd92947dfe",
     "src/attention_lab/g2lite_eval.py": "7464b52612a470c7e9e8360b334af6357d447b588ffbb273f478a196d447f3d4"
   },
   "uncommitted_report_sources": [],

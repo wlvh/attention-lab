@@ -1,7 +1,7 @@
 {
   "run_id": "g3a-20261018T122927Z-formal",
   "run_commit": "b998ee733b75af861613999fc3d4ec6c992b4835",
-  "report_source_sha256": "62c3b8788bcd8684dd772fdfaa687088b4c2edba9a5a9f4a7a11b22136aca1db",
+  "report_source_sha256": "55b58cd866f8a0e1ca0c3f437ec990ea2eb4b97188b1f56e2be8018a3b1931af",
   "archive_sha256": "3a580f8115aa242c143f274d82803a5048aa87d84edb8906aa2dfcd7682b8e7d",
   "status": "single_layer_descriptive_support",
   "scope": "full-path frozen features, one layer; not task accuracy, sparse trajectory or speed",
