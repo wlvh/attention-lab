@@ -7859,13 +7859,15 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="1.-%E6%AF%94%E8%BE%83%E5%90%8C%E4%B8%80%E8%BE%93%E5%85%A5%EF%BC%8C%E5%85%88%E5%88%86%E7%A6%BB%E7%8A%B6%E6%80%81%E5%8F%98%E5%8C%96">1. 比较同一输入，先分离状态变化<a class="anchor-link" href="#1.-%E6%AF%94%E8%BE%83%E5%90%8C%E4%B8%80%E8%BE%93%E5%85%A5%EF%BC%8C%E5%85%88%E5%88%86%E7%A6%BB%E7%8A%B6%E6%80%81%E5%8F%98%E5%8C%96">¶</a></h2><p>各方法从同一份资料重新完整 Prefill，分别保存主 K/V。之后输入相同的问题，再输入 A 预先产生的同一串 16 个 token；即使遇 EOS 仍输入满 16 步。这叫本课的<strong>控制序列</strong>。它来自 A 当时的预测，不是标准答案。</p>
+<h2 id="1.-%E6%80%8E%E6%A0%B7%E5%8F%AA%E6%AF%94%E8%BE%83%E8%AF%BB%E5%8F%96%E9%80%A0%E6%88%90%E7%9A%84%E7%8A%B6%E6%80%81%E5%8F%98%E5%8C%96%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%B7%B7%E5%85%A5%E4%B8%8D%E5%90%8C%E7%9A%84%E7%94%9F%E6%88%90%E6%96%87%E5%AD%97%EF%BC%9F">1. 怎样只比较读取造成的状态变化，而不混入不同的生成文字？<a class="anchor-link" href="#1.-%E6%80%8E%E6%A0%B7%E5%8F%AA%E6%AF%94%E8%BE%83%E8%AF%BB%E5%8F%96%E9%80%A0%E6%88%90%E7%9A%84%E7%8A%B6%E6%80%81%E5%8F%98%E5%8C%96%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%B7%B7%E5%85%A5%E4%B8%8D%E5%90%8C%E7%9A%84%E7%94%9F%E6%88%90%E6%96%87%E5%AD%97%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> 若 A 和 D 自由生成了不同 token，下一步 Q/K 的差别既可能来自少读，也可能来自输入文字已不同。怎样暂时分开这两件事？</p>
+<p><strong>做法。</strong> 各方法从同一份资料重新完整 Prefill，分别保存主 K/V。之后输入相同的问题，再输入 A 预先产生的同一串 16 个 token；即使遇 EOS 仍输入满 16 步。这叫本课的<strong>控制序列</strong>。它来自 A 当时的预测，不是标准答案。</p>
 <p>例如某一步共同输入 token x：A 用自己的缓存算出词表分数，D 用自己的缓存算出另一份分数；即使两者最高分 token 不同，下一步仍给两者输入预存序列中的同一个 token y。我们只固定送进模型的 token，不固定本层 Q/K、注意力输出或新写入的 K/V。这样比较内部状态时，输入文字的分叉不会混进来；代价是这段过程不再是 D 自己的自由回答，所以不能评分。</p>
 <p>控制序列之前先输入问句的 26 个 token 和模板尾部的 9 个 token；首个答案预测处是这 35 个后缀 token 的最后一个，即模板末尾的两个换行。</p>
 <p>记录中的 <strong>q/k</strong> 取自每层 <code>q_norm/k_norm</code> 的输出，位于 RoPE 和转置之前。它们只属于本步新输入的一个位置，不是整张历史缓存。形状中的前两个 1 分别表示一份输入、一个新位置：Q 为 <code>[1,1,16,128]</code>，有 16 个查询头；K 为 <code>[1,1,8,128]</code>，有 8 个 K/V 头。比较时，Q 展平成 2,048 维，K 展平成 1,024 维。</p>
 <p><strong>attention_output</strong> 是 16 个查询头的读出拼接结果：每头 128 维，合计 <code>16×128=2048</code>，形状为 <code>[1,1,2048]</code>。代码在 <code>o_proj</code> 之前捕获它；之后原来的 <code>o_proj</code> 将 2,048 维映射回模型的 1,024 维隐藏表示。</p>
 <p>因此本课的读出相对 L2 比较的是<strong>同一位置、整个注意力层的 2,048 维向量</strong>；第四、五课则先按每个 KV 组的 256 维向量算误差，再平均。两者的向量范围及平均顺序不同，不能把这两个数直接当成同一种误差比较。</p>
 <p>资料仍是 <strong>T1：按编号返回一个四位值</strong>，如 <code>G3a-T1-2K-48</code> 表示旧单层阶段的第 48 份约 2K 资料。输出 <code>controlled_not_quality</code> 标记这条延续输入不能当作独立回答。</p>
+<p><strong>得到什么。</strong> 四份资料都形成了按同一输入位置对齐的状态记录，可以逐层比较 A、D-one、D0、D 的向量。比如资料 48 的控制串包含 <code>6692</code>、EOS 和后续文本，因为它被固定输入满 16 步；不能把这串文字当作 D 自己答出的答案。</p>
 </div>
 </div>
 </div>
@@ -7931,7 +7933,8 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="2.-%E5%8F%82%E6%95%B0%E5%9B%BA%E5%AE%9A%EF%BC%8C%E8%BF%98%E5%BF%85%E9%A1%BB%E4%BF%9D%E8%AF%81%E7%BC%93%E5%AD%98%E5%B1%9E%E4%BA%8E%E8%BF%99%E4%BB%BD%E5%8F%82%E6%95%B0">2. 参数固定，还必须保证缓存属于这份参数<a class="anchor-link" href="#2.-%E5%8F%82%E6%95%B0%E5%9B%BA%E5%AE%9A%EF%BC%8C%E8%BF%98%E5%BF%85%E9%A1%BB%E4%BF%9D%E8%AF%81%E7%BC%93%E5%AD%98%E5%B1%9E%E4%BA%8E%E8%BF%99%E4%BB%BD%E5%8F%82%E6%95%B0">¶</a></h2><p>索引参数与缓存绑定，避免把新 Wq/Wk 与旧索引 z 混用。本轮主 K/V 为 bf16，索引为 fp32。</p>
+<h2 id="2.-%E5%8F%82%E6%95%B0%E5%9B%BA%E5%AE%9A%EF%BC%8C%E8%BF%98%E5%BF%85%E9%A1%BB%E4%BF%9D%E8%AF%81%E7%BC%93%E5%AD%98%E5%B1%9E%E4%BA%8E%E8%BF%99%E4%BB%BD%E5%8F%82%E6%95%B0">2. 参数固定，还必须保证缓存属于这份参数<a class="anchor-link" href="#2.-%E5%8F%82%E6%95%B0%E5%9B%BA%E5%AE%9A%EF%BC%8C%E8%BF%98%E5%BF%85%E9%A1%BB%E4%BF%9D%E8%AF%81%E7%BC%93%E5%AD%98%E5%B1%9E%E4%BA%8E%E8%BF%99%E4%BB%BD%E5%8F%82%E6%95%B0">¶</a></h2><p><strong>问题。</strong> 历史索引键 z 是用 Wk 算出来的；若加载另一套参数，却继续读旧 z，所得分数就不是那套参数应有的分数。</p>
+<p><strong>做法与结论。</strong> 加载时核对各层参数的文件指纹、形状和数值，创建索引缓存时绑定参数身份，继续写入前检查仍是同一套参数；不一致就拒绝使用。因此本轮 D0、D 分别用自己的固定参数和索引表推进，主 K/V 为 bf16、索引为 fp32。</p>
 <details>
 <summary>展开参数身份保护</summary>
 <p>z=Wk·k_pre；更换 Wk 后沿用旧 z，会把新查询投影与旧键投影混用。本项目 <code>FrozenBank</code> 保存各层固定索引参数，加载时核对文件指纹与形状，创建缓存时绑定参数身份，写入前检查身份仍一致。</p>
@@ -8072,7 +8075,9 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="3.-%E5%90%8C%E4%B8%80%E9%9B%86%E5%90%88%E4%B9%9F%E5%8F%AF%E8%83%BD%E6%9C%89%E4%B8%8D%E5%90%8C%E7%9A%84%E6%9C%89%E9%99%90%E7%B2%BE%E5%BA%A6%E8%AE%A1%E7%AE%97%E9%A1%BA%E5%BA%8F">3. 同一集合也可能有不同的有限精度计算顺序<a class="anchor-link" href="#3.-%E5%90%8C%E4%B8%80%E9%9B%86%E5%90%88%E4%B9%9F%E5%8F%AF%E8%83%BD%E6%9C%89%E4%B8%8D%E5%90%8C%E7%9A%84%E6%9C%89%E9%99%90%E7%B2%BE%E5%BA%A6%E8%AE%A1%E7%AE%97%E9%A1%BA%E5%BA%8F">¶</a></h2><p>全选检查用于确认接入正确。将已选位置按原序排列后，单层/全层全选的 51 步与 A logits 逐位一致；集合与名额不变。</p>
+<h2 id="3.-%E8%AE%A9-D-%E8%AF%BB%E9%BD%90%E6%89%80%E6%9C%89%E4%BD%8D%E7%BD%AE%EF%BC%8C%E8%83%BD%E5%90%A6%E5%9B%9E%E5%88%B0-A-%E7%9A%84%E7%BB%93%E6%9E%9C%EF%BC%9F">3. 让 D 读齐所有位置，能否回到 A 的结果？<a class="anchor-link" href="#3.-%E8%AE%A9-D-%E8%AF%BB%E9%BD%90%E6%89%80%E6%9C%89%E4%BD%8D%E7%BD%AE%EF%BC%8C%E8%83%BD%E5%90%A6%E5%9B%9E%E5%88%B0-A-%E7%9A%84%E7%BB%93%E6%9E%9C%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> 全选时没有遗漏位置，若 D 仍与 A 不同，差异就不能归因于“少读了历史”。</p>
+<p><strong>做法。</strong> 分别让只改第 14 层的 D-one、改全部层的 D 获得全部候选名额，仍实际执行取 K/V 和主注意力。逐步比较 35 个问题/模板 token 加 16 个控制 token 的词表分数。初次发现差异后，只把同一个入选集合改为按原位置升序读取，再做相同比较。</p>
+<p><strong>结果与结论。</strong> 排序后两种全选路径的 51 步词表分数均与 A 逐位一致。该输入下的接入检查通过，说明实现中的位置排列也会影响有限精度结果；这没有增加名额，也不是训练收益，更不证明真正少读时仍会相同。</p>
 <details>
 <summary>展开失败定位、修复与全选判据</summary>
 <p>先把候选名额给足，使 D-one/D 读取全部合法位置，仍走实际 gather 和主注意力。这是本课的<strong>全选检查</strong>。</p>
@@ -8160,7 +8165,9 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="4.-%E4%BB%8E%E7%AC%AC%E5%87%A0%E5%B1%82%E5%BC%80%E5%A7%8B%EF%BC%8C%E8%BE%93%E5%85%A5%E5%B7%B2%E7%BB%8F%E4%B8%8D%E5%90%8C%EF%BC%9F">4. 从第几层开始，输入已经不同？<a class="anchor-link" href="#4.-%E4%BB%8E%E7%AC%AC%E5%87%A0%E5%B1%82%E5%BC%80%E5%A7%8B%EF%BC%8C%E8%BE%93%E5%85%A5%E5%B7%B2%E7%BB%8F%E4%B8%8D%E5%90%8C%EF%BC%9F">¶</a></h2><p>图只取问题及聊天模板后缀的最后一个 token，即预测首个答案的位置。图上 D-one 的第 1—14 层 Q 差异为零，第 14 层注意力读出已有差异，平均 Q 差异在第 15 层起出现。全层 D 从第 1 层读出起改变状态，第 2 层 Q 已不同。</p>
+<h2 id="4.-%E5%B0%91%E8%AF%BB%E5%9C%A8%E5%93%AA%E4%B8%80%E5%B1%82%E6%94%B9%E5%8F%98%E4%BA%86%E8%AF%BB%E5%87%BA%EF%BC%8C%E5%8F%88%E5%9C%A8%E5%93%AA%E4%B8%80%E5%B1%82%E6%94%B9%E5%8F%98%E4%BA%86%E6%9F%A5%E8%AF%A2%EF%BC%9F">4. 少读在哪一层改变了读出，又在哪一层改变了查询？<a class="anchor-link" href="#4.-%E5%B0%91%E8%AF%BB%E5%9C%A8%E5%93%AA%E4%B8%80%E5%B1%82%E6%94%B9%E5%8F%98%E4%BA%86%E8%AF%BB%E5%87%BA%EF%BC%8C%E5%8F%88%E5%9C%A8%E5%93%AA%E4%B8%80%E5%B1%82%E6%94%B9%E5%8F%98%E4%BA%86%E6%9F%A5%E8%AF%A2%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> 第五课的索引器是在完整路径的 Q/K 上学的。放回模型后，它们从什么时候开始面对已经改变的输入？</p>
+<p><strong>做法。</strong> 固定同一输入 token，分别捕获各方法每层读取前的 Q/K 和读取后的注意力向量，与 A 的同层同位置比较。下图取问题及聊天模板后缀的最后一个 token，即首个答案预测处，汇总四份资料。</p>
+<p><strong>结果。</strong> D-one 的第 1—14 层 Q 差异为零，第 14 层注意力读出已有差异，第 15 层起 Q 也不同。全层 D 更早：第 1 层读出就改变，第 2 层 Q 已不同。</p>
 <p>每种向量先对同一步 A 算相对 L2，再平均 4 份资料。表还列出两个对齐位置：<strong>first_answer_prediction</strong> 是问题及聊天模板后缀的最后一个 token 后，<strong>last_controlled_step</strong> 是第 16 个控制 token 后。</p>
 <!-- lesson06-mechanism-svg: source reports/figures/06_readout_then_next_layer.svg -->
 <figure id="readout-then-next-layer" style="width:50%;max-width:50%;min-width:0;margin:24px auto;">
@@ -8170,7 +8177,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <figcaption style="margin-top:10px;color:#475569;font-size:0.95em;line-height:1.6;text-align:center;"><strong>图 6-1。</strong>纵向箭头是计算顺序，横线比较两条路径同一步的向量。图中“已不同”对应现存记录，不指定信息传播经过了哪个历史位置。 <a href="../reports/figures/06_readout_then_next_layer.svg">打开 SVG 原图</a>。</figcaption>
 </figure>
 <!-- /lesson06-mechanism-svg -->
-<p>本层读出是生成本层 Q/K/V 之后的计算，不会倒流改写已经生成的本层 K/V。这些记录只定位了层间差异开始出现的位置，尚未定位具体错题的信息传播路径。</p>
+<p><strong>结论。</strong> 少读后的向量继续经过输出投影、残差和 MLP，成为下一层输入；后层索引器实际收到的特征因此不再完全是训练时的完整路径特征。本层读出不会倒流改写已经生成的本层 K/V。这些记录定位了层间差异从哪里开始，尚未定位具体错题的信息传播路径。</p>
 </div>
 </div>
 </div>
@@ -8288,7 +8295,9 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="5.-%E5%8F%AF%E4%BB%A5%E6%8E%A8%E5%87%BA%E4%BB%80%E4%B9%88%EF%BC%8C%E4%B8%8B%E4%B8%80%E6%AD%A5%E8%BF%98%E7%BC%BA%E4%BB%80%E4%B9%88%EF%BC%9F">5. 可以推出什么，下一步还缺什么？<a class="anchor-link" href="#5.-%E5%8F%AF%E4%BB%A5%E6%8E%A8%E5%87%BA%E4%BB%80%E4%B9%88%EF%BC%8C%E4%B8%8B%E4%B8%80%E6%AD%A5%E8%BF%98%E7%BC%BA%E4%BB%80%E4%B9%88%EF%BC%9F">¶</a></h2><p>首个答案预测处，最终词表分数相对 A 的平均 L2 差异为 D0 0.4804、D 0.1071、D-one 0.0344；控制序列末步分别约 0.2632、0.1070、0.0154。训练后的参数在这两个对齐点更接近 A，但这里只用了 4 份旧开发资料，不能推成所有层、所有步骤或新任务都更好。</p>
+<h2 id="5.-%E8%AE%AD%E7%BB%83%E5%90%8E%E7%9A%84%E5%8F%82%E6%95%B0%E5%9C%A8%E7%9C%9F%E5%AE%9E%E7%8A%B6%E6%80%81%E4%B8%8A%EF%BC%8C%E6%98%AF%E5%90%A6%E4%BB%8D%E6%AF%94-D0-%E6%9B%B4%E6%8E%A5%E8%BF%91-A%EF%BC%9F">5. 训练后的参数在真实状态上，是否仍比 D0 更接近 A？<a class="anchor-link" href="#5.-%E8%AE%AD%E7%BB%83%E5%90%8E%E7%9A%84%E5%8F%82%E6%95%B0%E5%9C%A8%E7%9C%9F%E5%AE%9E%E7%8A%B6%E6%80%81%E4%B8%8A%EF%BC%8C%E6%98%AF%E5%90%A6%E4%BB%8D%E6%AF%94-D0-%E6%9B%B4%E6%8E%A5%E8%BF%91-A%EF%BC%9F">¶</a></h2><p><strong>问题与做法。</strong> 前层输出已经改变，后层还用自己的状态计算时，训练收益是否仍能体现在最终词表分数？在首个答案预测处和第 16 个控制输入后，分别计算 D0、D、D-one 相对 A 的词表向量差，再对四份资料平均。</p>
+<p><strong>结果。</strong> 首个答案预测处，最终词表分数相对 A 的平均 L2 差异为 D0 0.4804、D 0.1071、D-one 0.0344；控制序列末步分别约 0.2632、0.1070、0.0154。</p>
+<p><strong>结论。</strong> 训练后的参数在这两个对齐点仍比 D0 更接近 A，改善没有在进入真实状态后完全消失。但这里只用了 4 份旧开发资料，不能推成所有层、所有步骤或新任务都更好。</p>
 <p>D 在首个预测处与 A 的 argmax 都相同，也只是 4 份资料这一位置的一致率；后续输入被固定，尚未检验各方法自由生成分叉后的答案。第七课 <strong>G4-lite</strong> 用预先固定的 32 份新 T1 比较各方法自由回答，保留 A 错误及 D 改善/退化的题，不据结果再调参。</p>
 <details>
 <summary>后续方法与预算标签</summary>

@@ -7862,7 +7862,9 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="1.-%E5%85%88%E5%8C%BA%E5%88%86%E4%B8%89%E7%A7%8D%E8%B5%84%E6%96%99%E8%BA%AB%E4%BB%BD">1. 先区分三种资料身份<a class="anchor-link" href="#1.-%E5%85%88%E5%8C%BA%E5%88%86%E4%B8%89%E7%A7%8D%E8%B5%84%E6%96%99%E8%BA%AB%E4%BB%BD">¶</a></h2><p>训练：G3a原有48份，允许更新参数。开发诊断：旧16份，不更新参数，但已经被分析，不能叫新的独立验证。最终测试：另一个种子产生的32份新T1，在G3b阶段不做模型评分。</p>
+<h2 id="1.-%E5%93%AA%E4%BA%9B%E8%B5%84%E6%96%99%E8%83%BD%E8%AE%AD%E7%BB%83%EF%BC%8C%E5%93%AA%E4%BA%9B%E8%BF%98%E8%83%BD%E7%94%A8%E4%BA%8E%E6%9C%80%E7%BB%88%E6%B5%8B%E8%AF%95%EF%BC%9F">1. 哪些资料能训练，哪些还能用于最终测试？<a class="anchor-link" href="#1.-%E5%93%AA%E4%BA%9B%E8%B5%84%E6%96%99%E8%83%BD%E8%AE%AD%E7%BB%83%EF%BC%8C%E5%93%AA%E4%BA%9B%E8%BF%98%E8%83%BD%E7%94%A8%E4%BA%8E%E6%9C%80%E7%BB%88%E6%B5%8B%E8%AF%95%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> 第四课的留出资料已经被看过。扩展到全部层时，怎样避免把反复分析的题当成新的独立测试？</p>
+<p><strong>做法。</strong> 继续用原有 48 份资料更新参数；旧 16 份只作开发诊断；另用一个种子预先固定 32 份新 T1、核对与旧资料的重合，在本课不做模型评分。</p>
+<p><strong>结论。</strong> 本课“每层都改善”来自旧 16 份开发资料，只能说明这些固定特征上的变化；32 份新题保留到第七课检验真正回答。资料身份没有因阶段更名而变成独立证据。</p>
 <p>第14层在相同48份、相同初始化与50轮下已经完成训练；本轮校验原参数和输入哈希后直接复用。其他27层使用同一基础种子派生的固定初始化，不搜索种子、层、ρ或轮数。</p>
 <details>
 <summary>记录中的状态与来源标签</summary>
@@ -7916,7 +7918,8 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="2.-%E9%80%90%E5%B1%82%E8%AE%AD%E7%BB%83%EF%BC%8C%E4%BF%9D%E6%8C%81%E4%B8%BB%E6%A8%A1%E5%9E%8B%E4%B8%8D%E5%8A%A8">2. 逐层训练，保持主模型不动<a class="anchor-link" href="#2.-%E9%80%90%E5%B1%82%E8%AE%AD%E7%BB%83%EF%BC%8C%E4%BF%9D%E6%8C%81%E4%B8%BB%E6%A8%A1%E5%9E%8B%E4%B8%8D%E5%8A%A8">¶</a></h2><p>对当前目标层，主模型在 MPS/bf16 上完整处理每份资料和问题，只保存这一层后缀倒数第 24/16/8/1 个位置的 Q，以及对应历史 K/V。本批固定模板中，四个位置分别是问句里的“数值”“四位”、用户消息结束标记后的换行、空 thinking 模板后的两个换行；后缀共有 35 个 token，其中问句占 26 个。64 份该层特征 detach 后存放在 CPU 内存；教师在 CPU/fp32 计算。</p>
+<h2 id="2.-%E6%80%8E%E6%A0%B7%E7%BB%99%E5%85%A8%E9%83%A8%E5%B1%82%E8%AE%AD%E7%BB%83%E7%B4%A2%E5%BC%95%E5%99%A8%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%94%B9%E5%8F%98%E6%8F%90%E4%BE%9B%E7%89%B9%E5%BE%81%E7%9A%84%E6%A8%A1%E5%9E%8B%EF%BC%9F">2. 怎样给全部层训练索引器，而不改变提供特征的模型？<a class="anchor-link" href="#2.-%E6%80%8E%E6%A0%B7%E7%BB%99%E5%85%A8%E9%83%A8%E5%B1%82%E8%AE%AD%E7%BB%83%E7%B4%A2%E5%BC%95%E5%99%A8%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%94%B9%E5%8F%98%E6%8F%90%E4%BE%9B%E7%89%B9%E5%BE%81%E7%9A%84%E6%A8%A1%E5%9E%8B%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> 逐层训练时，下一层接收的是前一层已经少读后的结果，还是原完整模型的结果？这会决定训练实际针对哪一种输入。</p>
+<p><strong>做法。</strong> 对当前目标层，主模型在 MPS/bf16 上完整处理每份资料和问题，只保存这一层后缀倒数第 24/16/8/1 个位置的 Q，以及对应历史 K/V。本批固定模板中，四个位置分别是问句里的“数值”“四位”、用户消息结束标记后的换行、空 thinking 模板后的两个换行；后缀共有 35 个 token，其中问句占 26 个。64 份该层特征 detach 后存放在 CPU 内存；教师在 CPU/fp32 计算。</p>
 <!-- lesson05-mechanism-svg: source reports/figures/05_independent_layer_training.svg -->
 <figure id="independent-layer-training" style="width:50%;max-width:50%;min-width:0;margin:24px auto;">
 <div aria-label="图 5-1。训练下一层时，仍由完整模型提供特征" role="region" style="width:100%;max-width:100%;box-sizing:border-box;border:1px solid #dce3ec;border-radius:12px;background:#fff;" tabindex="0">
@@ -7928,6 +7931,7 @@ a.anchor-link {
 <p>随后更新这一层新增的 Wq/Wk。以第 1 层为例，一轮依次读取 48 份训练资料：每份取四个查询位置，每个查询有 8 个 KV 组；用当前 Wq/Wk 给候选历史位置打分，将候选 softmax 与完整注意力提供的候选分布比较，汇总有效查询/组的 KL，再做一次参数更新。固定做 50 轮，旧 16 份开发资料不进入这些更新。</p>
 <p>评测时拿同一份保存的 Q/K/V 分别运行 C、初始索引 D0、最终索引 D 和教师选位 R。各方法选好位置后，合并首部/近期必留位置，用原主注意力权重在入选集合内重新归一化并加权 V，再与完整读出比较。<strong>这份局部读出在比较后结束，不会送入第 2 层。</strong></p>
 <p>第 1 层参数和指标保存后，释放临时特征；处理第 2 层时，再让未改的完整模型提供第 2 层特征。依此处理其余层，第 14 层直接复用原参数。训练在 MPS/fp32，最终局部评测在 CPU/fp32。</p>
+<p><strong>结果与结论。</strong> 27 层新训练，加上复用的第 14 层，得到全部 28 层各自的索引参数。每层都学习原完整模型给出的特征，没有用前层稀疏结果训练后层；把这些参数同时装回模型后会怎样，不能由这个训练过程直接确定。</p>
 <details>
 <summary>完整特征的归档范围</summary>
 <p>每层只保留预先指定的资料序号 0 和 48 的完整特征，其余完整数组记指纹后释放。精简归档保留输入、参数、指标等证据，但不能直接重做全部特征级审计。</p>
@@ -8291,10 +8295,11 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="3.-%E4%B8%8D%E6%8A%8A%E7%AC%AC-14-%E5%B1%82%E7%9A%84%E6%88%90%E5%8A%9F%E4%B9%98%E4%BB%A5-28">3. 不把第 14 层的成功乘以 28<a class="anchor-link" href="#3.-%E4%B8%8D%E6%8A%8A%E7%AC%AC-14-%E5%B1%82%E7%9A%84%E6%88%90%E5%8A%9F%E4%B9%98%E4%BB%A5-28">¶</a></h2><p>全部层都报告，灰带是复用的第 14 层。<strong>KL</strong>比较教师和索引在候选域的条件分布；<strong>coverage</strong>是入选候选保留的教师权重占候选总权重的比例；<strong>m_C</strong>是候选域在完整教师中原有的总权重。这里不数目标记录的位置。</p>
+<h2 id="3.-%E5%85%B6%E4%BB%96%E5%B1%82%E6%98%AF%E5%90%A6%E4%B9%9F%E8%83%BD%E5%AD%A6%E4%BC%9A%EF%BC%8C%E8%BF%98%E6%98%AF%E5%8F%AA%E6%9C%89%E7%AC%AC-14-%E5%B1%82%E6%9C%89%E6%95%88%EF%BC%9F">3. 其他层是否也能学会，还是只有第 14 层有效？<a class="anchor-link" href="#3.-%E5%85%B6%E4%BB%96%E5%B1%82%E6%98%AF%E5%90%A6%E4%B9%9F%E8%83%BD%E5%AD%A6%E4%BC%9A%EF%BC%8C%E8%BF%98%E6%98%AF%E5%8F%AA%E6%9C%89%E7%AC%AC-14-%E5%B1%82%E6%9C%89%E6%95%88%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> 不同层的读取分配不同，第 14 层改善不能替代其他 27 层的实际检查。</p>
+<p><strong>做法。</strong> 在旧 16 份开发资料上，对每层相同的保存 Q/K/V，用 C、初始 D0、训练后 D 和教师选位 R 分别选取同样名额，再计算分布、保留权重和局部输出差。全部层都报告，灰带是复用的第 14 层。<strong>KL</strong>比较教师和索引在候选域的条件分布；<strong>coverage</strong>是入选候选保留的教师权重占候选总权重的比例；<strong>m_C</strong>是候选域在完整教师中原有的总权重。这里不数目标记录的位置。</p>
 <p><strong>相对 L2</strong>是在同一份完整路径特征上，比较子集与完整注意力的 <code>o_proj</code> 前读出。一次比较对应一个查询位置、一个 KV 组：将本组两个头的 128 维输出合成 256 维，计算少读与完整读出的差，分母为完整 256 维读出的范数。每项先在资料内平均查询/组，再平均资料。它们都是旧开发集的局部指标，不是整模型回答分数。</p>
 <p>当某个查询/组的候选总权重 <code>m_C&lt;1e-4</code> 时，这一行不参与 KL 训练，也不纳入 KL、条件 coverage 的均值。<strong>候选总权重、遗漏完整权重和局部输出 RMSE/相对 L2 仍然计算并保留。</strong> “跳过”不表示整行数据无效，也不把未纳入的指标填成零。均匀教师下，同名额的 coverage 本就可能相近。</p>
-<p>本批 28 层在旧开发资料上的平均 KL、条件覆盖率、局部输出相对 L2 都相对 D0 改善。“28/28”是旧开发资料上各层均值的比较。</p>
+<p><strong>结果与结论。</strong> 本批 28 层的平均 KL、条件覆盖率、局部输出相对 L2 都相对 D0 改善，说明改善不只发生在第 14 层。“28/28”只统计旧开发资料上的每层均值，不表示每道题、每个查询都通过，更不表示 28 层共同部署后能保住答案。</p>
 </div>
 </div>
 </div>
@@ -8592,7 +8597,9 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="4.-%E5%93%AA%E4%BA%9B%E5%B7%AE%E5%BC%82%E5%80%BC%E5%BE%97%E5%B8%A6%E5%88%B0%E7%9C%9F%E5%AE%9E%E6%8E%A8%E7%90%86%E4%B8%AD%E6%A3%80%E6%9F%A5%EF%BC%9F">4. 哪些差异值得带到真实推理中检查？<a class="anchor-link" href="#4.-%E5%93%AA%E4%BA%9B%E5%B7%AE%E5%BC%82%E5%80%BC%E5%BE%97%E5%B8%A6%E5%88%B0%E7%9C%9F%E5%AE%9E%E6%8E%A8%E7%90%86%E4%B8%AD%E6%A3%80%E6%9F%A5%EF%BC%9F">¶</a></h2><p>所有 28 层均进入后续部署，未按局部误差排序筛选层；排序只用于补充诊断。</p>
+<h2 id="4.-%E5%93%AA%E4%BA%9B%E5%B7%AE%E5%BC%82%E5%80%BC%E5%BE%97%E5%B8%A6%E5%88%B0%E7%9C%9F%E5%AE%9E%E6%8E%A8%E7%90%86%E4%B8%AD%E6%A3%80%E6%9F%A5%EF%BC%9F">4. 哪些差异值得带到真实推理中检查？<a class="anchor-link" href="#4.-%E5%93%AA%E4%BA%9B%E5%B7%AE%E5%BC%82%E5%80%BC%E5%BE%97%E5%B8%A6%E5%88%B0%E7%9C%9F%E5%AE%9E%E6%8E%A8%E7%90%86%E4%B8%AD%E6%A3%80%E6%9F%A5%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> 都比 D0 好，是否意味着所有层都已经足够接近完整读取？</p>
+<p><strong>做法。</strong> 将各层 D 在开发资料上的局部输出相对 L2 从大到小排列，查看改善后仍剩多少误差，不据此删除层或重新训练。</p>
+<p><strong>结果与结论。</strong> 第 2、3 层的残余相对 L2 约为 0.1811、0.1275，明显并非零。它们提示部署时应观察的状态差异，不能定位最终错题的原因；28 层仍全部按冻结方案进入下一课。</p>
 <details>
 <summary>展开局部误差排序的解释限制</summary>
 <p>不同层的 Q/K/V 分布不同，局部误差也不同。下面按开发资料上的误差排序；这只能提示风险，不能定位最终答错的原因。所有 28 层均进入后续部署，未按这份排序筛选层。</p>
@@ -8683,7 +8690,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="5.-%E4%B8%8B%E4%B8%80%E9%98%B6%E6%AE%B5%E6%94%B9%E5%8F%98%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F">5. 下一阶段改变了什么？<a class="anchor-link" href="#5.-%E4%B8%8B%E4%B8%80%E9%98%B6%E6%AE%B5%E6%94%B9%E5%8F%98%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F">¶</a></h2><p>这里训练和评测都给各方法完整路径的同一份 Q/K/V。部署后，前层少读会改变后层输入，后层索引器面对的状态可能不同。</p>
+<h2 id="5.-%E4%B8%8B%E4%B8%80%E9%98%B6%E6%AE%B5%E6%94%B9%E5%8F%98%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F">5. 下一阶段改变了什么？<a class="anchor-link" href="#5.-%E4%B8%8B%E4%B8%80%E9%98%B6%E6%AE%B5%E6%94%B9%E5%8F%98%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F">¶</a></h2><p><strong>尚未回答的问题。</strong> 本课给各方法完整路径的同一份 Q/K/V，少读输出只用来算局部误差，随即结束。部署后，前层少读的输出会继续流入后层，后层索引器面对的 Q/K 可能不同。</p>
+<p><strong>已有结论与下一项比较。</strong> 现有结果证明各层在固定特征上都获得了平均改善；要检验真实计算中的变化，必须把这些索引器接回各层，让它们使用自己的状态继续推进。</p>
 <p>因此第六课 <strong>G3c</strong> 先固定同一串 token，比较各路径自己的状态；第七课 <strong>G4-lite</strong> 再用新资料让各方法自由生成。后续直接使用冻结参数，未收集稀疏路径状态追加训练。</p>
 </div>
 </div>

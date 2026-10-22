@@ -7802,7 +7802,7 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="01-%C2%B7-%E5%90%8C%E4%B8%80%E4%BB%BD%E5%8E%86%E5%8F%B2%E4%BD%8D%E7%BD%AE%E5%90%8D%E5%8D%95%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%96-K/V-%E7%9A%84%E5%86%99%E6%B3%95%E8%83%BD%E7%9B%B8%E5%B7%AE-25-%E5%80%8D%EF%BC%9F">01 · 同一份历史位置名单，为什么取 K/V 的写法能相差 25 倍？<a class="anchor-link" href="#01-%C2%B7-%E5%90%8C%E4%B8%80%E4%BB%BD%E5%8E%86%E5%8F%B2%E4%BD%8D%E7%BD%AE%E5%90%8D%E5%8D%95%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%96-K/V-%E7%9A%84%E5%86%99%E6%B3%95%E8%83%BD%E7%9B%B8%E5%B7%AE-25-%E5%80%8D%EF%BC%9F">¶</a></h1><p>本课研究生成一个 token 时，某一层读取历史 K/V 的计算：<strong>先选位置再做注意力，省下的计算能否抵消选位、取数据的额外时间？</strong> 程序直接构造测试数组，在 Mac M4 Max / PyTorch MPS 上测量。</p>
+<h1 id="01-%C2%B7-%E5%90%8C%E4%B8%80%E4%BB%BD%E5%8E%86%E5%8F%B2%E4%BD%8D%E7%BD%AE%E5%90%8D%E5%8D%95%EF%BC%8C%E4%B8%A4%E7%A7%8D%E5%8F%96-K/V-%E5%86%99%E6%B3%95%E5%AE%9E%E6%B5%8B%E7%9B%B8%E5%B7%AE-25-%E5%80%8D">01 · 同一份历史位置名单，两种取 K/V 写法实测相差 25 倍<a class="anchor-link" href="#01-%C2%B7-%E5%90%8C%E4%B8%80%E4%BB%BD%E5%8E%86%E5%8F%B2%E4%BD%8D%E7%BD%AE%E5%90%8D%E5%8D%95%EF%BC%8C%E4%B8%A4%E7%A7%8D%E5%8F%96-K/V-%E5%86%99%E6%B3%95%E5%AE%9E%E6%B5%8B%E7%9B%B8%E5%B7%AE-25-%E5%80%8D">¶</a></h1><p>本课研究生成一个 token 时，某一层读取历史 K/V 的计算：<strong>先选位置再做注意力，省下的计算能否抵消选位、取数据的额外时间？</strong> 程序直接构造测试数组，在 Mac M4 Max / PyTorch MPS 上测量。</p>
 <!-- lesson01-comparison-svg: source reports/figures/01_g0_g1a_comparison.svg -->
 <figure id="g0-g1a-comparison" style="width:50%;max-width:50%;min-width:0;margin:24px auto;">
 <div aria-label="图 1-1。G0 与 G1a 流程对比图" role="region" style="width:100%;max-width:100%;box-sizing:border-box;border:1px solid #dce3ec;border-radius:12px;background:#fff;" tabindex="0">
@@ -7967,7 +7967,8 @@ src/attention_lab/sparse.py     跑分时 bbe8805b45a4  当前 bbe8805b45a4  一
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="1.-%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E6%8C%89%E5%90%8C%E4%B8%80%E4%BB%BD%E4%BD%8D%E7%BD%AE%E5%90%8D%E5%8D%95%E5%8F%96%E5%87%BA%E5%8E%86%E5%8F%B2-K/V%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%A4%E7%A7%8D%E5%86%99%E6%B3%95%E7%9B%B8%E5%B7%AE-25-%E5%80%8D%EF%BC%9F">1. 问题一：按同一份位置名单取出历史 K/V，为什么两种写法相差 25 倍？<a class="anchor-link" href="#1.-%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E6%8C%89%E5%90%8C%E4%B8%80%E4%BB%BD%E4%BD%8D%E7%BD%AE%E5%90%8D%E5%8D%95%E5%8F%96%E5%87%BA%E5%8E%86%E5%8F%B2-K/V%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%A4%E7%A7%8D%E5%86%99%E6%B3%95%E7%9B%B8%E5%B7%AE-25-%E5%80%8D%EF%BC%9F">¶</a></h2><p>用相同 K/V 和位置名单比较取行写法，检查它们是否得到相同结果、耗时是否不同。</p>
+<h2 id="1.-%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E6%8C%89%E5%90%8C%E4%B8%80%E4%BB%BD%E5%90%8D%E5%8D%95%E5%8F%96-K/V%EF%BC%8C%E5%8F%AA%E6%8D%A2%E5%8F%96%E8%A1%8C%E5%86%99%E6%B3%95%E4%BC%9A%E5%B7%AE%E5%A4%9A%E5%B0%91%EF%BC%9F">1. 问题一：按同一份名单取 K/V，只换取行写法会差多少？<a class="anchor-link" href="#1.-%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E6%8C%89%E5%90%8C%E4%B8%80%E4%BB%BD%E5%90%8D%E5%8D%95%E5%8F%96-K/V%EF%BC%8C%E5%8F%AA%E6%8D%A2%E5%8F%96%E8%A1%8C%E5%86%99%E6%B3%95%E4%BC%9A%E5%B7%AE%E5%A4%9A%E5%B0%91%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> 每组都从 32,768 个历史位置取出指定的 1,024 对 K/V，向量仍为 128 维。数据和名单完全相同时，取行接口的写法会不会显著改变耗时？</p>
+<p><strong>做法。</strong> 一种写法向 <code>torch.gather</code> 提供各位置、各分量的下标；另一种先把各组 K/V 看成一张大表，再让 <code>index_select</code> 按完整行号取向量。先用 CPU 小数组核对结果相同，再在 MPS 上依次访问 36 套独立 K/V，单独测取 K、取 V 的时间，不把选位和注意力算进去。</p>
 <details>
 <summary>展开取行映射与数组形状</summary>
 <p>32K 档的 K、V 各为 <code>[8,32768,128]</code>。每组按给定的 1,024 个原位置 <code>I[g]</code> 取完整向量：</p>
@@ -8045,7 +8046,7 @@ def gather_rows(x: torch.Tensor, selected: torch.Tensor, offsets=None) -&gt; tor
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <details>
 <summary>CPU 取行一致性例的设置</summary>
-<p><strong>CPU 例子。</strong> 用 <code>[1,2,16,4]</code> 的 K 和每组 8 个位置的名单，核对拉平 <code>index_select</code>、<code>torch.gather</code>、高级索引的结果是否一致。正式测速对 K、V 分别取行。</p>
+<p><strong>检查什么、怎样检查。</strong> 先排除快写法取错数据的可能：构造两个 KV 组，每组 16 个历史位置、每个 K 向量 4 维；指定每组 8 个位置，分别用拉平 <code>index_select</code>、<code>torch.gather</code> 和高级索引取出。保存输出显示三者形状和值相同。这只检查取行对应性；MPS 耗时由另一次正式测量给出，正式测量对 K、V 分别取行。</p>
 </details>
 </div>
 </div>
@@ -8177,11 +8178,11 @@ def gather_rows(x: torch.Tensor, selected: torch.Tensor, offsets=None) -&gt; tor
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>32K 档同名单取行：<code>torch.gather</code> 为 673 µs，拉平 <code>index_select</code> 为 27 µs，约相差 25 倍。后续采用较快的写法；这些记录没有定位后端差异的具体原因。</p>
+<p><strong>结果与结论。</strong> 32K / bf16 下，折算到一套 K/V，<code>torch.gather</code> 耗时 673 µs，拉平后 <code>index_select</code> 耗时 27 µs，约相差 25 倍。读取同样的数据，写法仍会影响实际成本，因此后续采用后者。这些测量没有查明后端哪项操作造成了差距，不能把“展开下标被复制”当成已证实原因。</p>
 <details>
 <summary>展开取行实现差异</summary>
 <p>三种实现的输入、名单和输出相同；32K 档 <code>torch.gather</code> 为 673 µs，拉平 <code>index_select</code> 为 27 µs，约相差 25 倍。</p>
-<p>实现差别就在上面的代码：<code>gather</code> 接收 <code>[G,k,d]</code> 的展开下标，<code>index_select</code> 接收 <code>G*k</code> 个完整行号。<code>expand</code> 本身不分配那份完整下标数组；现有记录也没有证明后端是否将其物化、贡献多少耗时，不能把这一猜测当成 25 倍差距的已定位原因。</p>
+<p>两种接口接收的下标不同：<code>gather</code> 接收 <code>[G,k,d]</code> 的展开下标，<code>index_select</code> 接收 <code>G*k</code> 个完整行号。<code>expand</code> 本身不分配那份完整下标数组；现有记录也没有证明后端是否将其物化、贡献多少耗时，不能把这一猜测当成 25 倍差距的已定位原因。</p>
 <p>后续单层实验采用这里实测较快的 <code>index_select</code>。</p>
 </details>
 </div>
@@ -8194,7 +8195,8 @@ def gather_rows(x: torch.Tensor, selected: torch.Tensor, offsets=None) -&gt; tor
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="2.-%E9%97%AE%E9%A2%98%E4%BA%8C%EF%BC%9A%E5%8F%AA%E5%8F%96%E7%BA%A6-3.3%25-%E7%9A%84%E5%8E%86%E5%8F%B2%E4%BD%8D%E7%BD%AE%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E6%80%BB%E8%80%97%E6%97%B6%E4%B8%8D%E4%B8%80%E5%AE%9A%E4%B8%8B%E9%99%8D%EF%BC%9F">2. 问题二：只取约 3.3% 的历史位置，为什么总耗时不一定下降？<a class="anchor-link" href="#2.-%E9%97%AE%E9%A2%98%E4%BA%8C%EF%BC%9A%E5%8F%AA%E5%8F%96%E7%BA%A6-3.3%25-%E7%9A%84%E5%8E%86%E5%8F%B2%E4%BD%8D%E7%BD%AE%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E6%80%BB%E8%80%97%E6%97%B6%E4%B8%8D%E4%B8%80%E5%AE%9A%E4%B8%8B%E9%99%8D%EF%BC%9F">¶</a></h2><p>D 从 32,768 个历史位置中保留首 4 个、最近 64 个，再从其余位置选 1,024 个。主注意力共读 1,092 个位置，约 3.3%；索引仍须给所有候选打分，再取出原来的 128 维 K/V。这里测这些步骤合起来的成本。</p>
+<h2 id="2.-%E9%97%AE%E9%A2%98%E4%BA%8C%EF%BC%9A%E5%8F%AA%E5%8F%96%E7%BA%A6-3.3%25-%E7%9A%84%E5%8E%86%E5%8F%B2%E4%BD%8D%E7%BD%AE%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E6%80%BB%E8%80%97%E6%97%B6%E4%B8%8D%E4%B8%80%E5%AE%9A%E4%B8%8B%E9%99%8D%EF%BC%9F">2. 问题二：只取约 3.3% 的历史位置，为什么总耗时不一定下降？<a class="anchor-link" href="#2.-%E9%97%AE%E9%A2%98%E4%BA%8C%EF%BC%9A%E5%8F%AA%E5%8F%96%E7%BA%A6-3.3%25-%E7%9A%84%E5%8E%86%E5%8F%B2%E4%BD%8D%E7%BD%AE%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E6%80%BB%E8%80%97%E6%97%B6%E4%B8%8D%E4%B8%80%E5%AE%9A%E4%B8%8B%E9%99%8D%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> 主注意力只使用约 3.3% 的历史位置，节省的计算是否足够抵消找位置、搬 K/V 的时间？</p>
+<p><strong>做法。</strong> 对同一份随机 Q/K/V 分别执行完整 A 和索引 D。以 32K 为例，A 对全部 32,768 个位置做主注意力；D 更新本步索引、给 32,700 个候选打分并选出 1,024 个，再加首 4 个和最近 64 个位置，取出这 1,092 对原 K/V 做主注意力。分别测到注意力向量输出为止的整段时间；D 的选位成本全部计入。8K、16K 同样比较，额外名额都按起始长度的 1/32 计算。</p>
 <details>
 <summary>展开选位规则、名额计算与完整计时口径</summary>
 <p>以本课 32K 档为例，只看某一层、某一个 KV 组：现在有 <strong>32,768 个可读取的位置</strong>，每个位置存着一个 128 维 K 和一个 128 维 V。同组查询头共用一份选位名单。完整注意力 A 读取全部位置；索引读取 D 按下面的过程选位。</p>
@@ -8521,7 +8523,7 @@ A                           109.6    202.9    405.3
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>减少主注意力读取量，还要支付索引扫描、选位和取行成本：本批 8K 设置中 D 比 A 慢，32K 才显示局部收益。</p>
+<p><strong>结果与结论。</strong> bf16、ρ=1/32 下，8K 的 A/D 分别约 110/195 µs，16K 约 203/222 µs，32K 约 405/297 µs。D 的主注意力虽然少读很多，前面仍要扫描索引、选位和取数据；这些新增工作使小长度档更慢，32K 才出现局部时间收益。读取比例不能直接换算成加速比例，整模型收益还要另测。</p>
 <details>
 <summary>展开读取量、各段成本与名额变化</summary>
 <p><strong>读取量与耗时。</strong> 32K、ρ=1/32 时，主注意力读取 1092 个位置，占 3.3%，对应 K/V 约 4.3 MiB。选位还需扫描 32700 个候选索引键，约 16 MiB；两者合计约 20.2 MiB，相对 A 的 128 MiB 约为 0.16。上表的耗时比却约为 0.73；8K 的同口径字节比也约为 0.16，耗时比为 1.78。</p>
@@ -8538,14 +8540,17 @@ A                           109.6    202.9    405.3
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="3.-%E9%97%AE%E9%A2%98%E4%B8%89%EF%BC%9A%E5%90%84%E6%AE%B5%E5%8D%95%E7%8B%AC%E8%AE%A1%E6%97%B6%E7%9B%B8%E5%8A%A0%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E7%AD%89%E4%BA%8E%E5%AE%8C%E6%95%B4%E6%89%A7%E8%A1%8C">3. 问题三：各段单独计时相加，为什么不等于完整执行<a class="anchor-link" href="#3.-%E9%97%AE%E9%A2%98%E4%B8%89%EF%BC%9A%E5%90%84%E6%AE%B5%E5%8D%95%E7%8B%AC%E8%AE%A1%E6%97%B6%E7%9B%B8%E5%8A%A0%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E7%AD%89%E4%BA%8E%E5%AE%8C%E6%95%B4%E6%89%A7%E8%A1%8C">¶</a></h2><p>分段测量复用预备中间量，整链则要依次生成它们；两种执行不同，分段耗时之和不能代替整链实测。</p>
+<h2 id="3.-%E9%97%AE%E9%A2%98%E4%B8%89%EF%BC%9A%E6%8A%8A%E5%90%84%E6%AD%A5%E5%8D%95%E7%8B%AC%E6%B5%8B%E5%87%BA%E7%9A%84%E6%97%B6%E9%97%B4%E7%9B%B8%E5%8A%A0%EF%BC%8C%E8%83%BD%E4%BB%A3%E6%9B%BF-D-%E6%95%B4%E6%AE%B5%E6%89%A7%E8%A1%8C%E7%9A%84%E6%97%B6%E9%97%B4%E5%90%97%EF%BC%9F">3. 问题三：把各步单独测出的时间相加，能代替 D 整段执行的时间吗？<a class="anchor-link" href="#3.-%E9%97%AE%E9%A2%98%E4%B8%89%EF%BC%9A%E6%8A%8A%E5%90%84%E6%AD%A5%E5%8D%95%E7%8B%AC%E6%B5%8B%E5%87%BA%E7%9A%84%E6%97%B6%E9%97%B4%E7%9B%B8%E5%8A%A0%EF%BC%8C%E8%83%BD%E4%BB%A3%E6%9B%BF-D-%E6%95%B4%E6%AE%B5%E6%89%A7%E8%A1%8C%E7%9A%84%E6%97%B6%E9%97%B4%E5%90%97%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> D 一次读取要更新索引、投影查询、给候选打分、选位置、合并名单、取 K、取 V，最后算主注意力。能否分别测这八步，再相加，得到整个 D 的耗时？</p>
+<p><strong>做法。</strong> 做了两种测量。第一种先备好中间数据：测选位时反复使用同一份已算好的分数，测取行时使用已备名单，测注意力时使用已取出的 K/V；八步各自重复计时，再把代表耗时相加。第二种每次真的从当前查询开始，算出分数、产生名单、取出 K/V，直到得到注意力向量，直接测完整过程。第一种没有把这次选位的输出接给这次取行，第二种有。</p>
+<p><strong>结果与结论。</strong> bf16、32K、ρ=1/32 时，八段相加为 <strong>258.0 µs</strong>，完整过程实测为 <strong>296.5 µs</strong>，多约 15%；ρ=1/8 时是 320.4 与 410.8 µs，多约 28%。两种测法的中间数据复用和执行依赖不同，所以前者不能作为完整过程的耗时。当前实验没有分离各因素的贡献，尚不能断言这 15% 或 28% 具体由缓存、同步或某个算子造成。</p>
 <details>
 <summary>展开分段测量与原预测</summary>
 <p><strong>这两种计时没有执行同一段程序。</strong> 分段实验先准备好一份分数，再反复测“从这份分数选位置”；测取行时，又直接使用一份预先准备好的名单。整段实验则要求本次算出的分数真正产生名单，再用这份新名单取 K/V：</p>
 <div class="highlight"><pre><span></span>分段测量：预备分数 → 测选位；预备名单 → 测取行；预备 K/V 子数组 → 测注意力
 整段测量：本次查询 → 本次分数 → 本次名单 → 本次 K/V 子数组 → 本次注意力输出
 </pre></div>
-<p>因此，前一种测法的后半段可以反复使用同一批中间数据；后一种必须在本次执行中依次产生它们。下面源码里的 s0、top0、rows0、ksub0/vsub0，分别就是预备分数、候选名单、合并后的行号、入选 K/V。</p>
+<p>分段测量不是在一次 D 执行中插入八个计时点。它分别运行八轮独立的小基准：每轮连续调用某一步 36 次，在整轮前后同步，再除以 36。完整测量则连续执行 36 次完整 D，同样只在整轮前后同步；不是每执行一步就人为停下来等 GPU。</p>
+<p>代码提前用第 0 套数组准备 <code>u0/s0/top0/rows0/ksub0/vsub0</code>，分别是查询索引、分数、候选名单、完整行号、入选 K/V。分段打分复用 u0，选位复用 s0，取行复用 rows0；注意力还反复读取同一份 ksub0/vsub0。完整 D 则为各套输入重新产生这些中间量。表中相加的是各项分别测量后的统计值，也不是同一次执行里各段时间的总和。</p>
 <details>
 <summary>运行前预测（原文）</summary>
 <p><strong>运行前的预测。</strong> G1a 卡片预测“分段之和高于链式 20% 到 30%”，理由是分段计时里每个算子独立提交，链式执行可以让提交与执行重叠。实测方向相反：整段执行比各段单独计时之和更慢，8K 多 6%，32K、ρ=1/8 多 28%。下面保留原测量，随后说明它能支持什么解释。</p>
@@ -8613,8 +8618,8 @@ float32    32768 1/8   |     500.2        606.0      1.21
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <details>
-<summary>分段源码说明</summary>
-<p><strong>运行时分段基准源码：</strong></p>
+<summary>源码如何对应上述两种测量</summary>
+<p>下面八个函数各自交给计时器重复调用；它们之间不串接返回值。<code>topk(s0, …)</code> 直接读取预备分数，取 K/V 直接读取 <code>rows0</code>，最后注意力直接读取 <code>ksub0/vsub0</code>。完整 D 的代码则用本次调用刚产生的分数、名单和 K/V，依次完成后续计算。</p>
 </details>
 </div>
 </div>
@@ -8681,7 +8686,9 @@ float32    32768 1/8   |     500.2        606.0      1.21
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="4.-%E9%A2%84%E6%B5%8B%E4%B8%8E%E8%A7%82%E5%AF%9F%EF%BC%9A%E4%B8%A4%E4%B8%AA%E5%AE%9E%E9%AA%8C%E9%98%B6%E6%AE%B5%E7%9A%84%E5%AF%B9%E7%85%A7%E8%B4%A6">4. 预测与观察：两个实验阶段的对照账<a class="anchor-link" href="#4.-%E9%A2%84%E6%B5%8B%E4%B8%8E%E8%A7%82%E5%AF%9F%EF%BC%9A%E4%B8%A4%E4%B8%AA%E5%AE%9E%E9%AA%8C%E9%98%B6%E6%AE%B5%E7%9A%84%E5%AF%B9%E7%85%A7%E8%B4%A6">¶</a></h2><p>早期预测和载荷估算只作测量背景；实际耗时决定是否继续接入真实模型。</p>
+<h2 id="4.-%E5%93%AA%E4%BA%9B%E5%B1%80%E9%83%A8%E6%94%B6%E7%9B%8A%E5%80%BC%E5%BE%97%E6%8E%A5%E5%85%A5%E7%9C%9F%E5%AE%9E%E6%A8%A1%E5%9E%8B%E7%BB%A7%E7%BB%AD%E6%A3%80%E6%9F%A5%EF%BC%9F">4. 哪些局部收益值得接入真实模型继续检查？<a class="anchor-link" href="#4.-%E5%93%AA%E4%BA%9B%E5%B1%80%E9%83%A8%E6%94%B6%E7%9B%8A%E5%80%BC%E5%BE%97%E6%8E%A5%E5%85%A5%E7%9C%9F%E5%AE%9E%E6%A8%A1%E5%9E%8B%E7%BB%A7%E7%BB%AD%E6%A3%80%E6%9F%A5%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> 某一次 D 比 A 快，是否已经足够排除偶然波动，值得继续做模型接入？</p>
+<p><strong>做法。</strong> 在六个独立进程中分别测 A、D；每个进程先算 D/A。预先规定六个比值都不高于 0.90，才视为达到至少 10% 的继续研究门槛，同时检查 D 没有先算完整主 QK 再筛选。</p>
+<p><strong>结果与结论。</strong> bf16、32K、ρ=1/32 的比值范围约 0.66–0.74，六次均通过；同精度的 8K、16K 以及 32K、ρ=1/8 未通过。于是继续检查真实模型，而不是宣布索引方案已经更快。float32 的其他通过组合、早期预测及字节估算留在下方记录中。</p>
 <details>
 <summary>展开早期继续门槛</summary>
 <p>G1a 的门槛是在每个进程先算 D/A，六进程都 ≤0.90 才通过；表中的比值中位和范围由这六个比值得到。</p>
@@ -8745,7 +8752,7 @@ float32    32768 1/8   D_full  |     0.42   0.40–0.46              是        
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <details>
 <summary>早期载荷估算的口径</summary>
-<p>下一张表回看当时怎样按字节量预测速度。把“先挑位置，再读 K/V”的内存操作展开，读写顺序是：</p>
+<p><strong>问题与做法。</strong> 早期想先估计少读 K/V 能节省多少时间，于是按数组形状计算读写字节数，再除以假设带宽。下面把两种核算范围放在一起，检查有没有漏算或重复扣费。读写顺序是：</p>
 <div class="highlight"><pre><span></span>① 读候选索引表 → ② 从主缓存读入选 K/V → ③ 写入临时子数组 → ④ 主注意力再读子数组
 </pre></div>
 <p><strong>S1</strong> 只数①②；<strong>S2</strong> 再加③④。把这些字节除以假设带宽，才得到表中的时间情景；还没有算索引投影、top-k、调度等实际成本，也没有测到硬件缓存命中。因此这些毫秒是核算值，不能冒充整模型实测。</p>

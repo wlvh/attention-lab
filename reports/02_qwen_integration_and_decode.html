@@ -7982,7 +7982,9 @@ src/attention_lab/sparse.py     测速时 bbe8805b45a4  当前 bbe8805b45a4  一
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="1.-%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E6%8E%A5%E5%85%A5%E5%90%8E%E6%9C%89%E6%B2%A1%E6%9C%89%E6%8A%8A%E5%8E%9F%E6%A8%A1%E5%9E%8B%E7%AE%97%E9%94%99">1. 问题一：接入后有没有把原模型算错<a class="anchor-link" href="#1.-%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E6%8E%A5%E5%85%A5%E5%90%8E%E6%9C%89%E6%B2%A1%E6%9C%89%E6%8A%8A%E5%8E%9F%E6%A8%A1%E5%9E%8B%E7%AE%97%E9%94%99">¶</a></h2><details>
+<h2 id="1.-%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E6%8E%A5%E5%85%A5%E5%90%8E%E6%9C%89%E6%B2%A1%E6%9C%89%E6%8A%8A%E5%8E%9F%E6%A8%A1%E5%9E%8B%E7%AE%97%E9%94%99%EF%BC%9F">1. 问题一：接入后有没有把原模型算错？<a class="anchor-link" href="#1.-%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E6%8E%A5%E5%85%A5%E5%90%8E%E6%9C%89%E6%B2%A1%E6%9C%89%E6%8A%8A%E5%8E%9F%E6%A8%A1%E5%9E%8B%E7%AE%97%E9%94%99%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> 如果读取集合没有变，仅更换缓存和读取实现，词表分数与 K/V 是否仍能对应原模型？必须先排除接入错误，才能解释少读后的变化。</p>
+<p><strong>做法。</strong> 给原库完整 A 与封装完整 A 输入同一串 token，使用相同的逐 token 顺序，比较词表分数和各层缓存；再让 D 读齐全部合法位置，比较它与封装 A。另测原库自身“整段输入”和“逐 token 输入”的差别，把输入方式造成的数值差单独列出，不全算给封装。</p>
+<details>
 <summary>运行前预测（原文）</summary>
 <p><strong>运行前的预测</strong>（保存在本项目的预测卡片 <code>reports/cards/G1b_mac_m4max.md</code>）：float32 的三段对照全部落在预设容差内（词表分数 max|Δ| ≤ 1e-2、相对范数 ≤ 1e-3、argmax 一致 ≥ 99%，缓存 K/V ≤ 1e-3），且观测差别比容差小一个量级；bf16 的 max|Δ| 在 0.1 到 0.5，argmax 一致 ≥ 97%；全选 D 对封装 A 同量级；回退后重算逐位相同。</p>
 </details>
@@ -8510,7 +8512,7 @@ float32  cpu    128  D_rho_1_8_vs_unmodified_logits_information_only            
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>小型随机模型检查未选行、缓存回退及 RoPE 特征来源；这些是实现正确性检查。</p>
+<p><strong>辅助检查。</strong> 为确认少读实现真的只取名单内数据，在已算好的小模型缓存里把未选行改为 NaN，再重算同一步：D 输出不变，完整 A 出现 NaN。另做缓存回退后重算和 RoPE 前后特征对照，检查旧后缀是否覆盖、索引输入是否取对。具体条件与输出折叠保留；它们检查实现，不评价答题能力。</p>
 <details>
 <summary>展开 CPU 检查条件</summary>
 <p><strong>CPU 规则检查。</strong> 以下用当前 tiny Qwen 实现固定缓存内容，只改变被测条件：污染未选行时，D 输出不变而完整 A 出现非有限值；回退后重算应覆盖旧后缀；改用 RoPE 后的 K 构建 z 应得到不同特征。它们分别检查未选行是否被读、缓存有效范围和索引特征来源，不是对真实文本做改写。</p>
@@ -8600,7 +8602,7 @@ float32  cpu    128  D_rho_1_8_vs_unmodified_logits_information_only            
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>同为逐 token 输入时，封装 A 与原库逐位一致；这一历史版全选 D 在 bf16 下仍有小差异，按当时容差报告。第六课排序修复后的结果另计。</p>
+<p><strong>结果与结论。</strong> 本批同为逐 token 输入时，封装 A 的词表分数和 K/V 与原库逐位相同，支持完整路径接入对应。历史版全选 D 在 bf16 下仍有差异：长度 128/512 时词表分数最大差约 0.219/0.109，按当时容差报告，不能称为逐位等价。部分读取则本来会改变输出；它是否还能答对，要由第三课的真实任务检验。</p>
 <details>
 <summary>展开各精度与输入方式的数值结果</summary>
 <p><strong>数值结果要按参照拆开读。</strong></p>
@@ -8641,11 +8643,13 @@ float32  cpu    128  D_rho_1_8_vs_unmodified_logits_information_only            
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="2.-%E9%97%AE%E9%A2%98%E4%BA%8C%EF%BC%9A%E5%8D%95%E5%B1%82%E7%9C%81%E4%B8%8B%E7%9A%84%E6%97%B6%E9%97%B4%E6%94%BE%E8%BF%9B%E5%AE%8C%E6%95%B4%E6%A8%A1%E5%9E%8B%E8%BF%98%E5%89%A9%E5%A4%9A%E5%B0%91">2. 问题二：单层省下的时间放进完整模型还剩多少<a class="anchor-link" href="#2.-%E9%97%AE%E9%A2%98%E4%BA%8C%EF%BC%9A%E5%8D%95%E5%B1%82%E7%9C%81%E4%B8%8B%E7%9A%84%E6%97%B6%E9%97%B4%E6%94%BE%E8%BF%9B%E5%AE%8C%E6%95%B4%E6%A8%A1%E5%9E%8B%E8%BF%98%E5%89%A9%E5%A4%9A%E5%B0%91">¶</a></h2><details>
+<h2 id="2.-%E9%97%AE%E9%A2%98%E4%BA%8C%EF%BC%9A%E5%8D%95%E5%B1%82%E7%9C%81%E4%B8%8B%E7%9A%84%E6%97%B6%E9%97%B4%E6%94%BE%E8%BF%9B%E5%AE%8C%E6%95%B4%E6%A8%A1%E5%9E%8B%E8%BF%98%E5%89%A9%E5%A4%9A%E5%B0%91%EF%BC%9F">2. 问题二：单层省下的时间放进完整模型还剩多少？<a class="anchor-link" href="#2.-%E9%97%AE%E9%A2%98%E4%BA%8C%EF%BC%9A%E5%8D%95%E5%B1%82%E7%9C%81%E4%B8%8B%E7%9A%84%E6%97%B6%E9%97%B4%E6%94%BE%E8%BF%9B%E5%AE%8C%E6%95%B4%E6%A8%A1%E5%9E%8B%E8%BF%98%E5%89%A9%E5%A4%9A%E5%B0%91%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> 第一课只测注意力读取；现在每个 token 还要经过 embedding、全部 28 层的投影、残差、MLP 和词表输出。局部少读在整次前向里还能省多少？</p>
+<p><strong>做法。</strong> 用同一串随机 token 建立各路径自己的前缀缓存，每次计时前恢复到同一历史长度，再送入同一个新 token。分别测从 token id 到词表分数的整次前向，D 的索引与取行也在计时内；在 8K、16K、约 32K 重复比较 A/D，并记录两种原库缓存实现作参照。这里比较固定输入的成本，不比较答案。</p>
+<details>
 <summary>运行前预测（原文）</summary>
 <p><strong>运行前的预测</strong>（卡片，写于任何整模型计时之前）。依据 G1a：bf16、eager、每层读取阶段 8K A 110 / D 195 µs，16K 203 / 222，32K 405 / 297；乘 28 层，32K 时 D 比 A 少约 3.0 ms，8K 时多 2.4 ms。再加权重读取（每步至少 1.19 GB，4 到 7 ms）与每层约 55 到 60 个 aten 算子的提交开销（G0 测得约 24 µs/个），卡片预测：<strong>整步以 CPU 侧提交为主，A ≈ 35 到 55 ms，D 比 A 多出约 280 个算子，D/A 在 8K 1.10 到 1.25、16K 1.08 到 1.20、32K 0.98 到 1.15，三个 N0 都不通过 10% 门槛；替代结果（三成把握）：若运行时重叠得好、整步由 GPU 决定（A ≈ 18 到 25 ms），32K 的 D/A 可到 0.85 到 0.95。</strong> 卡片同时写明 G1a 的 0.74 / 0.67 是单层读取阶段的量，不要求复现。</p>
 </details>
-<p><strong>正式代码。</strong> 计时的对象是一步完整前向：从 token id 到下一 token 的词表分数（<code>logits_to_keep=1</code>），前后 <code>torch.mps.synchronize()</code>。四条路径同一模型对象、同一 token，各自维护缓存。下面展示该次测速的 D 读取函数与“固定 N 单步”循环快照。</p>
+<p>下面保留该次测速的 D 读取函数与循环快照；前后同步计时，词表输出仅保留最后位置（<code>logits_to_keep=1</code>）。主体权重共用，各路径缓存独立。</p>
 </div>
 </div>
 </div>
@@ -8871,8 +8875,8 @@ float32  cpu    128  D_rho_1_8_vs_unmodified_logits_information_only            
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>实测。</strong> eager 固定历史长度下，A 的整步中位为 13.3/16.0/21.2 ms，D 为 16.1/16.8/19.7 ms；配对 D/A 为 1.210/1.054/0.930。32K 的 50 轮中只有 7 轮达到 ≤0.90，未通过预定门槛。</p>
-<p><strong>单层优势为何不能直接变成同等整步收益？</strong> 原来的 Q/K/V 投影、输出投影、MLP 等仍然执行。若只改变注意力读取，整步减少的比例就是“读取阶段省下的时间 ÷ 原整步总时间”。用 $T_{\mathrm{other}}$ 表示两条路径共有的其余计算时间：</p>
+<p><strong>结果。</strong> eager 固定历史长度下，A 的整步中位为 13.3/16.0/21.2 ms，D 为 16.1/16.8/19.7 ms；配对 D/A 为 1.210/1.054/0.930。32K 的 50 轮中只有 7 轮达到 ≤0.90，未通过预定门槛。</p>
+<p><strong>结论。</strong> 本批约 32K 的整步改善约 7%，未稳定达到 10%；第一课的局部收益没有按原比例转成整模型收益。 原来的 Q/K/V 投影、输出投影、MLP 等仍然执行。若只改变注意力读取，整步减少的比例就是“读取阶段省下的时间 ÷ 原整步总时间”。用 $T_{\mathrm{other}}$ 表示两条路径共有的其余计算时间：</p>
 <p>$$
 \frac{T_{A,\mathrm{read}}-T_{D,\mathrm{read}}}
      {T_{\mathrm{other}}+T_{A,\mathrm{read}}}.
@@ -8893,7 +8897,8 @@ $$</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="3.-%E9%97%AE%E9%A2%98%E4%B8%89%EF%BC%9A%E8%BF%9E%E7%BB%AD%E6%8E%A8%E8%BF%9B%E6%97%B6%E7%BC%93%E5%AD%98%E3%80%81%E7%B4%A2%E5%BC%95%E8%A1%A8%E5%92%8C%E6%89%A7%E8%A1%8C%E6%95%88%E7%8E%87%E6%98%AF%E5%90%A6%E7%A8%B3%E5%AE%9A">3. 问题三：连续推进时缓存、索引表和执行效率是否稳定<a class="anchor-link" href="#3.-%E9%97%AE%E9%A2%98%E4%B8%89%EF%BC%9A%E8%BF%9E%E7%BB%AD%E6%8E%A8%E8%BF%9B%E6%97%B6%E7%BC%93%E5%AD%98%E3%80%81%E7%B4%A2%E5%BC%95%E8%A1%A8%E5%92%8C%E6%89%A7%E8%A1%8C%E6%95%88%E7%8E%87%E6%98%AF%E5%90%A6%E7%A8%B3%E5%AE%9A">¶</a></h2><p>连续输入相同的 128 个 token，检查读取名额、执行时间和内存是否持续变化；这是缓存推进的稳定性检查。</p>
+<h2 id="3.-%E9%97%AE%E9%A2%98%E4%B8%89%EF%BC%9A%E8%BF%9E%E7%BB%AD%E6%8E%A8%E8%BF%9B%E6%97%B6%EF%BC%8C%E5%90%8D%E9%A2%9D%E5%92%8C%E7%BC%93%E5%AD%98%E4%BC%9A%E4%B8%8D%E4%BC%9A%E8%B6%8A%E9%95%BF%E8%B6%8A%E5%A4%B1%E6%8E%A7%EF%BC%9F">3. 问题三：连续推进时，名额和缓存会不会越长越失控？<a class="anchor-link" href="#3.-%E9%97%AE%E9%A2%98%E4%B8%89%EF%BC%9A%E8%BF%9E%E7%BB%AD%E6%8E%A8%E8%BF%9B%E6%97%B6%EF%BC%8C%E5%90%8D%E9%A2%9D%E5%92%8C%E7%BC%93%E5%AD%98%E4%BC%9A%E4%B8%8D%E4%BC%9A%E8%B6%8A%E9%95%BF%E8%B6%8A%E5%A4%B1%E6%8E%A7%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> 固定长度的一步正常，不代表继续输入后仍正常：缓存有效长度增长时，额外名额有没有误增，后面的步骤会不会越来越慢或持续增加内存？</p>
+<p><strong>做法。</strong> 各方法从相同长度出发，连续输入同一串预定的 128 个 token，中间不回退；每步记录额外名额和耗时，每隔 16 步采样内存。整段重复三次，比较开头与末尾各 16 步，并检查时间趋势。模型预测不决定下一次输入，避免不同生成内容干扰比较。</p>
 <details>
 <summary>展开稳定性检查的预测与采样办法</summary>
 <details>
@@ -9130,7 +9135,7 @@ g1b-mac-20261016T202847Z-formal N0=32256：
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>本批名额保持固定，内存采样未见持续总量上升。32K D 的绝对时间斜率未满足原门槛，但方向为下行；这些短序列检查不能证明长期无泄漏。</p>
+<p><strong>结果与结论。</strong> 额外名额在 8K/16K/约 32K 各档始终为 256/512/1008，未随步数扩大；A 的首末时间中位差不超过约 0.9%，D 不超过约 2.8%，内存采样未见持续总量上升。32K D 的绝对时间斜率仍未过原门槛，但方向是变快而非越来越慢。这支持本次 128 步内的推进可控，不能证明长期无泄漏。</p>
 <details>
 <summary>展开时间趋势和内存统计</summary>
 <p><strong>时间和名额。</strong> 所测模式中，封装 A 首/末 16 步中位相差不超过约 0.9%，D 不超过约 2.8%；32K D 的斜率为 eager −30.3、compile −27.3 µs/步，未满足绝对斜率 ≤20 的条件，但方向为下行。k0 为 256/512/1008，实际读取数为 68+k0，记录中没有随步扩大。</p>

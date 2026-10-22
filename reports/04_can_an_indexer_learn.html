@@ -7867,11 +7867,14 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="1.-%E5%85%88%E7%9C%8B%E8%BF%90%E8%A1%8C%E5%89%8D%E9%A2%84%E6%B5%8B%EF%BC%8C%E5%86%8D%E7%9C%8B%E7%BB%93%E6%9E%9C">1. 先看运行前预测，再看结果<a class="anchor-link" href="#1.-%E5%85%88%E7%9C%8B%E8%BF%90%E8%A1%8C%E5%89%8D%E9%A2%84%E6%B5%8B%EF%BC%8C%E5%86%8D%E7%9C%8B%E7%BB%93%E6%9E%9C">¶</a></h2><details>
+<h2 id="1.-%E6%80%8E%E6%A0%B7%E5%88%A4%E6%96%AD%E7%B4%A2%E5%BC%95%E5%99%A8%E5%AD%A6%E4%BC%9A%E4%BA%86%EF%BC%8C%E8%80%8C%E4%B8%8D%E5%8F%AA%E6%98%AF%E8%AE%AD%E7%BB%83%E6%8D%9F%E5%A4%B1%E4%B8%8B%E9%99%8D%EF%BC%9F">1. 怎样判断索引器学会了，而不只是训练损失下降？<a class="anchor-link" href="#1.-%E6%80%8E%E6%A0%B7%E5%88%A4%E6%96%AD%E7%B4%A2%E5%BC%95%E5%99%A8%E5%AD%A6%E4%BC%9A%E4%BA%86%EF%BC%8C%E8%80%8C%E4%B8%8D%E5%8F%AA%E6%98%AF%E8%AE%AD%E7%BB%83%E6%8D%9F%E5%A4%B1%E4%B8%8B%E9%99%8D%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> 训练资料上的 KL 下降，可能只是更贴合见过的特征；它是否也改善没参与更新的资料、实际名单和注意力读出？</p>
+<p><strong>做法。</strong> 把 64 份新资料固定分成 48 份训练、16 份留出，只用前者更新 50 轮；最终参数冻结后，在留出资料的同一份 Q/K/V 上比较 D0 与 D，并以 C 和完整教师选位 R 作参照。分别检查候选分布、入选教师权重和局部输出，留出不用于挑轮数。</p>
+<p><strong>结果与结论。</strong> 三项在留出资料上分别改善，支持本层在这个资料分布上学会了更像完整注意力的读取；尚未检验模型能否因此答对。</p>
+<details>
 <summary>预检与配置冻结记录</summary>
 <p>预测在模型运行前提交。第一次预检遇到整句填充导致的长度振荡，未训练即停止；仅对 G3a 把约 2K 明确为 2048±64 token，保留原种子、样本数和目标位置规则。后续固定配置运行，未根据留出结果挑轮数或改模型。</p>
 </details>
-<p>预测原文中的 coverage 指<strong>入选候选保留的教师权重 / 候选总权重</strong>，不是第三课的目标位置覆盖率。局部输出误差是在同一 Q/K/V 上比较子集与完整主注意力读出；</p>
+<p>预测原文中的 coverage 指<strong>入选候选保留的教师权重 / 候选总权重</strong>，不是第三课的目标位置覆盖率。局部输出误差是在同一 Q/K/V 上比较子集与完整主注意力读出。</p>
 </div>
 </div>
 </div>
@@ -7924,7 +7927,8 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="2.-%E8%AE%AD%E7%BB%83%E5%88%B0%E5%BA%95%E6%8E%A5%E5%9C%A8%E5%93%AA%E9%87%8C%EF%BC%9F">2. 训练到底接在哪里？<a class="anchor-link" href="#2.-%E8%AE%AD%E7%BB%83%E5%88%B0%E5%BA%95%E6%8E%A5%E5%9C%A8%E5%93%AA%E9%87%8C%EF%BC%9F">¶</a></h2><p>完整模型先处理资料，再逐 token 完整读取问题和模板后缀。只在第 14 层抽取后缀倒数第 24/16/8/1 个位置的查询 Q；“四个查询”是<strong>同一份问题及模板中的四个 token 位置</strong>，不是四道问题，也不是生成了四个答案。</p>
+<h2 id="2.-%E8%AE%AD%E7%BB%83%E5%88%B0%E5%BA%95%E6%8E%A5%E5%9C%A8%E5%93%AA%E9%87%8C%EF%BC%9F">2. 训练到底接在哪里？<a class="anchor-link" href="#2.-%E8%AE%AD%E7%BB%83%E5%88%B0%E5%BA%95%E6%8E%A5%E5%9C%A8%E5%93%AA%E9%87%8C%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> 主模型冻结以后，什么输入给索引器学习，梯度又更新哪一组参数？</p>
+<p><strong>做法。</strong> 完整模型先处理资料，再逐 token 完整读取问题和模板后缀。只在第 14 层抽取后缀倒数第 24/16/8/1 个位置的查询 Q；“四个查询”是<strong>同一份问题及模板中的四个 token 位置</strong>，不是四道问题，也不是生成了四个答案。</p>
 <p>本批 64 份资料的问句都是 26 个 token，加模板尾部后共 35 个。保存输入中的四个采样位置实际对应：</p>
 <table>
 <thead>
@@ -7968,6 +7972,7 @@ a.anchor-link {
 评测时再走：索引分数 → top-k 名单 → 取原 K/V 做主注意力 → 比较读出
 </pre></div>
 <p>损失经过连续分数，不经过 top-k 名单。一次资料更新汇总预定查询和符合条件的 KV 组；下一次使用新 Wq/Wk 时要重新计算 u/z，不能沿用旧投影结果。损失实现为 <code>loss_for_document</code>。</p>
+<p><strong>得到什么。</strong> 训练最终只改变第 14 层各 KV 组的新增 Wq/Wk，主模型权重与保存的 Q/K/V 不变。于是训练前后的名单差异可以在同一输入特征上比较；它还不是让这一层进入真实稀疏生成的实验。</p>
 </div>
 </div>
 </div>
@@ -8048,10 +8053,12 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="3.-%E6%95%99%E5%B8%88%E5%88%86%E5%B8%83%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%AA%E6%AF%94%E8%BE%83%E5%89%A9%E4%BD%99%E4%BD%8D%E7%BD%AE">3. 教师分布为什么只比较剩余位置<a class="anchor-link" href="#3.-%E6%95%99%E5%B8%88%E5%88%86%E5%B8%83%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%AA%E6%AF%94%E8%BE%83%E5%89%A9%E4%BD%99%E4%BD%8D%E7%BD%AE">¶</a></h2><p>索引器的工作是决定额外名额分给谁。开头 4 个和最近 64 个位置已经保证会读，不需要靠索引分数争取名额，因此训练目标也只比较其余候选。</p>
-<p>具体做法是：用保存的原 Q/K，让每个主查询头对全部可读位置计算注意力概率；同一 KV 组的两个头共享一份名单，所以先各算 softmax，再平均两份概率。<strong>不是先平均分数再做 softmax。</strong></p>
+<h2 id="3.-%E6%95%99%E5%B8%88%E5%88%86%E5%B8%83%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%AA%E6%AF%94%E8%BE%83%E5%89%A9%E4%BD%99%E4%BD%8D%E7%BD%AE%EF%BC%9F">3. 教师分布为什么只比较剩余位置？<a class="anchor-link" href="#3.-%E6%95%99%E5%B8%88%E5%88%86%E5%B8%83%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%AA%E6%AF%94%E8%BE%83%E5%89%A9%E4%BD%99%E4%BD%8D%E7%BD%AE%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> 完整注意力把权重分给全部历史，但索引器只决定额外名额。训练时应该模仿全部位置，还是只模仿有待选择的部分？</p>
+<p>索引器的工作是决定额外名额分给谁。开头 4 个和最近 64 个位置已经保证会读，不需要靠索引分数争取名额，因此训练目标也只比较其余候选。</p>
+<p><strong>做法。</strong> 用保存的原 Q/K，让每个主查询头对全部可读位置计算注意力概率；同一 KV 组的两个头共享一份名单，所以先各算 softmax，再平均两份概率。<strong>不是先平均分数再做 softmax。</strong></p>
 <p>然后取出候选位置的权重。假如这些位置只占完整权重的一部分，就把这一部分重新归一化为 1，作为索引器要模仿的候选分布；代码把它们原本的总权重记作 <code>m_C</code>。必留位置记作 F，但它们不参与候选之间的竞争。</p>
-<p>损失是 <code>KL(教师候选分布 ∥ 索引候选 softmax)</code>。如果某查询/组的候选总权重不足 1e-4，就跳过这一训练行并记录。监督信号是“完整注意力把权重放在哪里”，没有使用正确答案来更新索引器，V 也不参与这项 KL。</p>
+<p>损失是 <code>KL(教师候选分布 ∥ 索引候选 softmax)</code>。如果某查询/组的候选总权重不足 1e-4，就跳过这一训练行并记录。</p>
+<p><strong>结论。</strong> 这个目标教索引器在候选中分配名额，不把必留位置已有的权重算成它学会的功劳。监督信号是“完整注意力把权重放在哪里”，没有使用正确答案来更新索引器，V 也不参与这项 KL；因此 KL 下降还要用实际名单和读出另行检查。</p>
 <!-- lesson04-mechanism-svg: source reports/figures/04_teacher_training_and_readout.svg -->
 <figure id="teacher-training-and-readout" style="width:50%;max-width:50%;min-width:0;margin:24px auto;">
 <div aria-label="图 4-1。训练改分数；选哪些位置、读出什么，另行检查" role="region" style="width:100%;max-width:100%;box-sizing:border-box;border:1px solid #dce3ec;border-radius:12px;background:#fff;" tabindex="0">
@@ -8585,7 +8592,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <details>
 <summary>CPU 教师概率检查的设置</summary>
-<p>以下 CPU 例子用两个查询头、三个位置的二维 Q/K/V，检查教师是否先逐头 softmax，再平均概率。</p>
+<p><strong>问题与做法。</strong> 同组两个头共用名单，但各自有不同的主注意力分配。这个 CPU 例子固定三个位置的二维 Q/K/V，分别计算两个头的概率和读出，再取两份概率的平均。保存输出显示组教师就是这个平均；不是先平均 QK 分数再做 softmax。它只核对教师构造的计算顺序。</p>
 </details>
 </div>
 </div>
@@ -8640,7 +8647,9 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="3a.-%E5%B1%95%E5%BC%80%E4%B8%80%E6%AC%A112%E5%8F%82%E6%95%B0%E7%9A%84CPU%E5%AD%A6%E4%B9%A0%E8%BF%87%E7%A8%8B">3a. 展开一次12参数的CPU学习过程<a class="anchor-link" href="#3a.-%E5%B1%95%E5%BC%80%E4%B8%80%E6%AC%A112%E5%8F%82%E6%95%B0%E7%9A%84CPU%E5%AD%A6%E4%B9%A0%E8%BF%87%E7%A8%8B">¶</a></h2><p>这个 12 参数 CPU 算例展示“分数变化、名单变化、读出变化”是不同的量：Wq 整体乘 2 不改排名，梯度更新则可以改变名单。它是教学演示，不参与正式训练或留出结论。</p>
+<h2 id="3a.-%E5%8F%82%E6%95%B0%E5%8F%98%E4%BA%86%EF%BC%8C%E5%90%8D%E5%8D%95%E5%92%8C%E8%AF%BB%E5%87%BA%E4%B8%80%E5%AE%9A%E8%B7%9F%E7%9D%80%E5%8F%98%E5%90%97%EF%BC%9F">3a. 参数变了，名单和读出一定跟着变吗？<a class="anchor-link" href="#3a.-%E5%8F%82%E6%95%B0%E5%8F%98%E4%BA%86%EF%BC%8C%E5%90%8D%E5%8D%95%E5%92%8C%E8%AF%BB%E5%87%BA%E4%B8%80%E5%AE%9A%E8%B7%9F%E7%9D%80%E5%8F%98%E5%90%97%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> KL 变小和实际读到不同位置，是否一定同步发生？</p>
+<p><strong>做法。</strong> 固定两个查询头、三个候选位置的二维 Q/K/V，用 12 个索引参数每次只选一个位置。先单独把 Wq 乘 2；再从原初始化做 20 步 Adam 更新，逐步记录分数、KL、名单和主注意力读出。</p>
+<p><strong>结果与结论。</strong> Wq 乘 2 改变概率而不改排名，名单仍是位置 1；学习更新则让名单先变为位置 0，再变为位置 2。第 2 步以后名单与读出不变，KL 仍在变化。因此分布拟合、离散选位、实际读出是三项不同的观察；这个 CPU 算例不参与正式留出结论。</p>
 <details>
 <summary>展开 12 参数算例的设置</summary>
 <p>沿用上面的两个查询头、三个位置和二维Q/K/V。这里只有1个KV组，位置编号从0开始；三个位置全部视为候选，没有固定保留集合F，每次只选1个。</p>
@@ -9218,13 +9227,15 @@ step=20 KL=0.000471562 positions=[2]
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="4.-%E8%AE%AD%E7%BB%83%E6%8D%9F%E5%A4%B1%E3%80%81%E7%95%99%E5%87%BA%E8%A6%86%E7%9B%96%E3%80%81%E5%B1%80%E9%83%A8%E8%AF%AF%E5%B7%AE%E5%88%86%E5%88%AB%E7%9C%8B">4. 训练损失、留出覆盖、局部误差分别看<a class="anchor-link" href="#4.-%E8%AE%AD%E7%BB%83%E6%8D%9F%E5%A4%B1%E3%80%81%E7%95%99%E5%87%BA%E8%A6%86%E7%9B%96%E3%80%81%E5%B1%80%E9%83%A8%E8%AF%AF%E5%B7%AE%E5%88%86%E5%88%AB%E7%9C%8B">¶</a></h2><p>训练固定 50 轮，只在最终参数冻结后计算留出指标。曲线是每轮更新过程中遇到的训练损失，参数在这一轮内持续变化，不能把它当作固定轮末参数的整集损失。</p>
+<h2 id="4.-%E7%95%99%E5%87%BA%E8%B5%84%E6%96%99%E4%B8%8A%E7%9A%84%E6%94%B9%E5%96%84%EF%BC%8C%E6%98%AF%E5%90%A6%E5%90%8C%E6%97%B6%E8%BF%9B%E5%85%A5%E4%BA%86%E9%80%89%E4%BD%8D%E5%92%8C%E8%AF%BB%E5%87%BA%EF%BC%9F">4. 留出资料上的改善，是否同时进入了选位和读出？<a class="anchor-link" href="#4.-%E7%95%99%E5%87%BA%E8%B5%84%E6%96%99%E4%B8%8A%E7%9A%84%E6%94%B9%E5%96%84%EF%BC%8C%E6%98%AF%E5%90%A6%E5%90%8C%E6%97%B6%E8%BF%9B%E5%85%A5%E4%BA%86%E9%80%89%E4%BD%8D%E5%92%8C%E8%AF%BB%E5%87%BA%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> 索引分布更像教师以后，同样名额究竟保住多少教师权重，真正读出的向量又差多少？</p>
+<p><strong>做法。</strong> 训练固定 50 轮，只在最终参数冻结后计算留出指标。曲线是每轮更新过程中遇到的训练损失，参数在这一轮内持续变化，不能把它当作固定轮末参数的整集损失。</p>
 <p>C 的 KL 使用均匀全候选分布，实际名单仍是均匀随机抽样；D0 是训练前，D 是最终参数，R 用昂贵的完整教师权重取 top-k。R 的 coverage 最优，不保证局部输出误差最小。</p>
 <p><strong>输出 RMSE / 相对 L2</strong> 都在 <code>o_proj</code> 前比较子集读出与完整读出；相对 L2 的分母是完整读出范数。R 的 KL 不适用，表中“—”不是零。</p>
 <p><strong>“局部输出”具体怎样算？</strong> 对某个已保存查询，完整参照用它的主注意力概率加权全部合法 V；少读参照先合并必留位置和选出的候选，再取这些位置的原主注意力概率、在入选集合内重新归一化，并加权对应 V。这等价于用同一 Q 和取出的 K/V 重新做主注意力。索引分数只决定名单，不拿来加权 V。</p>
 <p><strong>这里每次误差比较的对象是一个查询位置、一个 KV 组。</strong> 本组两个查询头各输出一个 128 维向量，代码将它们合成 256 维，分别对少读与完整读取的这两个 256 维向量计算 RMSE、相对 L2；随后在资料内平均查询/组，再平均资料。</p>
 <p>比较停在 <code>o_proj</code> 前；第六课才把少读输出送入后续层。</p>
 <p><strong>87.83% 保住的是什么？</strong> 在这批留出资料中，必留位置平均已承接约 79.29% 的完整权重。表中 D 的 87.83% 是候选部分重新归一化后的覆盖率，不能说成“全部注意力覆盖了 87.83%”。逐查询/组核算后，D 平均遗漏的完整权重约 1.444%；这是把每行 <code>m_C × (1−coverage)</code> 算好再平均，不是把两个平均数相乘。大部分完整权重原本就由必留位置保留，训练的收益要与同规则的 D0 比较。</p>
+<p><strong>结果与结论。</strong> 留出 D0→D 的条件覆盖率为 24.36%→87.83%，局部输出相对 L2 为 0.20997→0.02196；逐行算出的遗漏完整权重为 14.095%→1.444%。因此本批不仅 KL 改善，选位和局部读出也改善。比较只到这一层 <code>o_proj</code> 之前，不能把约 2.20% 的局部误差换成整模型误差或答题损失。</p>
 </div>
 </div>
 </div>
@@ -9552,8 +9563,10 @@ k/M 范围: 0.12684365781710916 0.12893243940175347
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="5.-%E5%90%8C%E4%B8%80%E9%81%93%E9%A2%98%EF%BC%8C%E8%AE%AD%E7%BB%83%E5%89%8D%E5%90%8E%E9%80%89%E4%B8%AD%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F">5. 同一道题，训练前后选中了什么？<a class="anchor-link" href="#5.-%E5%90%8C%E4%B8%80%E9%81%93%E9%A2%98%EF%BC%8C%E8%AE%AD%E7%BB%83%E5%89%8D%E5%90%8E%E9%80%89%E4%B8%AD%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F">¶</a></h2><p>按预登记规则，展示留出最终查询在 8 组平均 coverage 上变化最大与最差的两份资料。极值用于理解差异，不是随机抽出的典型案例。图固定展示 KV 组 0，因此图中这一组的变化不必等于 8 组平均变化。</p>
+<h2 id="5.-%E5%90%8C%E4%B8%80%E9%81%93%E9%A2%98%EF%BC%8C%E8%AE%AD%E7%BB%83%E5%89%8D%E5%90%8E%E9%80%89%E4%B8%AD%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F">5. 同一道题，训练前后选中了什么？<a class="anchor-link" href="#5.-%E5%90%8C%E4%B8%80%E9%81%93%E9%A2%98%EF%BC%8C%E8%AE%AD%E7%BB%83%E5%89%8D%E5%90%8E%E9%80%89%E4%B8%AD%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F">¶</a></h2><p><strong>问题。</strong> 覆盖教师权重更多，是否意味着直接选中了更多答案记录的 token？</p>
+<p><strong>做法。</strong> 按预登记规则，展示留出最终查询在 8 组平均 coverage 上变化最大与最差的两份资料。极值用于理解差异，不是随机抽出的典型案例。图固定展示 KV 组 0，因此图中这一组的变化不必等于 8 组平均变化。</p>
 <p>横轴是原始 token 位置，竖线是实际选中的条目，阴影标出被问记录。首部与近期固定集合也包含在名单中。</p>
+<p><strong>结果与结论。</strong> 最大改善资料 <code>G3a-T1-2K-57</code> 的组 0 中，D0→D 的条件覆盖率从 0.36965 升至 0.79385，直接选中的目标记录 token 却从 8/11 减为 4/11；输出误差同时从 0.08774 降至 0.01493。这个例子清楚区分了“更像完整注意力”和“直接读齐目标记录”。另一份“最差变化”案例也仍是正改善；最差是相对排序，不是训练退化。</p>
 </div>
 </div>
 </div>
@@ -9705,7 +9718,8 @@ k/M 范围: 0.12684365781710916 0.12893243940175347
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="%E5%B9%B3%E5%9D%87%E6%94%B9%E5%96%84%E4%B9%8B%E5%90%8E%EF%BC%8C%E8%BF%98%E5%89%A9%E4%BB%80%E4%B9%88%EF%BC%9F">平均改善之后，还剩什么？<a class="anchor-link" href="#%E5%B9%B3%E5%9D%87%E6%94%B9%E5%96%84%E4%B9%8B%E5%90%8E%EF%BC%8C%E8%BF%98%E5%89%A9%E4%BB%80%E4%B9%88%EF%BC%9F">¶</a></h3><p>已核验的留出查询/组中，coverage 和输出相对 L2 均未相对 D0 退化。组间差异和残余误差案例仅作补充诊断。</p>
+<h3 id="%E5%B9%B3%E5%9D%87%E6%94%B9%E5%96%84%E4%B9%8B%E5%90%8E%EF%BC%8C%E8%BF%98%E5%89%A9%E4%BB%80%E4%B9%88%EF%BC%9F">平均改善之后，还剩什么？<a class="anchor-link" href="#%E5%B9%B3%E5%9D%87%E6%94%B9%E5%96%84%E4%B9%8B%E5%90%8E%EF%BC%8C%E8%BF%98%E5%89%A9%E4%BB%80%E4%B9%88%EF%BC%9F">¶</a></h3><p><strong>问题与做法。</strong> 平均值会不会掩盖某些查询/组退化？逐一比较 16 份留出资料的 4 个查询位置、8 个 KV 组，共 512 行；另找出 D 残余输出误差最大的一行。</p>
+<p><strong>结果与结论。</strong> 本批 coverage 和输出相对 L2 均无相对 D0 退化的行，但最差残余行仍有约 0.12779 的输出相对 L2，D0 同行为 0.47879。平均改善没有消除误差；这个事后诊断也不用于重新选择训练参数。</p>
 <details>
 <summary>展开组间诊断与残余案例的选取范围</summary>
 <p>在本批留出的 512 个查询/组组合（16 份资料 × 4 个查询位置 × 8 个 KV 组）中，已核验的 <strong>coverage 和输出相对 L2</strong> 均无相对 D0 退化的行。</p>
