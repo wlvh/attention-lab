@@ -7845,7 +7845,56 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c002">
+</div>
+<details class="lesson-support" data-cell-id="c002" style="margin:12px 0;padding:10px;border:1px solid #dce3ec;border-radius:8px;">
+<summary style="cursor:pointer;color:#475569;">展开旧质量记录的来源（代码与记录）</summary>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c002">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [1]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span><span class="o">,</span><span class="w"> </span><span class="nn">inspect</span><span class="o">,</span><span class="w"> </span><span class="nn">importlib.util</span><span class="o">,</span><span class="w"> </span><span class="nn">json</span><span class="o">,</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">textwrap</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">display</span><span class="p">,</span> <span class="n">Markdown</span>
+<span class="n">root</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">(),</span> <span class="o">*</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">]</span> <span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="o">/</span> <span class="s2">".attention_lab_bootstrap"</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">()),</span> <span class="kc">None</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"请从 attention-lab 项目目录或 notebooks 子目录打开本页"</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="s2">"src"</span><span class="p">))</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="n">rel</span><span class="p">):</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">root</span> <span class="o">/</span> <span class="n">rel</span>
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">))</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
+
+<span class="n">summary</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s2">"reports/g2lite_summary_mac_m4max.json"</span><span class="p">)</span>      <span class="c1"># 表格、案例、改写、成本（精简）</span>
+<span class="n">answers</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s2">"reports/g2lite_answers_mac_m4max.json"</span><span class="p">)</span>      <span class="c1"># 逐题回答与解析结果</span>
+<span class="n">manifests</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s2">"reports/g2lite_manifest_mac_m4max.json"</span><span class="p">)</span>   <span class="c1"># 三遍 run 的 manifest</span>
+<span class="n">cfg</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s2">"reports/provenance/g2lite_pr5_review/mac_g2lite_at_formal_runs.json"</span><span class="p">)</span>  <span class="c1"># 运行时 v2</span>
+<span class="n">build</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s2">"reports/g2lite_report_build.json"</span><span class="p">)</span>
+<span class="n">review_sources</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s2">"reports/provenance/g2lite_pr5_review_manifest.json"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_module</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">relative_path</span><span class="p">):</span>
+    <span class="n">spec</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">spec_from_file_location</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">root</span> <span class="o">/</span> <span class="n">relative_path</span><span class="p">)</span>
+    <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">module_from_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+    <span class="n">spec</span><span class="o">.</span><span class="n">loader</span><span class="o">.</span><span class="n">exec_module</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">module</span>
+<span class="n">reporting</span> <span class="o">=</span> <span class="n">load_module</span><span class="p">(</span><span class="s2">"lesson03_reporting"</span><span class="p">,</span> <span class="s2">"scripts/g2lite_report.py"</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">summary</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">answers</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">manifests</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"未执行：reports/ 下没有 G2-lite 结果。入口：python bench/g2lite_quality.py --methods A --tag pass1-A 等三遍，再 python scripts/g2lite_report.py"</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"基线 run:"</span><span class="p">,</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"baseline_run"</span><span class="p">],</span> <span class="s2">"| 对照 run:"</span><span class="p">,</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"comparison_run"</span><span class="p">],</span> <span class="s2">"| 改写 run:"</span><span class="p">,</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"rewrite_runs"</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"配置版本:"</span><span class="p">,</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"config_version"</span><span class="p">],</span> <span class="s2">"| ρ:"</span><span class="p">,</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"rho"</span><span class="p">],</span> <span class="s2">"| 可用格子:"</span><span class="p">,</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"usable_cells"</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">manifests</span><span class="p">[</span><span class="s2">"runs"</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">m</span><span class="p">[</span><span class="s1">'run_id'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;40s</span><span class="si">}</span><span class="s2"> commit </span><span class="si">{</span><span class="n">m</span><span class="p">[</span><span class="s1">'git'</span><span class="p">][</span><span class="s1">'commit'</span><span class="p">][:</span><span class="mi">10</span><span class="p">]</span><span class="si">}</span><span class="s2"> dirty </span><span class="si">{</span><span class="n">m</span><span class="p">[</span><span class="s1">'git'</span><span class="p">][</span><span class="s1">'dirty_diff_sha256'</span><span class="p">]</span><span class="si">}</span><span class="s2"> model </span><span class="si">{</span><span class="n">m</span><span class="p">[</span><span class="s1">'model_revision'</span><span class="p">][:</span><span class="mi">10</span><span class="p">]</span><span class="si">}</span><span class="s2"> tokenizer </span><span class="si">{</span><span class="n">m</span><span class="p">[</span><span class="s1">'tokenizer_revision'</span><span class="p">][:</span><span class="mi">10</span><span class="p">]</span><span class="si">}</span><span class="s2"> data </span><span class="si">{</span><span class="n">m</span><span class="p">[</span><span class="s1">'data_sha256'</span><span class="p">][:</span><span class="mi">12</span><span class="p">]</span><span class="si">}</span><span class="s2"> config v</span><span class="si">{</span><span class="n">m</span><span class="p">[</span><span class="s1">'config_version'</span><span class="p">]</span><span class="si">}</span><span class="s2"> HF_HUB_OFFLINE=</span><span class="si">{</span><span class="n">m</span><span class="p">[</span><span class="s1">'hf_hub_offline'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="s2">"scripts"</span><span class="p">))</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">teaching_display</span><span class="w"> </span><span class="kn">import</span> <span class="n">details</span><span class="p">,</span> <span class="n">show_figure</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7864,7 +7913,41 @@ g2lite-20261017T130715Z-pass3b-move      commit af62df48d2 dirty None model c189
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c003">
+</div>
+</details>
+<details class="lesson-support" data-cell-id="c003" style="margin:12px 0;padding:10px;border:1px solid #dce3ec;border-radius:8px;">
+<summary style="cursor:pointer;color:#475569;">展开旧执行源码校验（代码与记录）</summary>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c003">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">sha</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">manifests</span><span class="p">:</span>
+    <span class="n">snapshots</span> <span class="o">=</span> <span class="p">{</span><span class="n">item</span><span class="p">[</span><span class="s2">"source"</span><span class="p">]:</span> <span class="n">item</span><span class="p">[</span><span class="s2">"snapshot"</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">review_sources</span><span class="p">[</span><span class="s2">"snapshots"</span><span class="p">]}</span>
+    <span class="c1"># 后续真实推理阶段改过选择/接入代码；使用已有历史快照核对旧实验。</span>
+    <span class="n">later_sources</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s2">"reports/provenance/g3c/post_run_manifest.json"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">later_sources</span><span class="p">[</span><span class="s2">"snapshots"</span><span class="p">]:</span>
+        <span class="k">assert</span> <span class="n">sha</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">item</span><span class="p">[</span><span class="s2">"snapshot"</span><span class="p">])</span> <span class="o">==</span> <span class="n">item</span><span class="p">[</span><span class="s2">"sha256"</span><span class="p">]</span>
+        <span class="n">snapshots</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">"source"</span><span class="p">],</span> <span class="n">item</span><span class="p">[</span><span class="s2">"snapshot"</span><span class="p">])</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"src/attention_lab/decode.py"</span><span class="p">,</span> <span class="s2">"src/attention_lab/qwen_wrap.py"</span><span class="p">,</span> <span class="s2">"src/attention_lab/g2lite_data.py"</span><span class="p">,</span> <span class="s2">"src/attention_lab/g2lite_eval.py"</span><span class="p">,</span> <span class="s2">"bench/g2lite_quality.py"</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">relative_path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+        <span class="n">as_run</span> <span class="o">=</span> <span class="n">root</span> <span class="o">/</span> <span class="n">snapshots</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">relative_path</span><span class="p">,</span> <span class="n">relative_path</span><span class="p">)</span>
+        <span class="n">recorded_hash</span> <span class="o">=</span> <span class="n">sha</span><span class="p">(</span><span class="n">as_run</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="s2">"source_hashes"</span><span class="p">][</span><span class="n">relative_path</span><span class="p">]</span> <span class="o">==</span> <span class="n">recorded_hash</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">manifests</span><span class="p">[</span><span class="s2">"runs"</span><span class="p">])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">relative_path</span><span class="p">,</span> <span class="s2">"运行时源码核对通过"</span><span class="p">,</span> <span class="s2">"当前文件相同"</span> <span class="k">if</span> <span class="n">sha</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">relative_path</span><span class="p">)</span> <span class="o">==</span> <span class="n">recorded_hash</span> <span class="k">else</span> <span class="s2">"当前已修复；旧版本由快照保留"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">relative_path</span><span class="p">,</span> <span class="n">expected</span> <span class="ow">in</span> <span class="n">build</span><span class="p">[</span><span class="s2">"report_source_hashes"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">assert</span> <span class="n">sha</span><span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">relative_path</span><span class="p">)</span> <span class="o">==</span> <span class="n">expected</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"报告生成提交:"</span><span class="p">,</span> <span class="n">build</span><span class="p">[</span><span class="s2">"source_commit"</span><span class="p">],</span> <span class="s2">"| 新模型运行:"</span><span class="p">,</span> <span class="n">build</span><span class="p">[</span><span class="s2">"new_model_runs"</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"旧数据版本:"</span><span class="p">,</span> <span class="n">build</span><span class="p">[</span><span class="s2">"model_run_config_versions"</span><span class="p">],</span> <span class="s2">"| 当前修复配置:"</span><span class="p">,</span> <span class="n">load</span><span class="p">(</span><span class="s2">"configs/mac_g2lite.json"</span><span class="p">)[</span><span class="s2">"config_version"</span><span class="p">],</span> <span class="s2">"NOT_RUN"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7885,6 +7968,7 @@ bench/g2lite_quality.py 运行时源码核对通过 当前已修复；旧版本�
 </div>
 </div>
 </div>
+</details>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c004">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
@@ -7905,7 +7989,10 @@ bench/g2lite_quality.py 运行时源码核对通过 当前已修复；旧版本�
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="1.-%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E7%9A%84%E6%AD%A3%E5%BC%8F%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%A5%91%E7%BA%A6">1. 四种读取方式的正式代码与契约<a class="anchor-link" href="#1.-%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E7%9A%84%E6%AD%A3%E5%BC%8F%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%A5%91%E7%BA%A6">¶</a></h2><details>
+<h2 id="1.-%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E7%9A%84%E6%AD%A3%E5%BC%8F%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%A5%91%E7%BA%A6">1. 四种读取方式的正式代码与契约<a class="anchor-link" href="#1.-%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E7%9A%84%E6%AD%A3%E5%BC%8F%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%A5%91%E7%BA%A6">¶</a></h2><p>CPU 小模型核对三项规则：B/C/D0 使用同一名额；全选与 A 对应；污染未选缓存行不改变本次少读输出。正式质量结论仍来自后面的真实回答。</p>
+<details>
+<summary>展开读取契约和 CPU 检查条件</summary>
+<details>
 <summary>运行前预测（原文）</summary>
 <p><strong>运行前的预测</strong>（本项目的预测卡片 <code>reports/cards/G2lite_mac_m4max.md</code>）：B、C、D0 在同一 ρ 下读取数相同、都包含 F；全选时三者退化为 A；B 的额外行恰为最近的 k 个候选；C 的抽取由种子决定且回退重放不变；B、C 不做 Q/K 内容打分；C 用 CPU 随机优先级的 top-k 实现均匀抽样。下面并排打印三个名单生成函数与共用的取行函数，再用两层随机小模型检查三件具体的事：</p>
 </details>
@@ -7915,10 +8002,14 @@ bench/g2lite_quality.py 运行时源码核对通过 当前已修复；旧版本�
 <li>把额外名额给足，让每种方法读齐全部 101 个位置，再与完整 A 比较输出。这叫“全选”检查。</li>
 <li>在已经算好的缓存中，把 B 或 C 没选中的行改成 NaN，回退一步并重算同一个输入。若少读方法确实没取这些行，输出应保持不变；A 读到这些行则会出现 NaN。这叫“污染未选行”，改的是缓存数组，不是原资料文字。</li>
 </ul>
+</details>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c006">
+</div>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c006">
+<details class="lesson-call-code" style="margin:8px 0;">
+<summary style="cursor:pointer;color:#64748b;">展开调用与展示代码</summary>
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7939,6 +8030,7 @@ bench/g2lite_quality.py 运行时源码核对通过 当前已修复；旧版本�
 </div>
 </div>
 </div>
+</details>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8009,7 +8101,10 @@ def gathered_decode_step_kernel(q_main, k_cache, v_cache, rows, selected_count: 
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c007">
+</div>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c007">
+<details class="lesson-call-code" style="margin:8px 0;">
+<summary style="cursor:pointer;color:#64748b;">展开调用与展示代码</summary>
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8029,6 +8124,7 @@ def gathered_decode_step_kernel(q_main, k_cache, v_cache, rows, selected_count: 
 </div>
 </div>
 </div>
+</details>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8064,7 +8160,10 @@ def gathered_decode_step_kernel(q_main, k_cache, v_cache, rows, selected_count: 
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c008">
+</div>
+<details class="lesson-support" data-cell-id="c008" style="margin:12px 0;padding:10px;border:1px solid #dce3ec;border-radius:8px;">
+<summary style="cursor:pointer;color:#475569;">展开CPU 读取规则检查（代码与记录）</summary>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c008">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8136,6 +8235,7 @@ D0  读取数 81 = 81  含 F: True  额外 13 个候选: [4, 6, 7, 12, 13, 15, 1
 </div>
 </div>
 </div>
+</details>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c009">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
@@ -8172,7 +8272,28 @@ D0  读取数 81 = 81  含 F: True  额外 13 个候选: [4, 6, 7, 12, 13, 15, 1
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c011">
+</div>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c011">
+<details class="lesson-call-code" style="margin:8px 0;">
+<summary style="cursor:pointer;color:#64748b;">展开调用与展示代码</summary>
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">with</span> <span class="n">details</span><span class="p">(</span><span class="s1">'展开资料布局与评分函数的完整源码'</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">attention_lab</span><span class="w"> </span><span class="kn">import</span> <span class="n">g2lite_data</span>
+    <span class="n">as_run_evaluation</span> <span class="o">=</span> <span class="n">load_module</span><span class="p">(</span><span class="s2">"lesson03_as_run_evaluation"</span><span class="p">,</span> <span class="s2">"reports/provenance/g2lite_pr5_review/g2lite_eval_at_formal_runs.py"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">g2lite_data</span><span class="o">.</span><span class="n">layout_document</span><span class="p">)[:</span><span class="mi">2600</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">as_run_evaluation</span><span class="o">.</span><span class="n">score_answer</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</details>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8246,7 +8367,34 @@ def score_answer(task: str, targets, text: str, *, truncated: bool) -&gt; dict:
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c012">
+</div>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c012">
+<details class="lesson-call-code" style="margin:8px 0;">
+<summary style="cursor:pointer;color:#64748b;">展开调用与展示代码</summary>
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">if</span> <span class="n">summary</span><span class="p">:</span>
+    <span class="n">doc_id</span> <span class="o">=</span> <span class="s2">"T1-2K-00"</span><span class="p">;</span> <span class="n">d</span> <span class="o">=</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"docs"</span><span class="p">][</span><span class="n">doc_id</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"资料"</span><span class="p">,</span> <span class="n">doc_id</span><span class="p">,</span> <span class="s2">"："</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">"n_records"</span><span class="p">],</span> <span class="s2">"条记录；前缀"</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">"prefix_token_count"</span><span class="p">],</span> <span class="s2">"token；问题与模板尾"</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">"suffix_token_count"</span><span class="p">],</span> <span class="s2">"token"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">"question"</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"被问记录："</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">"target_ids"</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"→"</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">"targets"</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(((</span><span class="n">key</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"docs"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="s2">"variant"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"base"</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">pair</span><span class="p">:</span> <span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">with</span> <span class="n">details</span><span class="p">(</span><span class="s2">"展开全部正式资料：真实资料 ID、记录编号和位置"</span><span class="p">):</span>
+        <span class="n">lines</span><span class="o">=</span><span class="p">[</span><span class="s2">"| 资料 ID | 被问记录编号 | 位置类别 | 资料 token | 问题与模板 token | 距资料尾 token |"</span><span class="p">,</span> <span class="s2">"|---|---|---|---:|---:|---|"</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"| </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="s1">'target_ids'</span><span class="p">])</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="s1">'/'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="s1">'buckets'</span><span class="p">])</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">v</span><span class="p">[</span><span class="s1">'prefix_token_count'</span><span class="p">]</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">v</span><span class="p">[</span><span class="s1">'suffix_token_count'</span><span class="p">]</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">v</span><span class="p">[</span><span class="s1">'target_distance_from_prefix_end'</span><span class="p">]</span><span class="si">}</span><span class="s2"> |"</span><span class="p">)</span>
+        <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</details>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8700,7 +8848,33 @@ def score_answer(task: str, targets, text: str, *, truncated: bool) -&gt; dict:
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c015">
+</div>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c015">
+<details class="lesson-call-code" style="margin:8px 0;">
+<summary style="cursor:pointer;color:#64748b;">展开调用与展示代码</summary>
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">if</span> <span class="n">summary</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'格子'</span><span class="si">:</span><span class="s2">&lt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'n'</span><span class="si">:</span><span class="s2">&gt;3</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'对'</span><span class="si">:</span><span class="s2">&gt;3</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'率'</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'答成编号'</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'任意顺序含全部目标'</span><span class="si">:</span><span class="s2">&gt;18</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'格式错误'</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'截断'</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}</span><span class="s2">  按目标位置"</span><span class="p">)</span>
+    <span class="n">base_rows</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">answers</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"run_id"</span><span class="p">]</span> <span class="o">==</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"baseline_run"</span><span class="p">]]</span>
+    <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"baseline_methods"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="s2">"A"</span><span class="p">];</span> <span class="n">rows_c</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">base_rows</span> <span class="k">if</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'task'</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'length_tag'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span> <span class="o">==</span> <span class="n">c</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">c</span><span class="si">:</span><span class="s2">&lt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">a</span><span class="p">[</span><span class="s1">'n'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;3</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">a</span><span class="p">[</span><span class="s1">'hits'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;3</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">a</span><span class="p">[</span><span class="s1">'rate'</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">&gt;5.0f</span><span class="si">}</span><span class="s2">% </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'answered_with_ids'</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">rows_c</span><span class="p">)</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">a</span><span class="p">[</span><span class="s1">'any_order'</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">&gt;17.0f</span><span class="si">}</span><span class="s2">% </span><span class="si">{</span><span class="n">a</span><span class="p">[</span><span class="s1">'format_errors'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">a</span><span class="p">[</span><span class="s1">'truncated'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}</span><span class="s2">  "</span> <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">b</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">v</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">%"</span> <span class="k">for</span> <span class="n">b</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">a</span><span class="p">[</span><span class="s2">"by_bucket"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">())</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">"   可用: </span><span class="si">{</span><span class="n">summary</span><span class="p">[</span><span class="s1">'gate'</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="s1">'usable'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">base_rows</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">r</span><span class="p">[</span><span class="s2">"exact_match"</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  ✗ </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;10</span><span class="si">}</span><span class="s2"> 桶 </span><span class="si">{</span><span class="s1">'/'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'buckets'</span><span class="p">])</span><span class="si">:</span><span class="s2">&lt;18</span><span class="si">}</span><span class="s2"> 目标 </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'targets'</span><span class="p">]</span><span class="si">}</span><span class="s2"> 回答 </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'predicted'</span><span class="p">]</span><span class="si">}</span><span class="s2"> 文本 </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'text'</span><span class="p">][:</span><span class="mi">40</span><span class="p">]</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</details>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8779,7 +8953,33 @@ T2/8K     12   1     8%        4                17%        0     0  front/back_f
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c018">
+</div>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c018">
+<details class="lesson-call-code" style="margin:8px 0;">
+<summary style="cursor:pointer;color:#64748b;">展开调用与展示代码</summary>
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">if</span> <span class="n">summary</span> <span class="ow">and</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"comparison_methods"</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"A 重跑一致性:"</span><span class="p">,</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"a_consistency_vs_baseline"</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'格子'</span><span class="si">:</span><span class="s2">&lt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'方法'</span><span class="si">:</span><span class="s2">&lt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'k0'</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'读取'</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'对/n'</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'答成编号'</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'任意顺序'</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'同对/A对它错/A错它对/同错'</span><span class="si">:</span><span class="s2">&gt;26</span><span class="si">}</span><span class="s2">  按目标位置"</span><span class="p">)</span>
+    <span class="n">comp_rows</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">answers</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"run_id"</span><span class="p">]</span> <span class="o">==</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"comparison_run"</span><span class="p">]</span> <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="s2">"variant"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"base"</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">tbl</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"comparison_methods"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">mk</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tbl</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">rows_c</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">comp_rows</span> <span class="k">if</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'task'</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'length_tag'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span> <span class="o">==</span> <span class="n">c</span> <span class="ow">and</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"method"</span><span class="p">]</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"rho"</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'method'</span><span class="p">]</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'rho'</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="o">==</span> <span class="n">mk</span><span class="p">]</span>
+            <span class="n">pr</span> <span class="o">=</span> <span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s2">"paired"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mk</span><span class="p">)</span>
+            <span class="n">p2</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pr</span><span class="p">[</span><span class="s1">'counts'</span><span class="p">][</span><span class="s1">'both_right'</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pr</span><span class="p">[</span><span class="s1">'counts'</span><span class="p">][</span><span class="s1">'A_right_other_wrong'</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pr</span><span class="p">[</span><span class="s1">'counts'</span><span class="p">][</span><span class="s1">'A_wrong_other_right'</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pr</span><span class="p">[</span><span class="s1">'counts'</span><span class="p">][</span><span class="s1">'both_wrong'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">pr</span> <span class="k">else</span> <span class="s2">"—"</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">c</span><span class="si">:</span><span class="s2">&lt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">mk</span><span class="si">:</span><span class="s2">&lt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">reporting</span><span class="o">.</span><span class="n">value_range</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s1">'k0'</span><span class="p">])</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="p">(</span><span class="n">reporting</span><span class="o">.</span><span class="n">value_range</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s1">'selected'</span><span class="p">])</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">t</span><span class="p">[</span><span class="s1">'selected'</span><span class="p">]</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'全部'</span><span class="p">)</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">t</span><span class="p">[</span><span class="s1">'hits'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;2</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">t</span><span class="p">[</span><span class="s1">'n'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;3</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'answered_with_ids'</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">rows_c</span><span class="p">)</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">t</span><span class="p">[</span><span class="s1">'any_order'</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">&gt;7.0f</span><span class="si">}</span><span class="s2">% </span><span class="si">{</span><span class="n">p2</span><span class="si">:</span><span class="s2">&gt;26</span><span class="si">}</span><span class="s2">  "</span> <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">b</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">v</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">%"</span> <span class="k">for</span> <span class="n">b</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">t</span><span class="p">[</span><span class="s2">"by_bucket"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</details>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8808,7 +9008,10 @@ T1/8K    D0@0.125   1023–1026 1091–1094  0/12        12       0%            
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c019">
+</div>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c019">
+<details class="lesson-call-code" style="margin:8px 0;">
+<summary style="cursor:pointer;color:#64748b;">展开调用与展示代码</summary>
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8832,6 +9035,7 @@ T1/8K    D0@0.125   1023–1026 1091–1094  0/12        12       0%            
 </div>
 </div>
 </div>
+</details>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8844,7 +9048,45 @@ T1/8K    D0@0.125   1023–1026 1091–1094  0/12        12       0%            
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c020">
+</div>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c020">
+<details class="lesson-call-code" style="margin:8px 0;">
+<summary style="cursor:pointer;color:#64748b;">展开调用与展示代码</summary>
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [11]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># 覆盖率：每步每层每组读到的被查询记录 token 占比；与 k/M 的期望并排</span>
+<span class="k">if</span> <span class="n">summary</span> <span class="ow">and</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"comparison_methods"</span><span class="p">]:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">statistics</span>
+    <span class="n">comp_rows</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">answers</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"run_id"</span><span class="p">]</span> <span class="o">==</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"comparison_run"</span><span class="p">]</span> <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="s2">"variant"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"base"</span> <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="s2">"method"</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"A"</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'长度'</span><span class="si">:</span><span class="s2">&lt;4</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'方法'</span><span class="si">:</span><span class="s2">&lt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'k/M 期望'</span><span class="si">:</span><span class="s2">&gt;9</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'问题阶段'</span><span class="si">:</span><span class="s2">&gt;9</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'生成阶段'</span><span class="si">:</span><span class="s2">&gt;9</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'首生成步 均值/最低层/最高层'</span><span class="si">:</span><span class="s2">&gt;28</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">lt</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">r</span><span class="p">[</span><span class="s2">"length_tag"</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">comp_rows</span><span class="p">}):</span>
+        <span class="k">for</span> <span class="n">mk</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">({</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'method'</span><span class="p">]</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'rho'</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">comp_rows</span><span class="p">}):</span>
+            <span class="n">rs</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">comp_rows</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"length_tag"</span><span class="p">]</span> <span class="o">==</span> <span class="n">lt</span> <span class="ow">and</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'method'</span><span class="p">]</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'rho'</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">"</span> <span class="o">==</span> <span class="n">mk</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">rs</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="n">budget</span> <span class="o">=</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"read_budgets"</span><span class="p">][</span><span class="sa">f</span><span class="s2">"T1/</span><span class="si">{</span><span class="n">lt</span><span class="si">}</span><span class="s2">"</span><span class="p">][</span><span class="n">mk</span><span class="p">]</span>
+            <span class="n">fl</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">"coverage_first_gen_step_per_layer"</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rs</span><span class="p">]</span>
+            <span class="n">per_layer</span> <span class="o">=</span> <span class="p">[</span><span class="n">statistics</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">l</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">fl</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fl</span><span class="p">[</span><span class="mi">0</span><span class="p">]))]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">lt</span><span class="si">:</span><span class="s2">&lt;4</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">mk</span><span class="si">:</span><span class="s2">&lt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">budget</span><span class="p">[</span><span class="s2">"candidate_fraction_mean"</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">&gt;8.1f</span><span class="si">}</span><span class="s2">% </span><span class="si">{</span><span class="n">statistics</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'coverage_question_steps'</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">rs</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">&gt;8.1f</span><span class="si">}</span><span class="s2">% </span><span class="si">{</span><span class="n">statistics</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'coverage_generation_steps'</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">rs</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">r</span><span class="p">[</span><span class="s1">'coverage_generation_steps'</span><span class="p">]</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="kc">None</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">&gt;8.1f</span><span class="si">}</span><span class="s2">% </span><span class="si">{</span><span class="n">statistics</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'coverage_first_gen_step_mean'</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">rs</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">&gt;9.1f</span><span class="si">}</span><span class="s2">% / </span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="n">per_layer</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% / </span><span class="si">{</span><span class="nb">max</span><span class="p">(</span><span class="n">per_layer</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%"</span><span class="p">)</span>
+
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"| 格子 | ρ | 实际 k0 | 总读取数 | 首生成步 N | k/M | 总读取比例 |"</span><span class="p">,</span> <span class="s2">"|---|---:|---|---|---|---|---|"</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">cell</span><span class="p">,</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"read_budgets"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">method</span><span class="p">,</span> <span class="n">budget</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">method</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"B@"</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">vr</span> <span class="o">=</span> <span class="n">reporting</span><span class="o">.</span><span class="n">value_range</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"| </span><span class="si">{</span><span class="n">cell</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">budget</span><span class="p">[</span><span class="s1">'rho'</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">vr</span><span class="p">(</span><span class="n">budget</span><span class="p">[</span><span class="s1">'k0'</span><span class="p">])</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">vr</span><span class="p">(</span><span class="n">budget</span><span class="p">[</span><span class="s1">'selected'</span><span class="p">])</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">vr</span><span class="p">(</span><span class="n">budget</span><span class="p">[</span><span class="s1">'legal'</span><span class="p">])</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">vr</span><span class="p">(</span><span class="n">budget</span><span class="p">[</span><span class="s1">'candidate_fraction'</span><span class="p">],</span><span class="w"> </span><span class="n">percent</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">vr</span><span class="p">(</span><span class="n">budget</span><span class="p">[</span><span class="s1">'total_read_fraction'</span><span class="p">],</span><span class="w"> </span><span class="n">percent</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="s2"> |"</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</details>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8960,7 +9202,67 @@ T1/8K    D0@0.125   1023–1026 1091–1094  0/12        12       0%            
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c023">
+</div>
+<details class="lesson-support" data-cell-id="c023" style="margin:12px 0;padding:10px;border:1px solid #dce3ec;border-radius:8px;">
+<summary style="cursor:pointer;color:#475569;">展开案例展示辅助函数（代码与记录）</summary>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c023">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [12]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">seen_cases</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+<span class="n">case_figure_number</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">show_case</span><span class="p">(</span><span class="n">doc_id</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"case_details"</span><span class="p">][</span><span class="n">doc_id</span><span class="p">];</span> <span class="n">doc</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">"doc"</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">doc_id</span> <span class="ow">in</span> <span class="n">seen_cases</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">doc_id</span><span class="p">,</span> <span class="s2">"已在 5.1 展示；同一份资料也属于本类，不重复当作新案例。"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">seen_cases</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">doc_id</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="sa">f</span><span class="s2">"**资料 </span><span class="si">{</span><span class="n">doc_id</span><span class="si">}</span><span class="s2">** · </span><span class="si">{</span><span class="n">doc</span><span class="p">[</span><span class="s1">'question'</span><span class="p">]</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">目标值：</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s1">'targets'</span><span class="p">])</span><span class="si">}</span><span class="s2">；资料前缀 </span><span class="si">{</span><span class="n">doc</span><span class="p">[</span><span class="s1">'prefix_token_count'</span><span class="p">]</span><span class="si">}</span><span class="s2"> token。"</span><span class="p">))</span>
+    <span class="n">neighborhood</span><span class="o">=</span><span class="p">[</span><span class="s2">"| 原记录序号（从 0 计数） | 编号 | 值 | 是否目标 |"</span><span class="p">,</span> <span class="s2">"|---:|---|---|---|"</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,(</span><span class="n">record_id</span><span class="p">,</span><span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">"records_around_targets"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">neighborhood</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"| </span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">record_id</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="s1">'目标'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="nb">int</span><span class="p">(</span><span class="n">j</span><span class="p">)</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">doc</span><span class="p">[</span><span class="s1">'target_indices'</span><span class="p">]</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'邻近'</span><span class="si">}</span><span class="s2"> |"</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">neighborhood</span><span class="p">)))</span>
+    <span class="n">lines</span><span class="o">=</span><span class="p">[</span><span class="s2">"| 方法 | 读取位置数 | 原回答 | 判分 | 目标位置覆盖（首答案预测） |"</span><span class="p">,</span> <span class="s2">"|---|---:|---|---|---:|"</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">method</span><span class="p">,</span><span class="n">answer</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">"answers"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">coverage</span><span class="o">=</span><span class="s1">'全部'</span> <span class="k">if</span> <span class="n">method</span><span class="o">==</span><span class="s1">'A'</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">answer</span><span class="p">[</span><span class="s1">'coverage'</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'first_gen_step_mean'</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">text</span><span class="o">=</span><span class="n">answer</span><span class="p">[</span><span class="s1">'text'</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'|'</span><span class="p">,</span><span class="nb">chr</span><span class="p">(</span><span class="mi">92</span><span class="p">)</span><span class="o">+</span><span class="s1">'|'</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="p">,</span><span class="s1">'&lt;br&gt;'</span><span class="p">)</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"| </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">answer</span><span class="p">[</span><span class="s1">'selected_count'</span><span class="p">]</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'全部'</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="s1">'对'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">answer</span><span class="p">[</span><span class="s1">'exact'</span><span class="p">]</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'错'</span><span class="si">}{</span><span class="s1">'（编号回声）'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">answer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'answered_with_ids'</span><span class="p">)</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">coverage</span><span class="si">}</span><span class="s2"> |"</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)))</span>
+    <span class="k">with</span> <span class="n">details</span><span class="p">(</span><span class="s2">"展开资料尾部、各层选位片段及全部改写回答"</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"资料末尾六条 (编号,值)："</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s1">'last_records'</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">method</span><span class="p">,</span><span class="n">answer</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">'answers'</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">positions</span><span class="o">=</span><span class="n">answer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'positions'</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">positions</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">method</span><span class="p">,</span><span class="s1">'第 0 组的名单片段：'</span><span class="p">,</span><span class="n">positions</span><span class="p">[</span><span class="s1">'example_rows'</span><span class="p">])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"旧 C 改写同时改变了随机条件，不能解释为只改资料的效果。"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">'rewrites'</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">'variant'</span><span class="p">],</span><span class="n">row</span><span class="p">[</span><span class="s1">'method'</span><span class="p">],</span><span class="n">row</span><span class="p">[</span><span class="s1">'rho'</span><span class="p">],</span><span class="s1">'回答'</span><span class="p">,</span><span class="n">row</span><span class="p">[</span><span class="s1">'predicted'</span><span class="p">],</span><span class="s1">'目标'</span><span class="p">,</span><span class="n">row</span><span class="p">[</span><span class="s1">'targets'</span><span class="p">],</span><span class="s1">'正确'</span><span class="p">,</span><span class="n">row</span><span class="p">[</span><span class="s1">'exact'</span><span class="p">])</span>
+    <span class="k">return</span> <span class="kc">True</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_case_coverage</span><span class="p">(</span><span class="n">doc_id</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">case_figure_number</span>
+    <span class="n">d</span><span class="o">=</span><span class="n">summary</span><span class="p">[</span><span class="s1">'case_details'</span><span class="p">][</span><span class="n">doc_id</span><span class="p">]</span>
+    <span class="n">fig</span><span class="p">,</span><span class="n">ax</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">method</span><span class="p">,</span><span class="n">answer</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">'answers'</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">method</span><span class="o">==</span><span class="s1">'A'</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">answer</span><span class="p">[</span><span class="s1">'coverage'</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'first_gen_step_per_layer'</span><span class="p">):</span> <span class="k">continue</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">answer</span><span class="p">[</span><span class="s1">'coverage'</span><span class="p">][</span><span class="s1">'first_gen_step_per_layer'</span><span class="p">],</span><span class="n">marker</span><span class="o">=</span><span class="s1">'o'</span><span class="p">,</span><span class="n">ms</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'layer'</span><span class="p">);</span><span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'fraction of target positions read'</span><span class="p">);</span><span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.02</span><span class="p">,</span><span class="mf">1.02</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">doc_id</span><span class="si">}</span><span class="s1">: target coverage per layer at the first generated token'</span><span class="p">);</span><span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">case_figure_number</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">show_figure</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"3-</span><span class="si">{</span><span class="n">case_figure_number</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"资料 </span><span class="si">{</span><span class="n">doc_id</span><span class="si">}</span><span class="s2">：目标位置的逐层直接覆盖"</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"案例按预登记类别与资料顺序展示；重复归类的同一资料只完整展开一次。"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8975,6 +9277,7 @@ T1/8K    D0@0.125   1023–1026 1091–1094  0/12        12       0%            
 </div>
 </div>
 </div>
+</details>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c024">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
@@ -8988,7 +9291,34 @@ T1/8K    D0@0.125   1023–1026 1091–1094  0/12        12       0%            
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c025">
+</div>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c025">
+<details class="lesson-call-code" style="margin:8px 0;">
+<summary style="cursor:pointer;color:#64748b;">展开调用与展示代码</summary>
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [13]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">if</span> <span class="n">summary</span><span class="p">:</span>
+    <span class="n">cases</span><span class="o">=</span><span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s1">'cases'</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="s1">'category'</span><span class="p">]</span><span class="o">==</span><span class="s1">'A_right_B_wrong'</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">case</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cases</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">]</span> <span class="ow">in</span> <span class="n">seen_cases</span><span class="p">:</span>
+            <span class="n">show_case</span><span class="p">(</span><span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">j</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">show_case</span><span class="p">(</span><span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">]):</span> <span class="n">plot_case_coverage</span><span class="p">(</span><span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">details</span><span class="p">(</span><span class="s2">"展开同类的另一份预登记案例："</span><span class="o">+</span><span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">show_case</span><span class="p">(</span><span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">]):</span> <span class="n">plot_case_coverage</span><span class="p">(</span><span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">cases</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">'本批没有这类案例。'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</details>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9558,7 +9888,34 @@ move D0 0.125 回答 ['3090'] 目标 ['5498'] 正确 False
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c028">
+</div>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c028">
+<details class="lesson-call-code" style="margin:8px 0;">
+<summary style="cursor:pointer;color:#64748b;">展开调用与展示代码</summary>
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [14]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">if</span> <span class="n">summary</span><span class="p">:</span>
+    <span class="n">cases</span><span class="o">=</span><span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s1">'cases'</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="s1">'category'</span><span class="p">]</span><span class="o">==</span><span class="s1">'A_right_C_or_D0_wrong'</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">case</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cases</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">]</span> <span class="ow">in</span> <span class="n">seen_cases</span><span class="p">:</span>
+            <span class="n">show_case</span><span class="p">(</span><span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">j</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">show_case</span><span class="p">(</span><span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">]):</span> <span class="n">plot_case_coverage</span><span class="p">(</span><span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">details</span><span class="p">(</span><span class="s2">"展开同类的另一份预登记案例："</span><span class="o">+</span><span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">show_case</span><span class="p">(</span><span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">]):</span> <span class="n">plot_case_coverage</span><span class="p">(</span><span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">cases</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">'本批没有这类案例。'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</details>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9601,7 +9958,34 @@ T1-8K-01 已在 5.1 展示；同一份资料也属于本类，不重复当作新
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c031">
+</div>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c031">
+<details class="lesson-call-code" style="margin:8px 0;">
+<summary style="cursor:pointer;color:#64748b;">展开调用与展示代码</summary>
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [15]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">if</span> <span class="n">summary</span><span class="p">:</span>
+    <span class="n">cases</span><span class="o">=</span><span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s1">'cases'</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="s1">'category'</span><span class="p">]</span><span class="o">==</span><span class="s1">'all_four_right'</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">case</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cases</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">]</span> <span class="ow">in</span> <span class="n">seen_cases</span><span class="p">:</span>
+            <span class="n">show_case</span><span class="p">(</span><span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">j</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">show_case</span><span class="p">(</span><span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">]):</span> <span class="n">plot_case_coverage</span><span class="p">(</span><span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">details</span><span class="p">(</span><span class="s2">"展开同类的另一份预登记案例："</span><span class="o">+</span><span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">show_case</span><span class="p">(</span><span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">]):</span> <span class="n">plot_case_coverage</span><span class="p">(</span><span class="n">case</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">cases</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s1">'本批没有这类案例。'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</details>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9641,7 +10025,10 @@ T1-8K-01 已在 5.1 展示；同一份资料也属于本类，不重复当作新
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=bc9df0b4">
+</div>
+<details class="lesson-support" data-cell-id="bc9df0b4" style="margin:12px 0;padding:10px;border:1px solid #dce3ec;border-radius:8px;">
+<summary style="cursor:pointer;color:#475569;">展开未运行 v3 的随机条件检查（代码与记录）</summary>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=bc9df0b4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9690,7 +10077,11 @@ irrelevant 86443
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c034">
+</div>
+</details>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c034">
+<details class="lesson-call-code" style="margin:8px 0;">
+<summary style="cursor:pointer;color:#64748b;">展开调用与展示代码</summary>
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -9710,6 +10101,7 @@ irrelevant 86443
 </div>
 </div>
 </div>
+</details>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9922,7 +10314,27 @@ T1-2K-00 B 0.125 ['8340'] → ['1563'] | 改后编号回声: True
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c037">
+</div>
+<details class="lesson-support" data-cell-id="c037" style="margin:12px 0;padding:10px;border:1px solid #dce3ec;border-radius:8px;">
+<summary style="cursor:pointer;color:#475569;">展开本阶段运行时间账（代码与记录）</summary>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c037">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [18]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">if</span> <span class="n">summary</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"设备时间 s:"</span><span class="p">,</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span> <span class="k">else</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"device_seconds"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">tm</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">"baseline"</span><span class="p">,</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"timing"</span><span class="p">][</span><span class="s2">"baseline"</span><span class="p">]),</span> <span class="p">(</span><span class="s2">"comparison"</span><span class="p">,</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"timing"</span><span class="p">][</span><span class="s2">"comparison"</span><span class="p">]),</span> <span class="o">*</span><span class="p">[(</span><span class="sa">f</span><span class="s2">"rewrites[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">]"</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s2">"timing"</span><span class="p">][</span><span class="s2">"rewrites"</span><span class="p">])]):</span>
+        <span class="k">if</span> <span class="n">tm</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">"| prefill ms 中位:"</span><span class="p">,</span> <span class="n">tm</span><span class="p">[</span><span class="s2">"prefill_ms_median_by_length"</span><span class="p">],</span> <span class="s2">"| 每步 ms 中位:"</span><span class="p">,</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">tm</span><span class="p">[</span><span class="s2">"ms_per_step_median"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -9941,6 +10353,7 @@ rewrites[1] | prefill ms 中位: {'2K': 369.0802920027636, '8K': 1916.1310414783
 </div>
 </div>
 </div>
+</details>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c038">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">

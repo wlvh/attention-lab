@@ -7809,7 +7809,36 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=cec7f1e7">
+</div>
+<details class="lesson-support" data-cell-id="cec7f1e7" style="margin:12px 0;padding:10px;border:1px solid #dce3ec;border-radius:8px;">
+<summary style="cursor:pointer;color:#475569;">展开各层训练归档加载（代码与记录）</summary>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=cec7f1e7">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [1]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">importlib.util</span><span class="o">,</span><span class="w"> </span><span class="nn">ast</span><span class="o">,</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">display</span><span class="p">,</span> <span class="n">Markdown</span><span class="p">,</span> <span class="n">Code</span>
+<span class="n">ROOT</span><span class="o">=</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">ROOT</span><span class="o">/</span><span class="s1">'scripts/g3b_report.py'</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span> <span class="n">ROOT</span><span class="o">=</span><span class="n">ROOT</span><span class="o">.</span><span class="n">parent</span>
+<span class="n">spec</span><span class="o">=</span><span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">spec_from_file_location</span><span class="p">(</span><span class="s1">'g3b_report'</span><span class="p">,</span><span class="n">ROOT</span><span class="o">/</span><span class="s1">'scripts/g3b_report.py'</span><span class="p">)</span>
+<span class="n">report</span><span class="o">=</span><span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">module_from_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">);</span><span class="n">spec</span><span class="o">.</span><span class="n">loader</span><span class="o">.</span><span class="n">exec_module</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+<span class="n">evidence</span><span class="o">=</span><span class="n">report</span><span class="o">.</span><span class="n">read_evidence</span><span class="p">();</span><span class="n">summary</span><span class="o">=</span><span class="n">report</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span><span class="n">evidence</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'正式run:'</span><span class="p">,</span><span class="n">summary</span><span class="p">[</span><span class="s1">'run_id'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'运行源码:'</span><span class="p">,</span><span class="n">summary</span><span class="p">[</span><span class="s1">'run_commit'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'完整层数:'</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s1">'layers'</span><span class="p">]))</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">ROOT</span> <span class="o">/</span> <span class="s2">"scripts"</span><span class="p">))</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">teaching_display</span><span class="w"> </span><span class="kn">import</span> <span class="n">details</span><span class="p">,</span> <span class="n">show_figure</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7826,6 +7855,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
+</details>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a1873d26">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
@@ -7841,7 +7871,27 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=a4b33fee">
+</div>
+<details class="lesson-support" data-cell-id="a4b33fee" style="margin:12px 0;padding:10px;border:1px solid #dce3ec;border-radius:8px;">
+<summary style="cursor:pointer;color:#475569;">展开最终测试登记与去重核验（代码与记录）</summary>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=a4b33fee">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">plan</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">evidence</span><span class="p">[</span><span class="s1">'files'</span><span class="p">][</span><span class="s1">'source/configs/g3bg4lite_test_plan.json'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'最终测试登记状态:'</span><span class="p">,</span><span class="n">plan</span><span class="p">[</span><span class="s1">'status_at_registration'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'最终测试数量/数据哈希:'</span><span class="p">,</span><span class="n">plan</span><span class="p">[</span><span class="s1">'count'</span><span class="p">],</span><span class="n">plan</span><span class="p">[</span><span class="s1">'data_sha256'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'与已存资料/编号值绑定重合:'</span><span class="p">,</span><span class="n">plan</span><span class="p">[</span><span class="s1">'old_prefix_overlap'</span><span class="p">],</span><span class="n">plan</span><span class="p">[</span><span class="s1">'old_record_bindings_overlap'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'复用层:'</span><span class="p">,[</span><span class="n">x</span><span class="p">[</span><span class="s1">'layer_index'</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s1">'layers'</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="s1">'origin'</span><span class="p">]</span><span class="o">==</span><span class="s1">'reused_G3a'</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7859,6 +7909,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
+</details>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5459addf">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
@@ -7884,7 +7935,34 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=0a4d4686">
+</div>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=0a4d4686">
+<details class="lesson-call-code" style="margin:8px 0;">
+<summary style="cursor:pointer;color:#64748b;">展开调用与展示代码</summary>
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">source</span><span class="o">=</span><span class="n">evidence</span><span class="p">[</span><span class="s1">'files'</span><span class="p">][</span><span class="s1">'source/src/attention_lab/g3b.py'</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+<span class="n">node</span><span class="o">=</span><span class="nb">next</span><span class="p">(</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">body</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="s1">'name'</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span><span class="o">==</span><span class="s1">'train_layer'</span><span class="p">)</span>
+<span class="n">whole</span><span class="o">=</span><span class="n">ast</span><span class="o">.</span><span class="n">get_source_segment</span><span class="p">(</span><span class="n">source</span><span class="p">,</span><span class="n">node</span><span class="p">)</span>
+<span class="n">body</span><span class="o">=</span><span class="n">whole</span><span class="p">[</span><span class="n">whole</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">'            optimizer.zero_grad'</span><span class="p">):</span><span class="n">whole</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">'            if any(not torch.isfinite(p).all()'</span><span class="p">)]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'一份训练资料对应的实际更新段（来自该次运行源码）：'</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Code</span><span class="p">(</span><span class="n">body</span><span class="p">,</span><span class="n">language</span><span class="o">=</span><span class="s1">'python'</span><span class="p">))</span>
+<span class="k">with</span> <span class="n">details</span><span class="p">(</span><span class="s1">'展开每层配置、初始化、完整训练循环与参数保存'</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'layer_config'</span><span class="p">,</span><span class="s1">'train_layer'</span><span class="p">]:</span>
+        <span class="n">node</span><span class="o">=</span><span class="nb">next</span><span class="p">(</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">body</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="s1">'name'</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span><span class="o">==</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">display</span><span class="p">(</span><span class="n">Code</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">get_source_segment</span><span class="p">(</span><span class="n">source</span><span class="p">,</span><span class="n">node</span><span class="p">),</span><span class="n">language</span><span class="o">=</span><span class="s1">'python'</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'主体参数在特征提取前后相同：'</span><span class="p">,</span><span class="n">evidence</span><span class="p">[</span><span class="s1">'manifest'</span><span class="p">][</span><span class="s1">'body_hash_before'</span><span class="p">]</span><span class="o">==</span><span class="n">evidence</span><span class="p">[</span><span class="s1">'manifest'</span><span class="p">][</span><span class="s1">'body_hash_after'</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</details>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8220,7 +8298,29 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=32e0f160">
+</div>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=32e0f160">
+<details class="lesson-call-code" style="margin:8px 0;">
+<summary style="cursor:pointer;color:#64748b;">展开调用与展示代码</summary>
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="n">fig</span><span class="o">=</span><span class="n">report</span><span class="o">.</span><span class="n">plot_layers</span><span class="p">(</span><span class="n">summary</span><span class="p">)</span>
+<span class="n">show_figure</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="s2">"5-2"</span><span class="p">,</span> <span class="s2">"28 层索引器在旧开发资料上的局部指标"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'开发资料上平均指标改善的层数：'</span><span class="p">,</span><span class="n">summary</span><span class="p">[</span><span class="s1">'development_improved_layers'</span><span class="p">])</span>
+<span class="k">with</span> <span class="n">details</span><span class="p">(</span><span class="s1">'展开全部 28 层数值；表中每行均保留'</span><span class="p">):</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="n">summary</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</details>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8492,11 +8592,36 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="4.-%E5%93%AA%E4%BA%9B%E5%B7%AE%E5%BC%82%E5%80%BC%E5%BE%97%E5%B8%A6%E5%88%B0%E7%9C%9F%E5%AE%9E%E6%8E%A8%E7%90%86%E4%B8%AD%E6%A3%80%E6%9F%A5%EF%BC%9F">4. 哪些差异值得带到真实推理中检查？<a class="anchor-link" href="#4.-%E5%93%AA%E4%BA%9B%E5%B7%AE%E5%BC%82%E5%80%BC%E5%BE%97%E5%B8%A6%E5%88%B0%E7%9C%9F%E5%AE%9E%E6%8E%A8%E7%90%86%E4%B8%AD%E6%A3%80%E6%9F%A5%EF%BC%9F">¶</a></h2><p>不同层的 Q/K/V 分布不同，局部误差也不同。下面按开发资料上的误差排序；这只能提示风险，不能定位最终答错的原因。所有 28 层均进入后续部署，未按这份排序筛选层。</p>
+<h2 id="4.-%E5%93%AA%E4%BA%9B%E5%B7%AE%E5%BC%82%E5%80%BC%E5%BE%97%E5%B8%A6%E5%88%B0%E7%9C%9F%E5%AE%9E%E6%8E%A8%E7%90%86%E4%B8%AD%E6%A3%80%E6%9F%A5%EF%BC%9F">4. 哪些差异值得带到真实推理中检查？<a class="anchor-link" href="#4.-%E5%93%AA%E4%BA%9B%E5%B7%AE%E5%BC%82%E5%80%BC%E5%BE%97%E5%B8%A6%E5%88%B0%E7%9C%9F%E5%AE%9E%E6%8E%A8%E7%90%86%E4%B8%AD%E6%A3%80%E6%9F%A5%EF%BC%9F">¶</a></h2><p>所有 28 层均进入后续部署，未按局部误差排序筛选层；排序只用于补充诊断。</p>
+<details>
+<summary>展开局部误差排序的解释限制</summary>
+<p>不同层的 Q/K/V 分布不同，局部误差也不同。下面按开发资料上的误差排序；这只能提示风险，不能定位最终答错的原因。所有 28 层均进入后续部署，未按这份排序筛选层。</p>
+</details>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=bab02bbe">
+</div>
+<details class="lesson-support" data-cell-id="bab02bbe" style="margin:12px 0;padding:10px;border:1px solid #dce3ec;border-radius:8px;">
+<summary style="cursor:pointer;color:#475569;">展开局部误差排序诊断（代码与记录）</summary>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=bab02bbe">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">ranked</span><span class="o">=</span><span class="nb">sorted</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s1">'layers'</span><span class="p">],</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">'aggregate'</span><span class="p">][</span><span class="s1">'development'</span><span class="p">][</span><span class="s1">'D'</span><span class="p">][</span><span class="s1">'output_relative_l2'</span><span class="p">]</span> <span class="ow">or</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">lines</span><span class="o">=</span><span class="p">[</span><span class="s1">'| 局部误差较大的层 | 候选原权重 | 条件覆盖 | 相对输出误差 |'</span><span class="p">,</span><span class="s1">'|---:|---:|---:|---:|'</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">ranked</span><span class="p">[:</span><span class="mi">5</span><span class="p">]:</span>
+    <span class="n">d</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s1">'aggregate'</span><span class="p">][</span><span class="s1">'development'</span><span class="p">][</span><span class="s1">'D'</span><span class="p">]</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"| </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">'layer_index'</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'candidate_mass'</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'coverage'</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'output_relative_l2'</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> |"</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8551,6 +8676,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </div>
 </div>
+</details>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6aa6638d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
@@ -8562,7 +8688,27 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=30aaa2b1">
+</div>
+<details class="lesson-support" data-cell-id="30aaa2b1" style="margin:12px 0;padding:10px;border:1px solid #dce3ec;border-radius:8px;">
+<summary style="cursor:pointer;color:#475569;">展开各层训练预算记录（代码与记录）</summary>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=30aaa2b1">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">budget</span><span class="o">=</span><span class="n">evidence</span><span class="p">[</span><span class="s1">'budget'</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'到G3b结束共享新增设备秒数:'</span><span class="p">,</span><span class="n">budget</span><span class="p">[</span><span class="s1">'used_seconds'</span><span class="p">],</span><span class="s1">'/'</span><span class="p">,</span><span class="n">budget</span><span class="p">[</span><span class="s1">'limit_seconds'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'此前G3a账保留:'</span><span class="p">,</span><span class="n">budget</span><span class="p">[</span><span class="s1">'prior_ledger'</span><span class="p">],</span><span class="n">budget</span><span class="p">[</span><span class="s1">'prior_g3a_seconds'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'参数身份清单：reports/g3b_parameters.json'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'复现报告：python scripts/g3b_report.py；不启动模型。'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8580,6 +8726,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </div>
 </div>
+</details>
 </main>
 </body>
 </html>

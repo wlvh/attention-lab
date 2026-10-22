@@ -16,28 +16,27 @@
 ```bash
 source .venv/bin/activate
 python -m jupyter nbconvert --to notebook --execute --inplace notebooks/01_environment_and_attention.ipynb
-python -m jupyter nbconvert --to html notebooks/01_environment_and_attention.ipynb --output-dir reports
+python scripts/export_lessons.py --lessons 1
 python -m jupyter nbconvert --to notebook --execute --inplace notebooks/02_qwen_integration_and_decode.ipynb
-python -m jupyter nbconvert --to html notebooks/02_qwen_integration_and_decode.ipynb --output-dir reports
+python scripts/export_lessons.py --lessons 2
 python -m jupyter nbconvert --to notebook --execute --inplace notebooks/03_what_is_lost_when_reading_less.ipynb
-python -m jupyter nbconvert --to html notebooks/03_what_is_lost_when_reading_less.ipynb --output-dir reports
+python scripts/export_lessons.py --lessons 3
 ```
 
 规范见 `../docs/TEACHING_NOTEBOOKS.md`。00—07 已交付，现有任务是教学修订，不因打开课程自动新增实验。
 
-第四课：`.venv/bin/python -m jupyter nbconvert --execute --to notebook --inplace notebooks/04_can_an_indexer_learn.ipynb`，随后 `--to html --output-dir reports`。读取保存结果并执行 12 参数、20 步 CPU 教学更新；不加载真实模型。整页视觉验收范围见 `PROJECT_STATUS.md`。
+第四课：`.venv/bin/python -m jupyter nbconvert --execute --to notebook --inplace notebooks/04_can_an_indexer_learn.ipynb`，随后运行 `.venv/bin/python scripts/export_lessons.py --lessons 4`。读取保存结果并执行 12 参数、20 步 CPU 教学更新；不加载真实模型。整页视觉验收范围见 `PROJECT_STATUS.md`。
 
-第五课：`.venv/bin/python -m jupyter nbconvert --execute --to notebook --inplace notebooks/05_training_all_layer_indexers.ipynb`，随后 `--to html --output-dir reports`。
+第五课：`.venv/bin/python -m jupyter nbconvert --execute --to notebook --inplace notebooks/05_training_all_layer_indexers.ipynb`，随后运行 `.venv/bin/python scripts/export_lessons.py --lessons 5`。
 
 第四课3a节展开输入、初始参数、索引分数、教师概率、真实梯度、Adam改变量与名单，完整小型记录在 `../reports/lesson04_cpu_trace.json`；它没有固定集合且只选一个位置，不能展示多位置主注意力重新加权。
 
 
-HTML 中的长检查表、全部位置名单及重复案例可点击展开；辅助排表代码仍完整保存在 Notebook。为保持同样展示，导出时使用：
+局部测速、CPU 检查、小算例和复现记录默认折叠，正文保留简述。Notebook 通过折叠元数据保留全部代码与输出；HTML 可以点击展开。使用统一导出入口以保留折叠状态：
 
 ```bash
-.venv/bin/python -m jupyter nbconvert --to html notebooks/07_trained_sparse_quality_and_cost.ipynb --output-dir reports \
-  --TagRemovePreprocessor.enabled=True \
-  --TagRemovePreprocessor.remove_input_tags='{"presentation-only"}'
+.venv/bin/python scripts/export_lessons.py
+.venv/bin/python scripts/export_lessons.py --lessons 7
 ```
 
-把文件名替换为所读课程即可。`presentation-only` 只隐藏 HTML 里用于加载/排表的输入单元；实际算法源码、CPU 算例和记录输出保留。文字修改无需重新运行模型；展示代码改变时，从新内核顺序执行相应 Notebook。
+默认导出第 1—7 课，`--lessons` 可指定课程。导出不执行代码；原有 `presentation-only` 输入现在折叠保留，支持性实验的代码和记录一并折叠，核心结果正常展开。文字或折叠元数据修改无需重跑模型；计算代码改变时，从新内核顺序执行相应 Notebook。

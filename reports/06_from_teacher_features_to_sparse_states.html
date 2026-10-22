@@ -7808,7 +7808,35 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=0d8941cc">
+</div>
+<details class="lesson-support" data-cell-id="0d8941cc" style="margin:12px 0;padding:10px;border:1px solid #dce3ec;border-radius:8px;">
+<summary style="cursor:pointer;color:#475569;">展开状态对照归档加载（代码与记录）</summary>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=0d8941cc">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [1]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">json</span><span class="o">,</span><span class="w"> </span><span class="nn">ast</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">display</span><span class="p">,</span> <span class="n">Markdown</span><span class="p">,</span> <span class="n">Code</span>
+<span class="n">ROOT</span><span class="o">=</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">ROOT</span><span class="o">/</span><span class="s1">'scripts/g3c_report.py'</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span> <span class="n">ROOT</span><span class="o">=</span><span class="n">ROOT</span><span class="o">.</span><span class="n">parent</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">ROOT</span><span class="o">/</span><span class="s1">'scripts'</span><span class="p">))</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">g3c_report</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">report</span>
+<span class="n">e</span><span class="o">=</span><span class="n">report</span><span class="o">.</span><span class="n">read_evidence</span><span class="p">();</span><span class="n">s</span><span class="o">=</span><span class="n">report</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'run:'</span><span class="p">,</span><span class="n">s</span><span class="p">[</span><span class="s1">'run_id'</span><span class="p">],</span><span class="s1">'计算源码:'</span><span class="p">,</span><span class="n">s</span><span class="p">[</span><span class="s1">'source_commit'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'范围:'</span><span class="p">,</span><span class="n">s</span><span class="p">[</span><span class="s1">'scope'</span><span class="p">])</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">ROOT</span> <span class="o">/</span> <span class="s2">"scripts"</span><span class="p">))</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">teaching_display</span><span class="w"> </span><span class="kn">import</span> <span class="n">details</span><span class="p">,</span> <span class="n">show_figure</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7824,6 +7852,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
+</details>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a2e0d844">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
@@ -7840,7 +7869,33 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=2ca63e45">
+</div>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=2ca63e45">
+<details class="lesson-call-code" style="margin:8px 0;">
+<summary style="cursor:pointer;color:#64748b;">展开调用与展示代码</summary>
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">d</span><span class="o">=</span><span class="n">e</span><span class="p">[</span><span class="s1">'docs'</span><span class="p">][</span><span class="mi">0</span><span class="p">];</span><span class="n">sequence</span><span class="o">=</span><span class="nb">next</span><span class="p">(</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">e</span><span class="p">[</span><span class="s1">'sequences'</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">]</span><span class="o">==</span><span class="n">d</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'资料：'</span><span class="p">,</span><span class="n">d</span><span class="p">[</span><span class="s1">'doc_id'</span><span class="p">],</span><span class="s1">'；资料前缀'</span><span class="p">,</span><span class="n">d</span><span class="p">[</span><span class="s1">'prefix_token_count'</span><span class="p">],</span><span class="s1">'token'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">'question'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'目标记录：'</span><span class="p">,</span><span class="n">d</span><span class="p">[</span><span class="s1">'target_ids'</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="s1">'→'</span><span class="p">,</span><span class="n">d</span><span class="p">[</span><span class="s1">'targets'</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'共同输入的 16 个控制 token 解码为：'</span><span class="p">,</span><span class="nb">repr</span><span class="p">(</span><span class="n">sequence</span><span class="p">[</span><span class="s1">'continuation_text'</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'序列包含 EOS 后的内容，因为这里输入满 16 步做状态对齐；它不是一条自由回答。'</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">details</span><span class="p">(</span><span class="s1">'展开问题与模板 token ID、原序列标签及主体检查'</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'问题/模板后缀：'</span><span class="p">,</span><span class="n">d</span><span class="p">[</span><span class="s1">'suffix_ids'</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'原记录标签：'</span><span class="p">,</span><span class="n">sequence</span><span class="p">[</span><span class="s1">'role'</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'主体参数相同：'</span><span class="p">,</span><span class="n">e</span><span class="p">[</span><span class="s1">'manifest'</span><span class="p">][</span><span class="s1">'body_hash_before'</span><span class="p">]</span><span class="o">==</span><span class="n">e</span><span class="p">[</span><span class="s1">'manifest'</span><span class="p">][</span><span class="s1">'body_hash_after'</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</details>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7876,12 +7931,19 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="2.-%E5%8F%82%E6%95%B0%E5%9B%BA%E5%AE%9A%EF%BC%8C%E8%BF%98%E5%BF%85%E9%A1%BB%E4%BF%9D%E8%AF%81%E7%BC%93%E5%AD%98%E5%B1%9E%E4%BA%8E%E8%BF%99%E4%BB%BD%E5%8F%82%E6%95%B0">2. 参数固定，还必须保证缓存属于这份参数<a class="anchor-link" href="#2.-%E5%8F%82%E6%95%B0%E5%9B%BA%E5%AE%9A%EF%BC%8C%E8%BF%98%E5%BF%85%E9%A1%BB%E4%BF%9D%E8%AF%81%E7%BC%93%E5%AD%98%E5%B1%9E%E4%BA%8E%E8%BF%99%E4%BB%BD%E5%8F%82%E6%95%B0">¶</a></h2><p>z=Wk·k_pre；更换 Wk 后沿用旧 z，会把新查询投影与旧键投影混用。本项目 <code>FrozenBank</code> 保存各层固定索引参数，加载时核对文件指纹与形状，创建缓存时绑定参数身份，写入前检查身份仍一致。</p>
+<h2 id="2.-%E5%8F%82%E6%95%B0%E5%9B%BA%E5%AE%9A%EF%BC%8C%E8%BF%98%E5%BF%85%E9%A1%BB%E4%BF%9D%E8%AF%81%E7%BC%93%E5%AD%98%E5%B1%9E%E4%BA%8E%E8%BF%99%E4%BB%BD%E5%8F%82%E6%95%B0">2. 参数固定，还必须保证缓存属于这份参数<a class="anchor-link" href="#2.-%E5%8F%82%E6%95%B0%E5%9B%BA%E5%AE%9A%EF%BC%8C%E8%BF%98%E5%BF%85%E9%A1%BB%E4%BF%9D%E8%AF%81%E7%BC%93%E5%AD%98%E5%B1%9E%E4%BA%8E%E8%BF%99%E4%BB%BD%E5%8F%82%E6%95%B0">¶</a></h2><p>索引参数与缓存绑定，避免把新 Wq/Wk 与旧索引 z 混用。本轮主 K/V 为 bf16，索引为 fp32。</p>
+<details>
+<summary>展开参数身份保护</summary>
+<p>z=Wk·k_pre；更换 Wk 后沿用旧 z，会把新查询投影与旧键投影混用。本项目 <code>FrozenBank</code> 保存各层固定索引参数，加载时核对文件指纹与形状，创建缓存时绑定参数身份，写入前检查身份仍一致。</p>
 <p>本轮主 K/V 为 bf16，索引 z 和投影为 fp32。</p>
+</details>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=44e899e0">
+</div>
+<details class="lesson-support" data-cell-id="44e899e0" style="margin:12px 0;padding:10px;border:1px solid #dce3ec;border-radius:8px;">
+<summary style="cursor:pointer;color:#475569;">展开参数与缓存身份保护代码（代码与记录）</summary>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=44e899e0">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8003,19 +8065,45 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </div>
 </div>
+</details>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=657a8cc1">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="3.-%E5%90%8C%E4%B8%80%E9%9B%86%E5%90%88%E4%B9%9F%E5%8F%AF%E8%83%BD%E6%9C%89%E4%B8%8D%E5%90%8C%E7%9A%84%E6%9C%89%E9%99%90%E7%B2%BE%E5%BA%A6%E8%AE%A1%E7%AE%97%E9%A1%BA%E5%BA%8F">3. 同一集合也可能有不同的有限精度计算顺序<a class="anchor-link" href="#3.-%E5%90%8C%E4%B8%80%E9%9B%86%E5%90%88%E4%B9%9F%E5%8F%AF%E8%83%BD%E6%9C%89%E4%B8%8D%E5%90%8C%E7%9A%84%E6%9C%89%E9%99%90%E7%B2%BE%E5%BA%A6%E8%AE%A1%E7%AE%97%E9%A1%BA%E5%BA%8F">¶</a></h2><p>先把候选名额给足，使 D-one/D 读取全部合法位置，仍走实际 gather 和主注意力。这是本课的<strong>全选检查</strong>。</p>
+<h2 id="3.-%E5%90%8C%E4%B8%80%E9%9B%86%E5%90%88%E4%B9%9F%E5%8F%AF%E8%83%BD%E6%9C%89%E4%B8%8D%E5%90%8C%E7%9A%84%E6%9C%89%E9%99%90%E7%B2%BE%E5%BA%A6%E8%AE%A1%E7%AE%97%E9%A1%BA%E5%BA%8F">3. 同一集合也可能有不同的有限精度计算顺序<a class="anchor-link" href="#3.-%E5%90%8C%E4%B8%80%E9%9B%86%E5%90%88%E4%B9%9F%E5%8F%AF%E8%83%BD%E6%9C%89%E4%B8%8D%E5%90%8C%E7%9A%84%E6%9C%89%E9%99%90%E7%B2%BE%E5%BA%A6%E8%AE%A1%E7%AE%97%E9%A1%BA%E5%BA%8F">¶</a></h2><p>全选检查用于确认接入正确。将已选位置按原序排列后，单层/全层全选的 51 步与 A logits 逐位一致；集合与名额不变。</p>
+<details>
+<summary>展开失败定位、修复与全选判据</summary>
+<p>先把候选名额给足，使 D-one/D 读取全部合法位置，仍走实际 gather 和主注意力。这是本课的<strong>全选检查</strong>。</p>
 <p>初次检查失败时，筛选结果按分数排列，A 按原位置排列；记录里的首次差异出现在第 14 层读出。随后唯一的读取修复是将已选集合按原位置升序送入主注意力，未增加位置、改变名额或放宽容差。修后单层/全层全选的 51 个输入步均与 A logits 逐位一致；51 步包括问题/模板后缀和 16 个控制 token。</p>
 <p>这证明该固定输入下的全选对应关系；不把排序修复算成训练收益。表中 <code>max_abs_logits/max_relative_logits/argmax_agreement</code> 对应绝对分数差、相对分数差和最高分 token 一致率。</p>
+</details>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c6528498">
+</div>
+<details class="lesson-support" data-cell-id="c6528498" style="margin:12px 0;padding:10px;border:1px solid #dce3ec;border-radius:8px;">
+<summary style="cursor:pointer;color:#475569;">展开全选正确性与失败记录（代码与记录）</summary>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=c6528498">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">lines</span><span class="o">=</span><span class="p">[</span><span class="s1">'| 全选检查 | 输入步数 | 词表分数最大差 | 相对差 | argmax 一致率 |'</span><span class="p">,</span><span class="s1">'|---|---:|---:|---:|---:|'</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">s</span><span class="p">[</span><span class="s1">'full_selection'</span><span class="p">]:</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"| </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">'method'</span><span class="p">]</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">'steps'</span><span class="p">]</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">'max_abs_logits'</span><span class="p">]</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">'max_relative_logits'</span><span class="p">]</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">'argmax_agreement'</span><span class="p">]</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2"> |"</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)))</span>
+<span class="k">with</span> <span class="n">details</span><span class="p">(</span><span class="s1">'展开首次失败记录与原有容差'</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s1">'failed_runs'</span><span class="p">]);</span><span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="s1">'manifest'</span><span class="p">][</span><span class="s1">'full_selection_tolerance'</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8065,6 +8153,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </div>
 </div>
+</details>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6f6564f6">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
@@ -8085,7 +8174,27 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=9b18882e">
+</div>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=9b18882e">
+<details class="lesson-call-code" style="margin:8px 0;">
+<summary style="cursor:pointer;color:#64748b;">展开调用与展示代码</summary>
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="n">s</span><span class="p">)))</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="n">fig</span><span class="o">=</span><span class="n">report</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="n">show_figure</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="s2">"6-2"</span><span class="p">,</span> <span class="s2">"首个答案预测处的逐层 Q 与注意力读出差异"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</details>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8188,7 +8297,25 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=e2b0b57e">
+</div>
+<details class="lesson-support" data-cell-id="e2b0b57e" style="margin:12px 0;padding:10px;border:1px solid #dce3ec;border-radius:8px;">
+<summary style="cursor:pointer;color:#475569;">展开状态诊断预算记录（代码与记录）</summary>
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_presentation-only" id="cell-id=e2b0b57e">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s1">'共享设备秒数:'</span><span class="p">,</span><span class="n">s</span><span class="p">[</span><span class="s1">'budget'</span><span class="p">][</span><span class="s1">'used_seconds'</span><span class="p">],</span><span class="s1">'/'</span><span class="p">,</span><span class="n">s</span><span class="p">[</span><span class="s1">'budget'</span><span class="p">][</span><span class="s1">'limit_seconds'</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'报告重建: python scripts/g3c_report.py'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'本课图已从记录绘制；整页和窄屏验收状态见PROJECT_STATUS。'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8205,6 +8332,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </div>
 </div>
+</details>
 </main>
 </body>
 </html>

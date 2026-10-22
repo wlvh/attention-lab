@@ -24,6 +24,7 @@ Codex负责执行，用户事后按计算问题逐段理解。讲解单位是一
 - 第一次进入新实验时，读者应能回答：输入是直接构造的数组、随机 token 还是真实任务文字？缓存怎样产生？哪些参数更新？后续 token 来自模型还是预存序列？比较的是局部向量还是最终回答？只补与本段有关的事实，不把这张检查单塞进每节正文。
 - 每段新增说明必须回答读者此处的具体疑问；用形状、数量、代码或实际输入输出消除歧义。解释不足时补具体事实，不用更多词汇表。
 - 同一课的输入与实验条件首次出现时讲完整，后续小节只补新增条件；不要再次复述整组输入，或用“标题中的结论发生在这里”“本课主要分析上述内容”等旁白打断计算过程。删冗余时保留具体对象、维度、步骤、比较口径和关键反例；必要的解释限制紧贴对应结果，不在各段重复。原始预测、源码版本、预检经过和复现入口可折叠保存。
+- 局部测速、CPU 小模型检查、教学小算例、分段计时和载荷估算等支持性实验，正文只简述目的、必要条件和结果；详细设置、代码及完整记录默认折叠。核心方法、实际训练、独立推理和最终质量/成本对照保留在主阅读路径。折叠不删除证据，也不省略影响主结论的失败或限制。
 - 原始预测与结果保留；不要求读者先预测或答题才继续工作。说明文字修订同步导出 HTML，已有代码和输出未变时直接保留执行记录，不为文字调整重跑模型。
 
 ### 机制讲解顺序
@@ -55,7 +56,7 @@ CPU 例子有两种用途：若复现历史算法，就调用相应版本；若�
 
 ```bash
 python -m jupyter nbconvert --to notebook --execute --inplace notebooks/01_environment_and_attention.ipynb
-python -m jupyter nbconvert --to html notebooks/01_environment_and_attention.ipynb --output-dir reports
+python scripts/export_lessons.py --lessons 1
 ```
 
 代码或执行依赖改变时，从新内核执行受影响课程再导出；纯正文修改可保留已验证输出并重新导出，同时检查数值和图像未变。
@@ -64,12 +65,13 @@ python -m jupyter nbconvert --to html notebooks/01_environment_and_attention.ipy
 
 GPU长实验日志不直接整段塞进输出，引用run路径及sha256。重模型不驻留读者的默认阅读内核。读取本地HTML不需要启动GPU或云服务。
 
-长检查表、完整位置名单和重复案例用 `scripts/teaching_display.py` 的 `details` 保存在可展开区；主文保留关键对照与实际算法源码。`presentation-only` 标签只用于加载、排表或绘图的辅助单元，Notebook 中仍保留这些源代码，HTML 导出时隐藏其输入，不删除输出。算法示例与实际计算源码保持可见。导出命令增加：
+长检查表、完整位置名单和重复案例用 `scripts/teaching_display.py` 的 `details` 保存在可展开区。支持性实验单元使用 `attention_lab_reading.role=support`，并设置 Notebook 的 `jupyter.source_hidden` / `outputs_hidden`，默认折叠代码和保存输出；其他调用、排表代码只折叠输入，核心结果和展示的正式算法源码仍可见。
+
+HTML 使用 `scripts/export_lessons.py` 导出，把这些元数据变成可点击的原生 `details`。代码保留在页面中，不再用 `TagRemovePreprocessor` 删除 `presentation-only` 输入。此脚本只导出已有输出，不执行 Notebook：
 
 ```bash
-python -m jupyter nbconvert --to html notebooks/02_qwen_integration_and_decode.ipynb --output-dir reports \
-  --TagRemovePreprocessor.enabled=True \
-  --TagRemovePreprocessor.remove_input_tags='{"presentation-only"}'
+.venv/bin/python scripts/export_lessons.py                # 导出第 1—7 课
+.venv/bin/python scripts/export_lessons.py --lessons 1 2   # 只导出指定课程
 ```
 
 历史卡片的预测原文保留；当事后解释被后续核对收窄时，在附近追加带日期的更正，将旧解释明确标为历史。阶段“下一步”和“待审”都要注明当时的时点，不用旧停止状态描述当前项目。
