@@ -7826,11 +7826,11 @@ a.anchor-link {
 </tr>
 </tbody>
 </table>
-<p>文中把每步必留的首 4 个和最近 64 个位置合称 <strong>F</strong>。额外名额在输入第一个问题 token 时确定：当时可读位置数乘 <strong>ρ</strong> 后取整，本课分别使用 ρ=1/32 和 1/8；以后名额不再随回答变长。F 之外的可选位置称候选，它们的数量记为 <strong>M</strong>，本步实际选中的候选数记为 <strong>k</strong>。因此后面的 k/M 说的是“从剩余位置中抽了多少”，不包含 F；第 2 节用一份真实资料逐步算出这些数。</p>
+<p>文中把每步必留的首 4 个和最近 64 个位置合称 <strong>F</strong>。额外名额在输入第一个问题 token 时确定：当时可读位置数乘 <strong>ρ</strong> 后取整，本课分别使用 ρ=1/32 和 1/8；以后名额不再随回答变长。F 之外的可选位置称候选，它们的数量记为 <strong>M</strong>，本步实际选中的候选数记为 <strong>k</strong>。k/M 是候选抽取比例，不包含 F。</p>
 <p>这里的名额和读取数均指<strong>本步某一层、某一个 KV 组</strong>；同组查询头共用名单。不同层或不同组的额外名单可以不同，因此这个数不是整个模型所有名单合并去重后的 token 数。</p>
-<p><strong>C 随机选择位置，D0 随机初始化参数。</strong> D0 的名单仍取决于输入内容，二者是不同对照。各方法独立处理问题和自己生成的回答；具体的缓存与名额过程在第 2 节用这份资料展开。</p>
-<p>本课对应 <strong>G2-lite：小规模任务质量对照</strong>，48 份探索资料；第二课的真实模型测速称 G1b，没有稳定达到 10% 收益门槛。这里单独检查回答质量，不把探索样本外推成总体能力。记录来自 Mac M4 Max / MPS；默认只读记录和执行随机小模型的 CPU 检查。</p>
-<p><strong>数据版本。</strong> v1 是早期密集记录表；正式 v2 用 16 条记录穿插填充句；v3 后来修正 C 的随机条件，尚未用于新的这组模型运行。旧 C 改写同时改变了资料与随机名单，不能当作单变量证据。冻结主表仍使用原 v2 记录。</p>
+<p><strong>C 随机选择位置，D0 随机初始化参数。</strong> D0 的名单仍取决于输入内容，二者是不同对照。</p>
+<p>本课为 <strong>G2-lite 小规模质量对照</strong>，使用 48 份探索资料，运行于 Mac M4 Max / MPS。Notebook 默认读取旧记录和执行随机小模型的 CPU 检查。</p>
+<p><strong>数据版本。</strong> v1 是早期密集记录表；正式 v2 用 16 条记录穿插填充句；v3 后来修正 C 的随机条件，尚未用于新的这组模型运行。冻结主表仍使用原 v2 记录。</p>
 </div>
 </div>
 </div>
@@ -7841,7 +7841,7 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="0.-%E5%8A%A0%E8%BD%BD%E7%BB%93%E6%9E%9C%E4%B8%8E%E6%BA%90%E7%A0%81%E7%89%88%E6%9C%AC">0. 加载结果与源码版本<a class="anchor-link" href="#0.-%E5%8A%A0%E8%BD%BD%E7%BB%93%E6%9E%9C%E4%B8%8E%E6%BA%90%E7%A0%81%E7%89%88%E6%9C%AC">¶</a></h2><p>基线按任务×长度分组，如 T1/2K；后面的少读比较还区分两档 ρ。记录分为 <code>baseline</code>（完整 A 基线）、<code>comparison</code>（过基线门槛的组合上做方法对照）、<code>rewrites</code>（资料改写）；三遍对应四次实际运行，因为改写分成两组。下面核对各次数据与源码版本，不要求它们的数据指纹相同。</p>
+<h2 id="0.-%E5%8A%A0%E8%BD%BD%E7%BB%93%E6%9E%9C%E4%B8%8E%E6%BA%90%E7%A0%81%E7%89%88%E6%9C%AC">0. 加载结果与源码版本<a class="anchor-link" href="#0.-%E5%8A%A0%E8%BD%BD%E7%BB%93%E6%9E%9C%E4%B8%8E%E6%BA%90%E7%A0%81%E7%89%88%E6%9C%AC">¶</a></h2><p>记录分为完整 A 基线（baseline）、基线达标组合的方法对照（comparison）和资料改写（rewrites）。基线按任务×长度分组，少读对照另分两档 ρ；改写拆成两组，因此共有四次运行。</p>
 </div>
 </div>
 </div>
@@ -7891,7 +7891,10 @@ bench/g2lite_quality.py 运行时源码核对通过 当前已修复；旧版本�
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>旧结果对应配置 v2 的运行源码。下面展示的选择与分派源码取自已核对的历史快照；CPU 契约检查调用当前实现，两者用途分开。第三课的源码入口包含后续接入阶段保存的修改前文件，因此当前文件改变后仍能核对旧运行，而不删除校验或改写旧清单。</p>
+<details>
+<summary>源码版本说明</summary>
+<p>正式结果使用配置 v2 的历史源码快照；CPU 契约检查使用当前实现。快照包含后续接入阶段保留的修改前文件，校验入口见下方代码。</p>
+</details>
 </div>
 </div>
 </div>
@@ -7902,13 +7905,16 @@ bench/g2lite_quality.py 运行时源码核对通过 当前已修复；旧版本�
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="1.-%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E7%9A%84%E6%AD%A3%E5%BC%8F%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%A5%91%E7%BA%A6">1. 四种读取方式的正式代码与契约<a class="anchor-link" href="#1.-%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E7%9A%84%E6%AD%A3%E5%BC%8F%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%A5%91%E7%BA%A6">¶</a></h2><p><strong>运行前的预测</strong>（本项目的预测卡片 <code>reports/cards/G2lite_mac_m4max.md</code>）：B、C、D0 在同一 ρ 下读取数相同、都包含 F；全选时三者退化为 A；B 的额外行恰为最近的 k 个候选；C 的抽取由种子决定且回退重放不变；B、C 不做 Q/K 内容打分；C 用 CPU 随机优先级的 top-k 实现均匀抽样。下面并排打印三个名单生成函数与共用的取行函数，再用两层随机小模型检查三件具体的事：</p>
+<h2 id="1.-%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E7%9A%84%E6%AD%A3%E5%BC%8F%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%A5%91%E7%BA%A6">1. 四种读取方式的正式代码与契约<a class="anchor-link" href="#1.-%E5%9B%9B%E7%A7%8D%E8%AF%BB%E5%8F%96%E6%96%B9%E5%BC%8F%E7%9A%84%E6%AD%A3%E5%BC%8F%E4%BB%A3%E7%A0%81%E4%B8%8E%E5%A5%91%E7%BA%A6">¶</a></h2><details>
+<summary>运行前预测（原文）</summary>
+<p><strong>运行前的预测</strong>（本项目的预测卡片 <code>reports/cards/G2lite_mac_m4max.md</code>）：B、C、D0 在同一 ρ 下读取数相同、都包含 F；全选时三者退化为 A；B 的额外行恰为最近的 k 个候选；C 的抽取由种子决定且回退重放不变；B、C 不做 Q/K 内容打分；C 用 CPU 随机优先级的 top-k 实现均匀抽样。下面并排打印三个名单生成函数与共用的取行函数，再用两层随机小模型检查三件具体的事：</p>
+</details>
+<p>CPU 检查使用两层随机初始化的小模型：</p>
 <ul>
 <li>输入 100 个 token 建缓存，再输入一个新 token。此时共 101 个合法位置，首部/近期必留 68 个，额外名额为 round(101/8)=13，总读取数为 81。检查 B/C/D0 是否按同一规则分配这 81 个位置，并查看各自的额外名单。</li>
 <li>把额外名额给足，让每种方法读齐全部 101 个位置，再与完整 A 比较输出。这叫“全选”检查。</li>
 <li>在已经算好的缓存中，把 B 或 C 没选中的行改成 NaN，回退一步并重算同一个输入。若少读方法确实没取这些行，输出应保持不变；A 读到这些行则会出现 NaN。这叫“污染未选行”，改的是缓存数组，不是原资料文字。</li>
 </ul>
-<p>这几项检查验证程序是否按指定规则读取；后面的真实问答才检查这些规则是否保住能力。</p>
 </div>
 </div>
 </div>
@@ -8136,7 +8142,7 @@ D0  读取数 81 = 81  含 F: True  额外 13 个候选: [4, 6, 7, 12, 13, 15, 1
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>解释。</strong> B、C、D0 在同题同档使用相同 F 和名额，区别是每一步选择的位置以及随后各自形成的状态。污染测试固定已经算好的缓存，只检查本次读取是否触及名单之外的行；它不证明“重建资料后，名单外的原文不能影响名单内的深层 K/V”。后面的改写必须保留这一区别。</p>
+<p>污染测试固定已经算好的缓存，检查本次读取是否触及名单外的行。修改原资料再完整 Prefill 会重算缓存，不能套用这项不变性。</p>
 </div>
 </div>
 </div>
@@ -8159,10 +8165,10 @@ D0  读取数 81 = 81  含 F: True  额外 13 个候选: [4, 6, 7, 12, 13, 15, 1
 <p><strong>问题后面还有哪些输入？</strong> 在 <code>T1-2K-00</code> 中，问句“问题：编号 1563 对应的数值是多少？只输出该编号对应的四位数值，不要输出编号。”占 26 个 token；聊天模板随后追加以下字符串，另占 9 个 token（下面用 <code>\n</code> 显示实际换行）：</p>
 <div class="highlight"><pre><span></span>&lt;|im_end|&gt;\n&lt;|im_start|&gt;assistant\n&lt;think&gt;\n\n&lt;/think&gt;\n\n
 </pre></div>
-<p>所以问题加模板后缀共 35 个 token。这里空的 <code>&lt;think&gt;…&lt;/think&gt;</code> 是模板预先加入的输入，不是模型生成的思考文本。<strong>处理完末尾的 <code>\n\n</code>（一个 token）后，模型才预测首个答案 token。</strong> 下文“首个答案预测处”都指这个位置，不是问句句号所在的位置。前缀的 token 位置也从聊天模板开头计算；本例首 4 个 token 是 <code>&lt;|im_start|&gt;</code>、<code>user</code>、换行和“下面”，并不是四条资料记录。</p>
+<p>所以问题加模板后缀共 35 个 token。这里空的 <code>&lt;think&gt;…&lt;/think&gt;</code> 是模板预先加入的输入，不是模型生成的思考文本。<strong>处理完末尾的 <code>\n\n</code>（一个 token）后，模型才预测首个答案 token。</strong> “首个答案预测处”指这个位置。前缀的 token 位置也从聊天模板开头计算；本例首 4 个 token 是 <code>&lt;|im_start|&gt;</code>、<code>user</code>、换行和“下面”，并不是四条资料记录。</p>
 <p>代码把这个顺序命名为 <code>document_dense_then_sparse</code>。问题和模板尾部逐 token 处理；随后贪心生成，最多 64 个新 token，遇 EOS 停止。改写资料后，另做一次完整 Prefill，不沿用原资料的缓存。</p>
 <p><strong>怎样判回答。</strong> 取回答最前面的一个（T1）或两个（T2）独立四位数，与目标按顺序比较，字段为 <code>exact_match</code>。若先输出问题编号，即使后面再给正确值也判错；这种复述编号的错误叫“编号回声”。另外记录整段是否包含目标、提取数量是否不足、是否达到长度上限，它们不替代主评分。</p>
-<p>资料 ID <code>T1-2K-00</code> 用于找到这一份输入；问题中的 1563 是这份资料内的记录编号。目标放在资料的不同部分，保存标签为 front（前部）、middle（中部）、back_near（距资料尾约 30—70 token）、back_far（约 150—250 token）。下面直接显示真实 ID 和对应记录，完整资料列表可展开查看。</p>
+<p>资料 ID <code>T1-2K-00</code> 用于找到这一份输入；问题中的 1563 是这份资料内的记录编号。目标放在资料的不同部分，保存标签为 front（前部）、middle（中部）、back_near（距资料尾约 30—70 token）、back_far（约 150—250 token）。</p>
 </div>
 </div>
 </div>
@@ -8673,7 +8679,7 @@ def score_answer(task: str, targets, text: str, *, truncated: bool) -&gt; dict:
 问题与模板尾部处理完：可读 2,085 个位置 → 用这一步的输出预测首个答案 token
 </pre></div>
 <p>B 此时读开头 4 个位置，加最近的 <code>64+256=320</code> 个位置。后 320 个位置里已有 35 个属于问题和模板尾部，<strong>所以其中属于资料尾部的只有 285 个</strong>。问题不断进入历史，会挤掉窗口里更早的资料；名额固定不等于名单不动。</p>
-<p>代码把资料前缀长度记为 P、问题与模板尾部长度记为 Q，所以请求起始长度为 <code>N0=P+1</code>，首个答案预测处为 <code>N=P+Q</code>；这里的 Q 是长度，不是查询向量。总读取数是 <code>68+256=324</code>，与额外名额比例 1/8 不是同一个量。后面的读取表分别列名额参数、候选抽取比例和全部位置中的读取比例。</p>
+<p>代码把资料前缀长度记为 P、问题与模板尾部长度记为 Q，所以请求起始长度为 <code>N0=P+1</code>，首个答案预测处为 <code>N=P+Q</code>；这里的 Q 是长度，不是查询向量。总读取数是 <code>68+256=324</code>，与额外名额比例 1/8 不是同一个量。</p>
 </div>
 </div>
 </div>
@@ -8684,7 +8690,10 @@ def score_answer(task: str, targets, text: str, *, truncated: bool) -&gt; dict:
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="3.-%E5%9F%BA%E7%BA%BF%E5%8F%AF%E7%94%A8%E6%80%A7%EF%BC%88%E7%AC%AC%E4%B8%80%E9%81%8D%EF%BC%9AA-%E5%9C%A8%E5%85%A8%E9%83%A8%E4%BB%BB%E5%8A%A1%C3%97%E9%95%BF%E5%BA%A6%E7%BB%84%E5%90%88%EF%BC%89">3. 基线可用性（第一遍：A 在全部任务×长度组合）<a class="anchor-link" href="#3.-%E5%9F%BA%E7%BA%BF%E5%8F%AF%E7%94%A8%E6%80%A7%EF%BC%88%E7%AC%AC%E4%B8%80%E9%81%8D%EF%BC%9AA-%E5%9C%A8%E5%85%A8%E9%83%A8%E4%BB%BB%E5%8A%A1%C3%97%E9%95%BF%E5%BA%A6%E7%BB%84%E5%90%88%EF%BC%89">¶</a></h2><p><strong>运行前的预测</strong>（卡片原文，写于 v1 密集表设计）：T1-2K 10–12/12，T2-2K 7–11/12，T1-8K 6–11/12，T2-8K 3–9/12。<strong>校准后的修订预测</strong>（卡片附录，写于正式运行前）：T1 两档可用（2K 10–12，8K 9–12），T2 两档不可用（2K 3–7，8K 0–3）。门槛 80% 是小样本可用性检查。</p>
+<h2 id="3.-%E5%9F%BA%E7%BA%BF%E5%8F%AF%E7%94%A8%E6%80%A7%EF%BC%88%E7%AC%AC%E4%B8%80%E9%81%8D%EF%BC%9AA-%E5%9C%A8%E5%85%A8%E9%83%A8%E4%BB%BB%E5%8A%A1%C3%97%E9%95%BF%E5%BA%A6%E7%BB%84%E5%90%88%EF%BC%89">3. 基线可用性（第一遍：A 在全部任务×长度组合）<a class="anchor-link" href="#3.-%E5%9F%BA%E7%BA%BF%E5%8F%AF%E7%94%A8%E6%80%A7%EF%BC%88%E7%AC%AC%E4%B8%80%E9%81%8D%EF%BC%9AA-%E5%9C%A8%E5%85%A8%E9%83%A8%E4%BB%BB%E5%8A%A1%C3%97%E9%95%BF%E5%BA%A6%E7%BB%84%E5%90%88%EF%BC%89">¶</a></h2><details>
+<summary>运行前预测（原文）</summary>
+<p><strong>运行前的预测</strong>（卡片原文，写于 v1 密集表设计）：T1-2K 10–12/12，T2-2K 7–11/12，T1-8K 6–11/12，T2-8K 3–9/12。<strong>校准后的修订预测</strong>（卡片附录，写于正式运行前）：T1 两档可用（2K 10–12，8K 9–12），T2 两档不可用（2K 3–7，8K 0–3）。门槛 80% 是小样本可用性检查。</p>
+</details>
 <p>本课“可用”仅表示该组合的 A 匹配率达到 80%；<code>baseline_too_weak</code> 表示当前提示、生成和评分协议未过这条门槛，不是一般能力结论。</p>
 <p>v1 的早期校准仍有源码快照缺口，保留已有记录而不重造当时代码；本课可逐题追溯的正式主表来自 v2。</p>
 <p>v1→v2 同时改变了记录数量、填充布局和措辞，不能把校准变化单独归因于记录密度。</p>
@@ -8735,7 +8744,7 @@ T2/8K     12   1     8%        4                17%        0     0  front/back_f
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p><strong>观察。</strong> T1 两档基线达到本批探索样本的可用性门槛，T2 两档未达到。A 的 T1 错误发生在 8K，回答了其他记录的值，没有编号回声。T2 有编号回声、一对一错或全错等形态；8K 还出现“编号:值”配对格式。冻结评分取最前面的一个或两个独立四位数，不能与“整段包含正确内容”混同。</p>
-<p><strong>边界。</strong> <code>baseline_too_weak</code> 仅指当前提示、生成和评分协议下没有过门槛，不是“模型没有双证据读取能力”。本轮未改评分规则，T2 不进入稀疏对照；80% 也不是总体能力的区间估计。</p>
+<p>T2 未进入稀疏对照；80% 是本轮筛选门槛，不是总体能力的区间估计。</p>
 </div>
 </div>
 </div>
@@ -8747,7 +8756,7 @@ T2/8K     12   1     8%        4                17%        0     0  front/back_f
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>下表 <code>B@0.03125</code> 是 B、ρ=1/32，<code>D0@0.125</code> 是 D0、ρ=1/8。配对四格按同题列出两者都对、A对它错、A错它对、两者都错。</p>
-<p><strong>本课 coverage 数的是目标记录 token 位置中被直接选中的比例</strong>，不是注意力权重。统计按步骤、层、KV组展开；“层组全覆盖”表示某一层某一组读齐整条目标记录。“首生成步”指处理完问题及聊天模板后缀的最后一个 token 后、预测首个答案的位置。第四课起的教师条件覆盖率是另一指标。</p>
+<p><strong>本课 coverage 数的是目标记录 token 位置中被直接选中的比例</strong>，不是注意力权重。统计按步骤、层、KV组展开；“层组全覆盖”表示某一层某一组读齐整条目标记录。“首生成步”取问题与模板后缀结束后的首个答案预测处。</p>
 <p>例如目标记录 <code>编号 1563：8422</code> 在保存的目标正文范围中占 11 个 token 位置（不含行末换行）：</p>
 <div class="highlight"><pre><span></span>编号 | 空格 | 1 | 5 | 6 | 3 | ： | 8 | 4 | 2 | 2
 </pre></div>
@@ -8762,7 +8771,10 @@ T2/8K     12   1     8%        4                17%        0     0  front/back_f
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="4.-%E5%9B%9B%E6%96%B9%E6%B3%95%E8%B4%A8%E9%87%8F%E5%AF%B9%E7%85%A7%EF%BC%88%E7%AC%AC%E4%BA%8C%E9%81%8D%EF%BC%8C%E5%8F%AA%E6%AF%94%E8%BE%83%E5%9F%BA%E7%BA%BF%E8%BE%BE%E6%A0%87%E7%9A%84%E7%BB%84%E5%90%88%EF%BC%89">4. 四方法质量对照（第二遍，只比较基线达标的组合）<a class="anchor-link" href="#4.-%E5%9B%9B%E6%96%B9%E6%B3%95%E8%B4%A8%E9%87%8F%E5%AF%B9%E7%85%A7%EF%BC%88%E7%AC%AC%E4%BA%8C%E9%81%8D%EF%BC%8C%E5%8F%AA%E6%AF%94%E8%BE%83%E5%9F%BA%E7%BA%BF%E8%BE%BE%E6%A0%87%E7%9A%84%E7%BB%84%E5%90%88%EF%BC%89">¶</a></h2><p><strong>运行前的预测。</strong> B 由几何决定：T1 在 2K · ρ = 1/32 只对 back_near 的 2/12，其余三个设置对 back_near + back_far 的 4/12；T2 0–1/12。C 接近零（1/32 下 0/12，1/8 下 0–2/12）。D0 不优于 C（每格 0–2/12）。</p>
+<h2 id="4.-%E5%9B%9B%E6%96%B9%E6%B3%95%E8%B4%A8%E9%87%8F%E5%AF%B9%E7%85%A7%EF%BC%88%E7%AC%AC%E4%BA%8C%E9%81%8D%EF%BC%8C%E5%8F%AA%E6%AF%94%E8%BE%83%E5%9F%BA%E7%BA%BF%E8%BE%BE%E6%A0%87%E7%9A%84%E7%BB%84%E5%90%88%EF%BC%89">4. 四方法质量对照（第二遍，只比较基线达标的组合）<a class="anchor-link" href="#4.-%E5%9B%9B%E6%96%B9%E6%B3%95%E8%B4%A8%E9%87%8F%E5%AF%B9%E7%85%A7%EF%BC%88%E7%AC%AC%E4%BA%8C%E9%81%8D%EF%BC%8C%E5%8F%AA%E6%AF%94%E8%BE%83%E5%9F%BA%E7%BA%BF%E8%BE%BE%E6%A0%87%E7%9A%84%E7%BB%84%E5%90%88%EF%BC%89">¶</a></h2><details>
+<summary>运行前预测（原文）</summary>
+<p><strong>运行前的预测。</strong> B 由几何决定：T1 在 2K · ρ = 1/32 只对 back_near 的 2/12，其余三个设置对 back_near + back_far 的 4/12；T2 0–1/12。C 接近零（1/32 下 0/12，1/8 下 0–2/12）。D0 不优于 C（每格 0–2/12）。</p>
+</details>
 <p>实际进入比较的是 24 份 T1 资料：2K、8K 各 12 份。每种少读方法在每份资料上分别用两档 ρ，共 48 次请求；不是 48 份独立新资料。下文“四个设置”指 2 种长度×2 档 ρ。A 每份资料只需一条对应回答。</p>
 </div>
 </div>
@@ -8921,9 +8933,8 @@ T1/8K    D0@0.125   1023–1026 1091–1094  0/12        12       0%            
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>观察。</strong> 主表和配对结果与旧记录一致：C/D0 在四个长度×ρ设置中均未答对；B 窗口内 9/14、窗口外 0/34，且有增加名额后由对变错的案例。B 的 48 次请求中答对 9 次、答错 39 次，其中 38 次错误是编号回声；窗口外的 34 次只是这批请求的一个子集。C 的目标位置覆盖接近对应步骤的 k/M；D0 的覆盖较高，但分数仍为零。</p>
+<p><strong>观察。</strong> C/D0 在四个长度×ρ设置中均未答对；B 窗口内 9/14、窗口外 0/34，且有增加名额后由对变错的案例。B 的 48 次请求中答对 9 次、答错 39 次，其中 38 次错误是编号回声；窗口外的 34 次只是这批请求的一个子集。C 的目标位置覆盖接近对应步骤的 k/M；D0 的覆盖较高，但分数仍为零。</p>
 <p><strong>解释的边界。</strong> 这里同时观察到了低目标位置覆盖和零分，不能仅凭这个指标确定两者的充分或必要关系。覆盖指标计算整条记录，而非仅四位答案；跨层、跨位置的信息传递也没有被分离。“没直接选到目标行”和“没有任何目标信息”不是同一件事。</p>
-<p>D0 未训练，其零分不代表训练后索引的上限。B 的结果限定于当前 F、预算和样本。计时含覆盖率记账与同步，不能作为新的速度基准。</p>
 </div>
 </div>
 </div>
@@ -8945,7 +8956,7 @@ T1/8K    D0@0.125   1023–1026 1091–1094  0/12        12       0%            
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="5.-%E4%BB%A3%E8%A1%A8%E6%A1%88%E4%BE%8B">5. 代表案例<a class="anchor-link" href="#5.-%E4%BB%A3%E8%A1%A8%E6%A1%88%E4%BE%8B">¶</a></h2><p>预登记的选法：每个基线达标的任务×长度组合、每一类（A 对 B 错；A 对 C 或 D0 错；四种都对）按资料序号取最多两份；存在才展示。每个案例按固定结构：资料与问题 → 运行前预测 → 四种方法实际回答 → 各自选择的位置 → 改动一处资料再检查 → 哪些解释得到支持、哪些仍不确定。下面的代码按类别打印案例；解释写在其后的文字格里。</p>
+<h2 id="5.-%E4%BB%A3%E8%A1%A8%E6%A1%88%E4%BE%8B">5. 代表案例<a class="anchor-link" href="#5.-%E4%BB%A3%E8%A1%A8%E6%A1%88%E4%BE%8B">¶</a></h2><p>按预登记规则，在每个基线达标的任务×长度组合中，每类按资料序号取最多两份；同一资料重复归类时只完整展示一次。</p>
 </div>
 </div>
 </div>
@@ -8970,7 +8981,10 @@ T1/8K    D0@0.125   1023–1026 1091–1094  0/12        12       0%            
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="5.1-A-%E5%AF%B9-B-%E9%94%99">5.1 A 对 B 错<a class="anchor-link" href="#5.1-A-%E5%AF%B9-B-%E9%94%99">¶</a></h3><p><strong>运行前的预测。</strong> 大量存在（front / middle 目标）；关键记录在窗口外；把记录移近后 B 变对的比例 ≥ 3/4。</p>
+<h3 id="5.1-A-%E5%AF%B9-B-%E9%94%99">5.1 A 对 B 错<a class="anchor-link" href="#5.1-A-%E5%AF%B9-B-%E9%94%99">¶</a></h3><details>
+<summary>运行前预测（原文）</summary>
+<p><strong>运行前的预测。</strong> 大量存在（front / middle 目标）；关键记录在窗口外；把记录移近后 B 变对的比例 ≥ 3/4。</p>
+</details>
 </div>
 </div>
 </div>
@@ -9526,8 +9540,7 @@ move D0 0.125 回答 ['3090'] 目标 ['5498'] 正确 False
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>哪些解释得到支持。</strong> 这四份前段目标在 B 窗口外，A 答对而 B 答错。移近后的变化支持位置选择与表现有关，但不是保证：同一资料的不同预算仍可给出不同结果。窗口名单严格是 F ∪ 最近 k0 个候选，不能再把首 4 重复加入总读取数。</p>
-<p><strong>反例与边界。</strong> <code>T1-2K-00，B，ρ=1/8</code> 的目标仍在窗口外，value 改写却使回答由 8340 变为 1563，两次都错。第 6 节从逐题记录分别统计回答是否变化、正误是否变化、是否变成编号。“仍错”不代表“纹丝不动”。完整 Prefill 后的间接信息路径尚未定位，不能断言这条记录与输出无关。</p>
+<p>这四份案例的前段目标都在 B 窗口外，A 答对、B 答错。移近目标后部分回答改善，但同一资料的不同预算仍可给出不同结果。</p>
 </div>
 </div>
 </div>
@@ -9538,7 +9551,10 @@ move D0 0.125 回答 ['3090'] 目标 ['5498'] 正确 False
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="5.2-A-%E5%AF%B9-C-%E6%88%96-D0-%E9%94%99">5.2 A 对 C 或 D0 错<a class="anchor-link" href="#5.2-A-%E5%AF%B9-C-%E6%88%96-D0-%E9%94%99">¶</a></h3><p><strong>运行前的预测。</strong> 几乎处处存在；被查询记录的 token 在绝大多数层组里没有被选中，覆盖率 ≈ k/M。</p>
+<h3 id="5.2-A-%E5%AF%B9-C-%E6%88%96-D0-%E9%94%99">5.2 A 对 C 或 D0 错<a class="anchor-link" href="#5.2-A-%E5%AF%B9-C-%E6%88%96-D0-%E9%94%99">¶</a></h3><details>
+<summary>运行前预测（原文）</summary>
+<p><strong>运行前的预测。</strong> 几乎处处存在；被查询记录的 token 在绝大多数层组里没有被选中，覆盖率 ≈ k/M。</p>
+</details>
 </div>
 </div>
 </div>
@@ -9566,8 +9582,8 @@ T1-8K-01 已在 5.1 展示；同一份资料也属于本类，不重复当作新
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>哪些解释得到支持。</strong> C 和 D0 的选择位置分布不同，目标位置覆盖和成簇程度也不同，但本批请求都未答对。此处的覆盖率是整条记录位置被选中的比例，不是注意力权重，不等于构成四位答案的四个数字 token 的覆盖率。</p>
-<p><strong>必要条件与充分条件要分开。</strong> 若某层组读齐构成四位答案的四个数字 token 却仍错，它只说明“读齐”不足以保证答对；不能据此推出“不读齐也能答对”。原实验没有证明“必须同层组读齐”这个必要条件，因此应撤回结构性下界的解释。低覆盖与零分同时出现的观察保留；具体失败机制尚未分离。</p>
+<p>C 与 D0 的选位分布、目标覆盖和成簇程度不同，但本批请求均未答对。整条记录的覆盖率不能替代四个值 token 的覆盖率。</p>
+<p><strong>必要条件与充分条件要分开。</strong> 若某层组读齐构成四位答案的四个数字 token 却仍错，它只说明“读齐”不足以保证答对；不能据此推出“不读齐也能答对”。现有实验没有证明“必须同层组读齐”这个必要条件，不能据此提出结构性下界。</p>
 </div>
 </div>
 </div>
@@ -9578,7 +9594,10 @@ T1-8K-01 已在 5.1 展示；同一份资料也属于本类，不重复当作新
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="5.3-%E5%9B%9B%E7%A7%8D%E6%96%B9%E6%B3%95%E9%83%BD%E5%AF%B9">5.3 四种方法都对<a class="anchor-link" href="#5.3-%E5%9B%9B%E7%A7%8D%E6%96%B9%E6%B3%95%E9%83%BD%E5%AF%B9">¶</a></h3><p><strong>运行前的预测。</strong> 不存在或 ≤ 2 份；若出现，C / D0 在若干层里恰好选中了值的数字 token，而不是靠 F。</p>
+<h3 id="5.3-%E5%9B%9B%E7%A7%8D%E6%96%B9%E6%B3%95%E9%83%BD%E5%AF%B9">5.3 四种方法都对<a class="anchor-link" href="#5.3-%E5%9B%9B%E7%A7%8D%E6%96%B9%E6%B3%95%E9%83%BD%E5%AF%B9">¶</a></h3><details>
+<summary>运行前预测（原文）</summary>
+<p><strong>运行前的预测。</strong> 不存在或 ≤ 2 份；若出现，C / D0 在若干层里恰好选中了值的数字 token，而不是靠 F。</p>
+</details>
 </div>
 </div>
 </div>
@@ -9603,7 +9622,7 @@ T1-8K-01 已在 5.1 展示；同一份资料也属于本类，不重复当作新
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>本类不存在</strong>：C 与 D0 没有答对任何一份资料，所以没有「四种方法都对」的样本。卡片预测的是「不存在或 ≤ 2 份」，成立。</p>
+<p>本批没有“四种方法都对”的案例：C 与 D0 均未答对。</p>
 </div>
 </div>
 </div>
@@ -9614,7 +9633,10 @@ T1-8K-01 已在 5.1 展示；同一份资料也属于本类，不重复当作新
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="6.-%E8%B5%84%E6%96%99%E6%94%B9%E5%86%99%EF%BC%9A%E5%85%88%E6%A0%B8%E5%AF%B9%E6%AF%94%E8%BE%83%E6%98%AF%E5%90%A6%E5%8F%AA%E6%94%B9%E5%8F%98%E4%B8%80%E4%B8%AA%E6%9D%A1%E4%BB%B6">6. 资料改写：先核对比较是否只改变一个条件<a class="anchor-link" href="#6.-%E8%B5%84%E6%96%99%E6%94%B9%E5%86%99%EF%BC%9A%E5%85%88%E6%A0%B8%E5%AF%B9%E6%AF%94%E8%BE%83%E6%98%AF%E5%90%A6%E5%8F%AA%E6%94%B9%E5%8F%98%E4%B8%80%E4%B8%AA%E6%9D%A1%E4%BB%B6">¶</a></h2><p><strong>运行前的预测保留。</strong> A 改目标值应跟着改、改无关值应不变；B 窗口外改值应不变；C/D0 对无关改写的不变率有预期。完整预测原文保存在卡片，下面用旧记录逐项检查，不能把预测直接写成结论。</p>
+<h2 id="6.-%E8%B5%84%E6%96%99%E6%94%B9%E5%86%99%EF%BC%9A%E5%85%88%E6%A0%B8%E5%AF%B9%E6%AF%94%E8%BE%83%E6%98%AF%E5%90%A6%E5%8F%AA%E6%94%B9%E5%8F%98%E4%B8%80%E4%B8%AA%E6%9D%A1%E4%BB%B6">6. 资料改写：先核对比较是否只改变一个条件<a class="anchor-link" href="#6.-%E8%B5%84%E6%96%99%E6%94%B9%E5%86%99%EF%BC%9A%E5%85%88%E6%A0%B8%E5%AF%B9%E6%AF%94%E8%BE%83%E6%98%AF%E5%90%A6%E5%8F%AA%E6%94%B9%E5%8F%98%E4%B8%80%E4%B8%AA%E6%9D%A1%E4%BB%B6">¶</a></h2><details>
+<summary>运行前预测（原文）</summary>
+<p><strong>运行前的预测保留。</strong> A 改目标值应跟着改、改无关值应不变；B 窗口外改值应不变；C/D0 对无关改写的不变率有预期。完整预测原文保存在卡片，下面用旧记录逐项检查，不能把预测直接写成结论。</p>
+</details>
 <p><strong>C 的旧记录有混杂。</strong> 原资料用随机名单 U，改后资料用另一名单 U′，因此同时改变了资料与随机抽样。新代码从 <code>parent_doc_id or doc_id</code> 派生种子，并通过 CPU 测试核对同候选域、k、请求计数和步号下的实际原位置名单。新规则是未运行的 v3；旧数据仍是 v2。D0 的参数与规则固定，但它随内容改变名单的响应应当保留。</p>
 </div>
 </div>
@@ -9879,8 +9901,8 @@ T1-2K-00 B 0.125 ['8340'] → ['1563'] | 改后编号回声: True
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>观察。</strong> 上表分别计算回答是否变化、正误是否变化、两次是否都错和是否答成编号。A 的结果支持本批请求依赖资料；旧 C 的随机名单同时改变，不能从这组比较判断固定随机读取下的单变量效应。D0 则按同一参数规则对改后的内容重新打分。</p>
-<p>看已有的 B 案例：原资料目标为 <code>1563 → 8422</code>，改值后变为 <code>1563 → 4122</code>，ρ=1/8。两份资料<strong>分别计算自己的缓存</strong>：</p>
+<p>A 的回答随目标值改写而变化，支持本批请求使用了资料内容。回答变化、正误变化和编号回声分别统计。</p>
+<p>B 的具体反例：原资料目标为 <code>1563 → 8422</code>，改值后变为 <code>1563 → 4122</code>，ρ=1/8。两份资料<strong>分别计算自己的缓存</strong>：</p>
 <div class="highlight"><pre><span></span>原资料                 → 完整 Prefill → 原资料的缓存 → B 回答 8340（错）
 目标值改为 4122 的资料  → 完整 Prefill → 改后资料的缓存 → B 回答 1563（错）
 </pre></div>
@@ -10015,8 +10037,11 @@ rewrites[1] | prefill ms 中位: {'2K': 369.0802920027636, '8K': 1916.1310414783
 </tr>
 </tbody>
 </table>
-<p><strong>结论（限 Qwen3-0.6B、bf16、MPS、本提示与评分协议、探索样本）。</strong> 当前读取预算下，B/C/D0 的成绩很差，且错误多为复述问题中的编号。我们已经区分了三件事：直接选中哪些位置、资料可能怎样影响深层状态、最终回答是否正确。现有覆盖指标没有证明检索的必要或充分条件，也没有给训练索引器提供保证。</p>
+<p><strong>结论（限 Qwen3-0.6B、bf16、MPS、本提示与评分协议、探索样本）。</strong> 当前读取预算下，B/C/D0 的成绩很差，且错误多为复述问题中的编号。目标位置覆盖不足以单独解释这些失败。</p>
+<details>
+<summary>与后续诊断和课程的关系</summary>
 <p>T2 在当前提示、生成和评分协议下未过基线门槛，没有进入稀疏对照。PR #6–#9 是同一批案例的后续诊断，不进入本课冻结主表，也不作为独立验证集。历史任务书的 BLOCKED 是当时未解锁后续工作；后来另行授权的单层学习 G3a、各层训练 G3b-lite、状态对照 G3c 和质量成本 G4-lite 见第四至七课，不混入本课冻结主表。</p>
+</details>
 </div>
 </div>
 </div>

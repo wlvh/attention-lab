@@ -7805,7 +7805,7 @@ a.anchor-link {
 <h1 id="%E5%AE%9E%E9%AA%8C%E8%AF%BE-04%EF%BC%9A%E5%8D%95%E5%B1%82%E7%B4%A2%E5%BC%95%E5%99%A8%E7%AC%AC%E4%B8%80%E6%AC%A1%E5%AD%A6%E4%BC%9A%E9%80%89%E6%8B%A9%E4%BA%86%E5%90%97%EF%BC%9F">实验课 04：单层索引器第一次学会选择了吗？<a class="anchor-link" href="#%E5%AE%9E%E9%AA%8C%E8%AF%BE-04%EF%BC%9A%E5%8D%95%E5%B1%82%E7%B4%A2%E5%BC%95%E5%99%A8%E7%AC%AC%E4%B8%80%E6%AC%A1%E5%AD%A6%E4%BC%9A%E9%80%89%E6%8B%A9%E4%BA%86%E5%90%97%EF%BC%9F">¶</a></h1><p>这次先让完整 Qwen3-0.6B 处理资料和问题，保存第 14 层四个指定位置的查询 Q，以及这些查询可读取的历史 K/V。随后主模型保持不动，<strong>只训练这个层新增的索引器，让它在同一批固定特征上，更接近完整注意力的选位偏好</strong>。本阶段不让稀疏模型自行生成答案。</p>
 <p>项目把这一步称为 <strong>G3a：单层索引器可学习性实验</strong>。资料任务 T1 是按编号取一个四位值；新生成约 2K 的 64 份资料，48 份训练、16 份留出，留出不参与参数更新或选择轮数。</p>
 <p>评测时，每种方法都保留开头 4 个和最近 64 个位置；额外名额按请求第一步长度的 1/8 确定，之后固定。剩余位置的选择分别是：<strong>C</strong> 均匀随机；<strong>D0</strong> 按训练前索引参数打分；<strong>D</strong> 按最终参数打分；<strong>R</strong> 直接用完整注意力的教师权重选。R 已经付出了完整打分成本，只作诊断参照。</p>
-<p>第 2、3 节解释这些固定特征怎样变成一次训练；第 3a 节把它缩到 12 个参数，直接展示更新前后。默认读取归档并运行这个 CPU 算例，不加载真实模型。结果标签 <code>single_layer_descriptive_support</code> 只表示本批单层指标支持可学习性。</p>
+<p>Notebook 默认读取归档，并运行第 3a 节的 12 参数 CPU 算例。<code>single_layer_descriptive_support</code> 表示本批单层指标支持可学习性。</p>
 </div>
 </div>
 </div>
@@ -7863,8 +7863,11 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="1.-%E5%85%88%E7%9C%8B%E8%BF%90%E8%A1%8C%E5%89%8D%E9%A2%84%E6%B5%8B%EF%BC%8C%E5%86%8D%E7%9C%8B%E7%BB%93%E6%9E%9C">1. 先看运行前预测，再看结果<a class="anchor-link" href="#1.-%E5%85%88%E7%9C%8B%E8%BF%90%E8%A1%8C%E5%89%8D%E9%A2%84%E6%B5%8B%EF%BC%8C%E5%86%8D%E7%9C%8B%E7%BB%93%E6%9E%9C">¶</a></h2><p>预测在模型运行前提交。第一次预检遇到整句填充导致的长度振荡，未训练即停止；仅对 G3a 把约 2K 明确为 2048±64 token，保留原种子、样本数和目标位置规则。后续固定配置运行，未根据留出结果挑轮数或改模型。</p>
-<p>预测原文中的 coverage 指<strong>入选候选保留的教师权重 / 候选总权重</strong>，不是第三课的目标位置覆盖率。局部输出误差是在同一 Q/K/V 上比较子集与完整主注意力读出；其余口径在结果表前说明。</p>
+<h2 id="1.-%E5%85%88%E7%9C%8B%E8%BF%90%E8%A1%8C%E5%89%8D%E9%A2%84%E6%B5%8B%EF%BC%8C%E5%86%8D%E7%9C%8B%E7%BB%93%E6%9E%9C">1. 先看运行前预测，再看结果<a class="anchor-link" href="#1.-%E5%85%88%E7%9C%8B%E8%BF%90%E8%A1%8C%E5%89%8D%E9%A2%84%E6%B5%8B%EF%BC%8C%E5%86%8D%E7%9C%8B%E7%BB%93%E6%9E%9C">¶</a></h2><details>
+<summary>预检与配置冻结记录</summary>
+<p>预测在模型运行前提交。第一次预检遇到整句填充导致的长度振荡，未训练即停止；仅对 G3a 把约 2K 明确为 2048±64 token，保留原种子、样本数和目标位置规则。后续固定配置运行，未根据留出结果挑轮数或改模型。</p>
+</details>
+<p>预测原文中的 coverage 指<strong>入选候选保留的教师权重 / 候选总权重</strong>，不是第三课的目标位置覆盖率。局部输出误差是在同一 Q/K/V 上比较子集与完整主注意力读出；</p>
 </div>
 </div>
 </div>
@@ -7946,17 +7949,17 @@ a.anchor-link {
 </tr>
 </tbody>
 </table>
-<p>后两个位置属于模板，而非问句文字；最后一行就是首个答案预测处。这里说明的是<strong>在哪里抽取查询</strong>，不能由 token 的表面文本推断 Q 只包含这个词或换行的信息。</p>
+<p>后两个位置属于模板，而非问句文字；最后一行就是首个答案预测处。Q 已包含前文处理的结果，不只表示该 token 的表面文本。</p>
 <p>保存的 Q 形状是 <code>[8,2,4,128]</code>：8 个 KV 组、每组 2 个查询头、4 个采样位置、128 维。K/V 则保存这份资料与问题的历史，形状为 <code>[8,N,128]</code>，不是只保存那四行。评测其中位置 p 的查询时，代码只取 <code>K/V[:, :p+1]</code>，避免较早的查询读到后来才输入的问题 token。RoPE 前后需要的 Q/K 分别保存，V 只有主读取所用的一份。</p>
 <p>这些固定的数组就是本课的<strong>冻结特征</strong>：之后训练 50 轮反复使用它们，语言模型不随训练重算或更新。主体不保留反向图，其他层也不部署 D0 或 D。</p>
-<p>每个 KV 组服务两个查询头：Q <code>[组,组内头,查询行,头维]</code>，K/V <code>[组,原位置,头维]</code>。索引输入取 <code>q_norm/k_norm</code> 后、RoPE 前的 <code>q_pre/k_pre</code>；教师和主读出用 RoPE 后的 <code>q_main/k_main</code>。本课新增 Wq/Wk 与主模型的 q_proj/k_proj 是不同参数。</p>
-<p>正式数据流程是：MPS/bf16 主模型提取并 detach → 特征存入 CPU → CPU/fp32 构造教师 → 在 MPS/fp32 上更新索引参数 → 最终参数转回 CPU/fp32 评测。本课 CPU 算例是单独的小型演示，不能据它把真实训练设备写成 CPU。</p>
-<p><strong>索引本身算什么？</strong> 每组把两个 128 维查询拼成 256 维，经新增 Wq 投影到 32 维；历史 K 经新增 Wk 投影到 32 维，两者点积产生候选分数。配置称这一宽度为 r=32；“索引位置设置 P0”指取主 RoPE 前 Q/K、不在索引空间额外旋转，与旧 Metal 原型阶段的 P0 名称无关。</p>
+<p>索引输入取 <code>q_norm/k_norm</code> 后、RoPE 前的 <code>q_pre/k_pre</code>；教师和主读出用 RoPE 后的 <code>q_main/k_main</code>。本课新增 Wq/Wk 与主模型的 q_proj/k_proj 是不同参数。</p>
+<p>正式数据流程是：MPS/bf16 主模型提取并 detach → 特征存入 CPU → CPU/fp32 构造教师 → 在 MPS/fp32 上更新索引参数 → 最终参数转回 CPU/fp32 评测。</p>
+<p><strong>索引本身算什么？</strong> 每组把两个 128 维查询拼成 256 维，经新增 Wq 投影到 32 维；历史 K 经新增 Wk 投影到 32 维，两者点积产生候选分数。配置称这一宽度为 r=32；“索引位置设置 P0”指取主 RoPE 前 Q/K、不在索引空间额外旋转。</p>
 <p><strong>正式训练中的一次更新</strong>只读一份训练资料的已保存特征：</p>
 <div class="highlight"><pre><span></span>固定的 Q/K → 当前 Wq/Wk → 所有候选的索引分数 → 对候选做 softmax → 与教师计算 KL → 更新 Wq/Wk
 评测时再走：索引分数 → top-k 名单 → 取原 K/V 做主注意力 → 比较读出
 </pre></div>
-<p>损失经过连续分数，不经过 top-k 名单。一次资料更新汇总预定查询和符合条件的 KV 组；主模型不随这 50 轮更新。下一次使用新 Wq/Wk 时要重新计算 u/z，不能沿用旧投影结果。下面的 <code>loss_for_document</code> 是这一更新所用损失的正式实现。</p>
+<p>损失经过连续分数，不经过 top-k 名单。一次资料更新汇总预定查询和符合条件的 KV 组；下一次使用新 Wq/Wk 时要重新计算 u/z，不能沿用旧投影结果。损失实现为 <code>loss_for_document</code>。</p>
 </div>
 </div>
 </div>
@@ -8045,7 +8048,7 @@ a.anchor-link {
 <figcaption style="margin-top:10px;color:#475569;font-size:0.95em;line-height:1.6;text-align:center;"><strong>图 4-1。</strong>实线表示前向计算，橙色虚线表示梯度更新。下半图从冻结参数重新评测；它不是 KL 反向链的后续步骤。 <a href="../reports/figures/04_teacher_training_and_readout.svg">打开 SVG 原图</a>。</figcaption>
 </figure>
 <!-- /lesson04-mechanism-svg -->
-<p>下面的 <code>teacher</code> 先产生完整主头权重；<code>query_rows</code> 再去掉必留位置、记录 m_C 和候选分布；<code>loss_for_document</code> 汇总本资料的 KL。这些工作使用同一份正式 Python 实现。</p>
+<p>下面的 <code>teacher</code> 先产生完整主头权重；<code>query_rows</code> 再去掉必留位置、记录 m_C 和候选分布；<code>loss_for_document</code> 汇总本资料的 KL。</p>
 </div>
 </div>
 </div>
@@ -8564,7 +8567,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>索引器只更新 Wq/Wk。每次更新后，查询投影和索引 z 都重新计算；可复用的是冻结主体特征，不能复用旧参数投影出的 z。下面用同一 <code>.py</code> 的教师函数做 CPU 检查，不运行语言模型。</p>
+<p>以下 CPU 例子用两个查询头、三个位置的二维 Q/K/V，检查教师是否先逐头 softmax，再平均概率。</p>
 </div>
 </div>
 </div>
@@ -8614,8 +8617,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="3a.-%E5%B1%95%E5%BC%80%E4%B8%80%E6%AC%A112%E5%8F%82%E6%95%B0%E7%9A%84CPU%E5%AD%A6%E4%B9%A0%E8%BF%87%E7%A8%8B">3a. 展开一次12参数的CPU学习过程<a class="anchor-link" href="#3a.-%E5%B1%95%E5%BC%80%E4%B8%80%E6%AC%A112%E5%8F%82%E6%95%B0%E7%9A%84CPU%E5%AD%A6%E4%B9%A0%E8%BF%87%E7%A8%8B">¶</a></h2><p>沿用上面的两个查询头、三个位置和二维Q/K/V。这里只有1个KV组，位置编号从0开始；三个位置全部视为候选，没有固定保留集合F，每次只选1个。这个简化算例不模拟真实2K资料的首4/近64规则，也不代表任务答题成绩。</p>
-<p>索引器的Wq形状为[1,2,4]，Wk为[1,2,2]，共12个可训练数值。下面的矩阵与参数表省略唯一的组维；Wq的行是两个索引坐标，列依次对应两个查询头拼接后的四个坐标。Q/K/V保持固定。正式实现仍在Python文件中：本节调用<a href="../scripts/g3a_cpu_lesson.py">CPU教学入口</a>，复用项目实际的teacher、TrainableIndexer、kl_rows、gather_attention；不会加载Qwen或修改正式索引参数。</p>
+<h2 id="3a.-%E5%B1%95%E5%BC%80%E4%B8%80%E6%AC%A112%E5%8F%82%E6%95%B0%E7%9A%84CPU%E5%AD%A6%E4%B9%A0%E8%BF%87%E7%A8%8B">3a. 展开一次12参数的CPU学习过程<a class="anchor-link" href="#3a.-%E5%B1%95%E5%BC%80%E4%B8%80%E6%AC%A112%E5%8F%82%E6%95%B0%E7%9A%84CPU%E5%AD%A6%E4%B9%A0%E8%BF%87%E7%A8%8B">¶</a></h2><p>沿用上面的两个查询头、三个位置和二维Q/K/V。这里只有1个KV组，位置编号从0开始；三个位置全部视为候选，没有固定保留集合F，每次只选1个。</p>
+<p>索引器的Wq形状为[1,2,4]，Wk为[1,2,2]，共12个可训练数值。下面的矩阵与参数表省略唯一的组维；Wq的行是两个索引坐标，列依次对应两个查询头拼接后的四个坐标。Q/K/V保持固定。本节调用 <a href="../scripts/g3a_cpu_lesson.py">CPU 教学入口</a>，复用 teacher、TrainableIndexer、kl_rows 和 gather_attention。</p>
 <p>先观察 Wq×2 的独立缩放对照，再从原初始化做 20 步 Adam 更新，学习率 0.02；它们不串联成同一条训练轨迹。</p>
 </div>
 </div>
@@ -8676,7 +8679,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="%E4%BB%8E%E8%BE%93%E5%85%A5%E5%92%8C%E5%8F%82%E6%95%B0%E5%BE%97%E5%88%B0%E4%B8%89%E4%B8%AA%E7%B4%A2%E5%BC%95%E5%88%86%E6%95%B0">从输入和参数得到三个索引分数<a class="anchor-link" href="#%E4%BB%8E%E8%BE%93%E5%85%A5%E5%92%8C%E5%8F%82%E6%95%B0%E5%BE%97%E5%88%B0%E4%B8%89%E4%B8%AA%E7%B4%A2%E5%BC%95%E5%88%86%E6%95%B0">¶</a></h3><p>把两个查询头拼成<code>q=[1,0,0,1]</code>。Wq把四维组查询投影成二维向量，Wk把每个位置的二维K投影成二维索引键；两者点积给出位置分数。</p>
 <p>数学上是 (s_j=(W_q q)^T(W_k k_j)/\sqrt r)。实际代码把<code>1/sqrt(r)</code>预先合入查询投影，所以以下显示的是<code>u_scaled</code>，之后点积时不再除第二次。</p>
-<p>教师则用原Q/K分别计算两个头的主注意力概率，再平均。索引器模仿的是这份位置分布，V不参与这次KL监督。</p>
+<p>教师则用原Q/K分别计算两个头的主注意力概率，再平均。</p>
 </div>
 </div>
 </div>
@@ -8983,8 +8986,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="%E5%8F%82%E6%95%B0%E6%80%8E%E6%A0%B7%E5%8F%98%E6%88%90%E6%96%B0%E5%90%8D%E5%8D%95%E5%92%8C%E5%AE%9E%E9%99%85%E8%AF%BB%E5%87%BA%EF%BC%9F">参数怎样变成新名单和实际读出？<a class="anchor-link" href="#%E5%8F%82%E6%95%B0%E6%80%8E%E6%A0%B7%E5%8F%98%E6%88%90%E6%96%B0%E5%90%8D%E5%8D%95%E5%92%8C%E5%AE%9E%E9%99%85%E8%AF%BB%E5%87%BA%EF%BC%9F">¶</a></h3><p>第一步实际更新后，位置0暂时排在最前；第二步才切到教师最偏重的位置2。下面把输入固定不变时的关键状态放在同一张表里。Wq乘2的对照从初始参数单独复制，20步学习也从原始参数开始，两者没有串起来训练。</p>
-<p>注意这个例子的边界：<strong>只有一个入选位置，没有F，因此每个主注意力头的softmax权重都等于1，输出直接等于该位置的V。</strong> <code>[0,2]→[2,0]→[1,1]</code>展示了换位置；它没有展示多个入选位置之间如何重新分配主注意力权重。主读取仍实际调用gather_attention，不拿索引概率去混合V。</p>
+<h3 id="%E5%8F%82%E6%95%B0%E6%80%8E%E6%A0%B7%E5%8F%98%E6%88%90%E6%96%B0%E5%90%8D%E5%8D%95%E5%92%8C%E5%AE%9E%E9%99%85%E8%AF%BB%E5%87%BA%EF%BC%9F">参数怎样变成新名单和实际读出？<a class="anchor-link" href="#%E5%8F%82%E6%95%B0%E6%80%8E%E6%A0%B7%E5%8F%98%E6%88%90%E6%96%B0%E5%90%8D%E5%8D%95%E5%92%8C%E5%AE%9E%E9%99%85%E8%AF%BB%E5%87%BA%EF%BC%9F">¶</a></h3><p>第一步实际更新后，位置0暂时排在最前；第二步才切到教师最偏重的位置2。</p>
+<p><strong>只有一个入选位置，没有F，因此每个主注意力头的softmax权重都等于1，输出直接等于该位置的V。</strong> <code>[0,2]→[2,0]→[1,1]</code>展示了换位置；它没有展示多个入选位置之间如何重新分配主注意力权重。主读取仍实际调用gather_attention，不拿索引概率去混合V。</p>
 </div>
 </div>
 </div>
@@ -9092,7 +9095,7 @@ Q/K/V保持原值且未收到梯度: True
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="%E8%BF%99%E4%B8%AA%E7%AE%97%E4%BE%8B%E6%94%AF%E6%8C%81%E4%BB%80%E4%B9%88%EF%BC%9F">这个算例支持什么？<a class="anchor-link" href="#%E8%BF%99%E4%B8%AA%E7%AE%97%E4%BE%8B%E6%94%AF%E6%8C%81%E4%BB%80%E4%B9%88%EF%BC%9F">¶</a></h3><p>Wq×2 把全部索引分数同比放大，精确算术下次序不变，因此本例名单与读出保持不变；概率和 KL 会改变，KL 不保证下降。</p>
-<p>20 步学习中，名单由位置 1 经位置 0 切到位置 2；第 2 步以后保持位置 2，读出保持 <code>[1,1]</code>。KL 在这些步骤仍变化，第 18 步后还回升。这份记录把“分布拟合、离散选位、主读出”分成了三个观察量，并没有证明损失每次下降都会改善答案。</p>
+<p>20 步学习中，名单由位置 1 经位置 0 切到位置 2；第 2 步以后保持位置 2，读出保持 <code>[1,1]</code>。KL 在这些步骤仍变化，第 18 步后还回升。连续的分数与 KL 变化，并不在每一步都触发名单或读出变化。</p>
 </div>
 </div>
 </div>
@@ -9158,10 +9161,10 @@ step=20 KL=0.000471562 positions=[2]
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="4.-%E8%AE%AD%E7%BB%83%E6%8D%9F%E5%A4%B1%E3%80%81%E7%95%99%E5%87%BA%E8%A6%86%E7%9B%96%E3%80%81%E5%B1%80%E9%83%A8%E8%AF%AF%E5%B7%AE%E5%88%86%E5%88%AB%E7%9C%8B">4. 训练损失、留出覆盖、局部误差分别看<a class="anchor-link" href="#4.-%E8%AE%AD%E7%BB%83%E6%8D%9F%E5%A4%B1%E3%80%81%E7%95%99%E5%87%BA%E8%A6%86%E7%9B%96%E3%80%81%E5%B1%80%E9%83%A8%E8%AF%AF%E5%B7%AE%E5%88%86%E5%88%AB%E7%9C%8B">¶</a></h2><p>训练固定 50 轮，只在最终参数冻结后计算留出指标。曲线是每轮更新过程中遇到的训练损失，参数在这一轮内持续变化，不能把它当作固定轮末参数的整集损失。</p>
 <p>C 的 KL 使用均匀全候选分布，实际名单仍是均匀随机抽样；D0 是训练前，D 是最终参数，R 用昂贵的完整教师权重取 top-k。R 的 coverage 最优，不保证局部输出误差最小。</p>
-<p>本课表中 <strong>coverage</strong> 与 m_C 配套解释：遗漏完整权重逐查询/组计算 <code>m_C*(1-coverage)</code> 再平均。<strong>输出 RMSE / 相对 L2</strong> 都在 <code>o_proj</code> 前比较子集读出与完整读出；相对 L2 的分母是完整读出范数。R 的 KL 不适用，表中“—”不是零。</p>
+<p><strong>输出 RMSE / 相对 L2</strong> 都在 <code>o_proj</code> 前比较子集读出与完整读出；相对 L2 的分母是完整读出范数。R 的 KL 不适用，表中“—”不是零。</p>
 <p><strong>“局部输出”具体怎样算？</strong> 对某个已保存查询，完整参照用它的主注意力概率加权全部合法 V；少读参照先合并必留位置和选出的候选，再取这些位置的原主注意力概率、在入选集合内重新归一化，并加权对应 V。这等价于用同一 Q 和取出的 K/V 重新做主注意力。索引分数只决定名单，不拿来加权 V。</p>
 <p><strong>这里每次误差比较的对象是一个查询位置、一个 KV 组。</strong> 本组两个查询头各输出一个 128 维向量，代码将它们合成 256 维，分别对少读与完整读取的这两个 256 维向量计算 RMSE、相对 L2；随后在资料内平均查询/组，再平均资料。</p>
-<p>比较停在 <code>o_proj</code> 之前，不把少读向量继续送入其余层，也不由它生成答案。因此表中的输出误差对应这一次局部读取；第六课才让改后的输出真正影响后续层。</p>
+<p>比较停在 <code>o_proj</code> 前；第六课才把少读输出送入后续层。</p>
 <p><strong>87.83% 保住的是什么？</strong> 在这批留出资料中，必留位置平均已承接约 79.29% 的完整权重。表中 D 的 87.83% 是候选部分重新归一化后的覆盖率，不能说成“全部注意力覆盖了 87.83%”。逐查询/组核算后，D 平均遗漏的完整权重约 1.444%；这是把每行 <code>m_C × (1−coverage)</code> 算好再平均，不是把两个平均数相乘。大部分完整权重原本就由必留位置保留，训练的收益要与同规则的 D0 比较。</p>
 </div>
 </div>
@@ -9627,7 +9630,7 @@ k/M 范围: 0.12684365781710916 0.12893243940175347
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="%E5%B9%B3%E5%9D%87%E6%94%B9%E5%96%84%E4%B9%8B%E5%90%8E%EF%BC%8C%E8%BF%98%E5%89%A9%E4%BB%80%E4%B9%88%EF%BC%9F">平均改善之后，还剩什么？<a class="anchor-link" href="#%E5%B9%B3%E5%9D%87%E6%94%B9%E5%96%84%E4%B9%8B%E5%90%8E%EF%BC%8C%E8%BF%98%E5%89%A9%E4%BB%80%E4%B9%88%EF%BC%9F">¶</a></h3><p>在本批留出的 512 个查询/组组合（16 份资料 × 4 个查询位置 × 8 个 KV 组）中，已核验的 <strong>coverage 和输出相对 L2</strong> 均无相对 D0 退化的行。这个说法只覆盖这两项局部指标；本阶段没有生成答案。</p>
+<h3 id="%E5%B9%B3%E5%9D%87%E6%94%B9%E5%96%84%E4%B9%8B%E5%90%8E%EF%BC%8C%E8%BF%98%E5%89%A9%E4%BB%80%E4%B9%88%EF%BC%9F">平均改善之后，还剩什么？<a class="anchor-link" href="#%E5%B9%B3%E5%9D%87%E6%94%B9%E5%96%84%E4%B9%8B%E5%90%8E%EF%BC%8C%E8%BF%98%E5%89%A9%E4%BB%80%E4%B9%88%EF%BC%9F">¶</a></h3><p>在本批留出的 512 个查询/组组合（16 份资料 × 4 个查询位置 × 8 个 KV 组）中，已核验的 <strong>coverage 和输出相对 L2</strong> 均无相对 D0 退化的行。</p>
 <p>下面列出组间差异，以及 D 的相对输出误差仍最大的一行。该残余误差案例在运行后选出，只用于解释，未影响训练配置。</p>
 </div>
 </div>
@@ -9761,7 +9764,7 @@ D 平均遗漏的完整权重: 0.01444
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="6.-%E5%93%AA%E6%9D%A1%E8%AF%81%E6%8D%AE%E6%88%90%E7%AB%8B%EF%BC%8C%E5%93%AA%E6%9D%A1%E4%BB%8D%E7%84%B6%E6%B2%A1%E6%9C%89%EF%BC%9F">6. 哪条证据成立，哪条仍然没有？<a class="anchor-link" href="#6.-%E5%93%AA%E6%9D%A1%E8%AF%81%E6%8D%AE%E6%88%90%E7%AB%8B%EF%BC%8C%E5%93%AA%E6%9D%A1%E4%BB%8D%E7%84%B6%E6%B2%A1%E6%9C%89%EF%BC%9F">¶</a></h2><p>留出资料上，D0→D 的平均 KL 为 2.85786→0.13534，条件覆盖率为 0.24359→0.87831，局部输出相对 L2 为 0.20997→0.02196。训练损失、留出分布、实际选位与局部读出分别得到检查。相同名额下，R 可以选到最多教师权重，但 V 的方向也会影响输出误差。</p>
 <p>这些新资料仍使用同一生成器、提示和填充句库。留出改善可能说明学到了本分布中的稳定读取模式；不能自动解释成学会了找答案，更不能声称泛化到其他提示、长度、层或模型。</p>
-<p>本轮没有稀疏自由生成、整模型任务分数、速度测量、全层训练或从资料阶段开始稀疏。完整代码、失败预检、参数和全部记录均保留；后续另行授权的各层训练和真实推理见第五、六课，不计入本课结果。</p>
+<p>后续各层训练和真实推理见第五、六课。</p>
 </div>
 </div>
 </div>
