@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1110" viewBox="0 0 1440 1110" role="img" aria-labelledby="title desc">
-  <title id="title">本层读出先改变，下一层的 Q 才开始不同</title>
-  <desc id="desc">两种方法处理相同输入token，各自维护缓存。保存的首个答案预测位置上，前13层完整计算使第14层输入与Q相同。第14层A读取全部K/V，D-one读取入选K/V，其注意力读出已有差异。经过输出投影、残差、MLP后，第15层输入与Q出现差异。新读出不会倒流修改已计算的本层K/V。此图描述保存记录的层间顺序，不定位具体错误或信息中转位置。</desc>
+  <title id="title">图 6-1｜本层读出先改变，下一层的 Q 才开始不同</title>
+  <desc id="desc">图 6-1。两种方法处理相同输入token，各自维护缓存。保存的首个答案预测位置上，前13层完整计算使第14层输入与Q相同。第14层A读取全部K/V，D-one读取入选K/V，其注意力读出已有差异。经过输出投影、残差、MLP后，第15层输入与Q出现差异。新读出不会倒流修改已计算的本层K/V。此图描述保存记录的层间顺序，不定位具体错误或信息中转位置。</desc>
   <metadata>Source: src/attention_lab/inference.py::StepCapture,state_difference; bench/g3c_diagnostics.py; reports/g3c_summary_mac_m4max.json. Static teaching schematic. No new model run. Box sizes do not encode time, token count, or vector size.</metadata>
   <defs>
     <style>
@@ -24,7 +24,7 @@
     <marker id="gradient-arrow" viewBox="0 0 10 10" refX="8.7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill="#b45309"/></marker>
   </defs>
   <rect width="1440" height="1110" rx="20" fill="#fff"/>
-<text x="38" y="52" class="title" >本层读出先改变，下一层的 Q 才开始不同</text>
+<text x="38" y="52" class="title" >图 6-1｜本层读出先改变，下一层的 Q 才开始不同</text>
 <text x="40" y="91" class="note" >A：所有层完整读取 · D-one：只有第 14 层使用训练后的稀疏读取，其余层完整读取</text>
 <rect x="130" y="125" width="1180" height="70" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5" />
 <text x="720.0" y="168.0" class="small center" >两边输入同一串 token，各自维护缓存；图中取问题和模板处理完、预测首个答案的那一步。</text>

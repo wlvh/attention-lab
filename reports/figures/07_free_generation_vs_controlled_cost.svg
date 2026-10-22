@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1220" viewBox="0 0 1440 1220" role="img" aria-labelledby="title desc">
-  <title id="title">答题反馈自己的 token，计时输入预存的 token</title>
-  <desc id="desc">质量实验从问题模板最后一步的预测开始，选择自己最高分token，遇EOS或64 token上限停止，否则将该token送回本方法产生下一次预测。成本实验事先保存A产生的32个控制token，所有方法依次输入同一串，不让本次预测决定下一次输入，EOS也不提前停。新缓存请求计时包含缓存分配、完整资料Prefill、问题模板与32次控制前向，模型加载在计时前。</desc>
+  <title id="title">图 7-2｜答题反馈自己的 token，计时输入预存的 token</title>
+  <desc id="desc">图 7-2。质量实验从问题模板最后一步的预测开始，选择自己最高分token，遇EOS或64 token上限停止，否则将该token送回本方法产生下一次预测。成本实验事先保存A产生的32个控制token，所有方法依次输入同一串，不让本次预测决定下一次输入，EOS也不提前停。新缓存请求计时包含缓存分配、完整资料Prefill、问题模板与32次控制前向，模型加载在计时前。</desc>
   <metadata>Source: src/attention_lab/inference.py::question_forward,free_generate,fixed_greedy_tokens; bench/g4lite_quality_cost.py::main. Static teaching schematic. No new model run. Box sizes do not encode time, token count, or vector size.</metadata>
   <defs>
     <style>
@@ -24,7 +24,7 @@
     <marker id="gradient-arrow" viewBox="0 0 10 10" refX="8.7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill="#b45309"/></marker>
   </defs>
   <rect width="1440" height="1220" rx="20" fill="#fff"/>
-<text x="38" y="52" class="title" >答题反馈自己的 token，计时输入预存的 token</text>
+<text x="38" y="52" class="title" >图 7-2｜答题反馈自己的 token，计时输入预存的 token</text>
 <text x="40" y="91" class="note" >两种循环分开运行 · 都先完整处理资料，再处理问题及模板；各方法始终维护自己的缓存</text>
 <rect x="32" y="128" width="666" height="540" rx="12" fill="#f8fcfa" stroke="#b4d8ca" stroke-width="1.5" />
 <rect x="742" y="128" width="666" height="540" rx="12" fill="#fcfaff" stroke="#d2c3ea" stroke-width="1.5" />

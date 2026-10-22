@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1260" viewBox="0 0 1440 1260" role="img" aria-labelledby="title desc">
-  <title id="title">训练改分数；选哪些位置、读出什么，另行检查</title>
-  <desc id="desc">完整模型提供固定Q/K/V。教师先对两个主查询头分别softmax，再平均概率，去掉固定位置并记录候选原总权重m_C，将候选重新归一化。索引分支用RoPE前Q/K，经仅可训练的Wq/Wk得到32维投影、候选分数与softmax。KL的梯度只更新Wq/Wk，不经过top-k、不更新主体。参数冻结后，top-k候选加固定位置，再用原主注意力加权V，比较两个256维局部读出，停在o_proj之前。</desc>
+  <title id="title">图 4-1｜训练改分数；选哪些位置、读出什么，另行检查</title>
+  <desc id="desc">图 4-1。完整模型提供固定Q/K/V。教师先对两个主查询头分别softmax，再平均概率，去掉固定位置并记录候选原总权重m_C，将候选重新归一化。索引分支用RoPE前Q/K，经仅可训练的Wq/Wk得到32维投影、候选分数与softmax。KL的梯度只更新Wq/Wk，不经过top-k、不更新主体。参数冻结后，top-k候选加固定位置，再用原主注意力加权V，比较两个256维局部读出，停在o_proj之前。</desc>
   <metadata>Source: src/attention_lab/g3a.py::TrainableIndexer.forward,teacher,query_rows,loss_for_document,selection_metrics. Static teaching schematic. No new model run. Box sizes do not encode time, token count, or vector size.</metadata>
   <defs>
     <style>
@@ -24,7 +24,7 @@
     <marker id="gradient-arrow" viewBox="0 0 10 10" refX="8.7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill="#b45309"/></marker>
   </defs>
   <rect width="1440" height="1260" rx="20" fill="#fff"/>
-<text x="38" y="52" class="title" >训练改分数；选哪些位置、读出什么，另行检查</text>
+<text x="38" y="52" class="title" >图 4-1｜训练改分数；选哪些位置、读出什么，另行检查</text>
 <text x="40" y="91" class="note" >第 14 层的冻结特征 · 下图放大同一个查询位置、同一个 KV 组（2 个查询头）</text>
 <rect x="170" y="122" width="1100" height="85" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5" />
 <text x="720.0" y="157.0" class="body center" >完整模型已提取：本组 2 个 128 维 Q，以及本步所有合法历史 K / V</text>

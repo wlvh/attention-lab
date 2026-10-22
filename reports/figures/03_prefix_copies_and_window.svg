@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1040" viewBox="0 0 1440 1040" role="img" aria-labelledby="title desc">
-  <title id="title">资料缓存相同，问题开始后各方法走自己的计算</title>
-  <desc id="desc">同一份2050 token资料前缀不含问题，完整Prefill后复制给A、B、C、D0。各方法独立输入相同35 token问题和模板，随后用自己的输出自由生成、更新自己的缓存。首个答案预测时合法历史2085，B读开头4和最近320；最近320由285个资料token和35个问题模板token组成，总读取324。区段宽度不按token数比例。</desc>
+  <title id="title">图 3-1｜资料缓存相同，问题开始后各方法走自己的计算</title>
+  <desc id="desc">图 3-1。同一份2050 token资料前缀不含问题，完整Prefill后复制给A、B、C、D0。各方法独立输入相同35 token问题和模板，随后用自己的输出自由生成、更新自己的缓存。首个答案预测时合法历史2085，B读开头4和最近320；最近320由285个资料token和35个问题模板token组成，总读取324。区段宽度不按token数比例。</desc>
   <metadata>Source: bench/g2lite_quality.py::main; reports/g2lite_answers_mac_m4max.json; notebooks/03_what_is_lost_when_reading_less.ipynb. Static teaching schematic. No new model run. Box sizes do not encode time, token count, or vector size.</metadata>
   <defs>
     <style>
@@ -24,7 +24,7 @@
     <marker id="gradient-arrow" viewBox="0 0 10 10" refX="8.7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill="#b45309"/></marker>
   </defs>
   <rect width="1440" height="1040" rx="20" fill="#fff"/>
-<text x="38" y="52" class="title" >资料缓存相同，问题开始后各方法走自己的计算</text>
+<text x="38" y="52" class="title" >图 3-1｜资料缓存相同，问题开始后各方法走自己的计算</text>
 <text x="40" y="91" class="note" >真实案例 T1-2K-00 · 问编号 1563 对应的值 · 原资料目标值为 8422 · ρ=1/8</text>
 <rect x="40" y="127" width="380" height="94" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5" />
 <text x="230.0" y="166.5" class="small center" >资料前缀：2,050 个 token</text>

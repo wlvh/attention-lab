@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1180" viewBox="0 0 1440 1180" role="img" aria-labelledby="title desc">
-  <title id="title">索引只选位置，主注意力仍读原来的 K/V</title>
-  <desc id="desc">本层输入经过原投影与归一化后分成两路。主Q/K经RoPE，K与不旋转的V按原位置写入完整缓存。索引用RoPE前的Q/K：每组两个128维Q拼成256维，经Wq变成32维u，新K经Wk变成32维z并追加到历史索引表。u给候选z打分，top-k名单与首4近64位置合并，主注意力按名单取原128维K/V重新打分、softmax和加权V，随后继续原输出投影、残差和MLP。</desc>
+  <title id="title">图 2-1｜索引只选位置，主注意力仍读原来的 K/V</title>
+  <desc id="desc">图 2-1。本层输入经过原投影与归一化后分成两路。主Q/K经RoPE，K与不旋转的V按原位置写入完整缓存。索引用RoPE前的Q/K：每组两个128维Q拼成256维，经Wq变成32维u，新K经Wk变成32维z并追加到历史索引表。u给候选z打分，top-k名单与首4近64位置合并，主注意力按名单取原128维K/V重新打分、softmax和加权V，随后继续原输出投影、残差和MLP。</desc>
   <metadata>Source: reports/provenance/g1b/qwen_wrap_at_formal_decode_run.py::LabAttention.forward; reports/provenance/g1b/decode_at_g1a_g1b_runs.py::sparse_decode_step_kernel. Static teaching schematic. No new model run. Box sizes do not encode time, token count, or vector size.</metadata>
   <defs>
     <style>
@@ -24,7 +24,7 @@
     <marker id="gradient-arrow" viewBox="0 0 10 10" refX="8.7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill="#b45309"/></marker>
   </defs>
   <rect width="1440" height="1180" rx="20" fill="#fff"/>
-<text x="38" y="52" class="title" >索引只选位置，主注意力仍读原来的 K/V</text>
+<text x="38" y="52" class="title" >图 2-1｜索引只选位置，主注意力仍读原来的 K/V</text>
 <text x="40" y="91" class="note" >Qwen3-0.6B 的某一层、一个新 token · 8 个 KV 组，每组服务 2 个查询头</text>
 <rect x="390" y="122" width="660" height="70" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5" />
 <text x="720.0" y="165.0" class="body center" >当前 token：本层输入（1,024 维）</text>

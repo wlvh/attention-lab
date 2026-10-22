@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1190" viewBox="0 0 1440 1190" role="img" aria-labelledby="diagram-title diagram-desc">
-  <title id="diagram-title">G0 与 G1a：测量的终点不同</title>
-  <desc id="diagram-desc">按32K档、某一层某一个KV组示意。左侧G0分别对打分、top-k、取K/V计时，各项使用准备好的输入；另测三步短链，最终只得到1024个位置的完整128维K/V。右侧G1a比较完整A与索引D的整段读取：A对32768个位置做主注意力；D更新新位置索引、计算查询索引，给32700个候选打分并选1024个，与已备首4近64的68个位置合并，取1092个原K/V，再由主QK重新打分、softmax、加权V。A和D均输出每查询头128维的注意力向量。灰框为准备好的输入，虚线框为计时范围。图中的D采用D_full口径。两组均使用人工数组，未运行语言模型。</desc>
+  <title id="diagram-title">图 1-1｜G0 与 G1a：测量的终点不同</title>
+  <desc id="diagram-desc">图 1-1。按32K档、某一层某一个KV组示意。左侧G0分别对打分、top-k、取K/V计时，各项使用准备好的输入；另测三步短链，最终只得到1024个位置的完整128维K/V。右侧G1a比较完整A与索引D的整段读取：A对32768个位置做主注意力；D更新新位置索引、计算查询索引，给32700个候选打分并选1024个，与已备首4近64的68个位置合并，取1092个原K/V，再由主QK重新打分、softmax、加权V。A和D均输出每查询头128维的注意力向量。灰框为准备好的输入，虚线框为计时范围。图中的D采用D_full口径。两组均使用人工数组，未运行语言模型。</desc>
   <metadata>Sources: scripts/g0_probe.py::index_path_cost; reports/provenance/microbench_at_formal_runs.py::LayerSet; reports/provenance/g1b/decode_at_g1a_g1b_runs.py::sparse_decode_step_kernel. Teaching schematic; no new model run; box size does not encode time.</metadata>
   <defs>
     <style>
@@ -31,7 +31,7 @@
   </defs>
 
   <rect width="1440" height="1190" rx="20" fill="#fff"/>
-  <text x="38" y="52" class="title">G0 与 G1a：测量的终点不同</text>
+  <text x="38" y="52" class="title">图 1-1｜G0 与 G1a：测量的终点不同</text>
   <text x="40" y="88" class="note">32K 档示意 · 数量均按某一层、某一 KV 组计算 · 原 K/V 各 128 维，索引向量 32 维</text>
   <rect x="32" y="111" width="1376" height="48" rx="10" fill="#f8fafc"/>
   <rect x="50" y="124" width="27" height="21" rx="4" class="input"/>

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1020" viewBox="0 0 1440 1020" role="img" aria-labelledby="title desc">
-  <title id="title">训练下一层时，仍由完整模型提供特征</title>
-  <desc id="desc">同一批48份训练和16份旧开发资料由冻结完整模型处理。针对当前目标层提取Q/K/V，训练本层Wq/Wk50轮，冻结后局部评测，保存本层参数指标并释放临时特征，再改为提取下一层。27层新训练，第14层复用。每一层的特征来自完整路径，不由前一层稀疏输出提供；32份新最终测试资料不参与此过程。</desc>
+  <title id="title">图 5-1｜训练下一层时，仍由完整模型提供特征</title>
+  <desc id="desc">图 5-1。同一批48份训练和16份旧开发资料由冻结完整模型处理。针对当前目标层提取Q/K/V，训练本层Wq/Wk50轮，冻结后局部评测，保存本层参数指标并释放临时特征，再改为提取下一层。27层新训练，第14层复用。每一层的特征来自完整路径，不由前一层稀疏输出提供；32份新最终测试资料不参与此过程。</desc>
   <metadata>Source: bench/g3b_train.py::main; src/attention_lab/g3b.py::train_layer,evaluate_layer; src/attention_lab/g3a.py::extract_features. Static teaching schematic. No new model run. Box sizes do not encode time, token count, or vector size.</metadata>
   <defs>
     <style>
@@ -24,7 +24,7 @@
     <marker id="gradient-arrow" viewBox="0 0 10 10" refX="8.7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill="#b45309"/></marker>
   </defs>
   <rect width="1440" height="1020" rx="20" fill="#fff"/>
-<text x="38" y="52" class="title" >训练下一层时，仍由完整模型提供特征</text>
+<text x="38" y="52" class="title" >图 5-1｜训练下一层时，仍由完整模型提供特征</text>
 <text x="40" y="91" class="note" >G3b-lite 的处理次序 · 各层的索引参数分别训练，训练好的前层暂不接入模型</text>
 <rect x="40" y="124" width="1360" height="66" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5" />
 <text x="720.0" y="165.0" class="body center" >重复使用 48 份训练资料 ＋ 16 份旧开发资料；另留的 32 份新最终测试资料此时不用。</text>
